@@ -67,5 +67,13 @@ I guess i will put it on github some day ..
 		
 	</target>
 
+	<target name="clean" >
+
+		<delete dir="${processing.libs}/${lib.name}" />
+		<delete dir="${dist}" />
+		<delete dir="${bin}" />
+
+	</target>
+
 </project>
 
