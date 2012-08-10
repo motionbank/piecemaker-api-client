@@ -38,6 +38,7 @@ var PieceMakerApi = (function(){
 				// 	// 			'Basic '+user.login+':'+user.password );
 				// 	// }
 				// },
+				context: context,
                 success: success,
                 error: function ( response ) {
                     xhrError( response );
@@ -78,10 +79,10 @@ var PieceMakerApi = (function(){
 		baseUrl 	= params['baseUrl'] || 'http://localhost:3000';
 	}
 
-	PieceMakerApi.prototype.login = function ( callback ) {
-		var cb = (listener && listener.pmDataAvailable) || callback || noop;
+	PieceMakerApi.prototype.login = function ( cb ) {
+		var callback = cb || (listener && listener.pmDataAvailable) || noop;
 		if ( arguments.length == 1 ) {
-			cb = arguments[0];
+			callback = arguments[0];
 		} else if ( arguments.length == 2 ) {
 			// TODO: validate user / pass before sending to server?
 			user = { login: arguments[0], 
@@ -94,7 +95,7 @@ var PieceMakerApi = (function(){
 	        success: function ( response ) {
 				if ( response.status ) {
 	            	isLoggedIn = true;
-					cb && cb( PieceMakerApi.USER, response );
+					callback.call( cb || listener, PieceMakerApi.USER, response );
 				} else {
 					if ( listener && 'pmLoginFailed' in listener )
 						listener.pmLoginFailed();
@@ -111,113 +112,105 @@ var PieceMakerApi = (function(){
 	PieceMakerApi.VIDEO 	= 5;
 	PieceMakerApi.VIDEOS 	= 6;
 
-	PieceMakerApi.prototype.loadPiece = function ( pieceId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadPiece = function ( pieceId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 	    xhrGet( this, {
 	        url: baseUrl + '/api/piece/'+pieceId,
 	        success: function ( response ) {
-				callback( PieceMakerApi.PIECE, response );
+				callback.call( cb || listener, PieceMakerApi.PIECE, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.loadPieces = function ( arr, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadPieces = function ( cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 	    xhrGet( this, {
 	        url: baseUrl + '/api/pieces',
 	        success: function ( response ) {
-	            arr = (new listener.ArrayList());
-	            arr.addAll( response.pieces );
-				callback( PieceMakerApi.PIECES, arr );
+				callback.call( cb || listener, PieceMakerApi.PIECES, response );
 	        }
 	    });
 	}
 	
-	PieceMakerApi.prototype.loadEventsForPiece = function ( pieceId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadEventsForPiece = function ( pieceId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrGet( this, {
 	        url: baseUrl + '/api/piece/'+pieceId+'/events',
 	        success: function ( response ) {
-	            arr = (new listener.ArrayList());
-	            arr.addAll( response.events );
-				callback( PieceMakerApi.EVENTS, arr );
+				callback.call( cb || listener, PieceMakerApi.EVENTS, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.loadVideosForPiece = function ( pieceId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadVideosForPiece = function ( pieceId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrGet( this, {
 	        url: baseUrl + '/api/piece/'+pieceId+'/videos',
 	        success: function ( response ) {
-	            arr = (new listener.ArrayList());
-	            arr.addAll( response.videos );
-				callback( PieceMakerApi.VIDEOS, arr );
+				callback.call( cb || listener, PieceMakerApi.VIDEOS, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.loadVideo = function ( videoId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadVideo = function ( videoId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrGet( this, {
 	        url: baseUrl + '/api/video/'+videoId,
 	        success: function ( response ) {
-				callback( PieceMakerApi.VIDEO, response );
+				callback.call( cb || listener, PieceMakerApi.VIDEO, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.loadEventsForVideo = function ( videoId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadEventsForVideo = function ( videoId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrGet( this, {
 	        url: baseUrl + '/api/video/'+videoId+'/events',
 	        success: function ( response ) {
-	            arr = (new listener.ArrayList());
-	            arr.addAll( response.events );
-				callback( PieceMakerApi.EVENTS, arr );
+				callback.call( cb || listener, PieceMakerApi.EVENTS, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.loadEvent = function ( eventId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.loadEvent = function ( eventId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrGet( this, {
 	        url: baseUrl + '/api/event/'+eventId,
 	        success: function ( response ) {
-	            callback( PieceMakerApi.EVENT, response );
+	            callback.call( cb || listener, PieceMakerApi.EVENT, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.createEvent = function ( data, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.createEvent = function ( data, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrPost( this, {
 	        url: baseUrl + '/api/event',
 	        data: data,
 	        success: function ( response ) {
-	            callback( PieceMakerApi.EVENT, response );
+	            callback.call( cb || listener, PieceMakerApi.EVENT, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.saveEvent = function ( eventId, data, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.saveEvent = function ( eventId, data, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		xhrPost( this, {
 	        url: baseUrl + '/api/event/'+eventId+'/update',
 	        data: data,
 	        success: function ( response ) {
-	            callback( PieceMakerApi.EVENT, response );
+	            callback.call( cb || listener, PieceMakerApi.EVENT, response );
 	        }
 	    });
 	}
 
-	PieceMakerApi.prototype.deleteEvent = function ( eventId, callback ) {
-		callback = callback || (listener && listener.pmDataAvailable) || noop;
+	PieceMakerApi.prototype.deleteEvent = function ( eventId, cb ) {
+		callback = cb || (listener && listener.pmDataAvailable) || noop;
 		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
 		xhrPost( this, {
 	        url: baseUrl + '/api/event/'+eventId+'/delete',
 	        success: function ( response ) {
-	            callback( PieceMakerApi.EVENT, response );
+	            callback.call( cb || listener, PieceMakerApi.EVENT, response );
 	        }
 	    });
 	}
