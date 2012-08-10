@@ -1,24 +1,30 @@
-<project name="PieceMaker" default="build" basedir="./">
+<project name="PieceMakerLib" default="install" basedir="./">
 
-	<!-- ++++++++++++++++++++++++++++++++++++++++++
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 	
-		PieceMaker for Java.
-		
-		This is a wrapper around PMs models.
-		... for now.
+		PieceMaker for Java/Processing
 	
-	+++++++++++++++++++++++++++++++++++++++++++ -->
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		SETTINGS
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	
-	<property name="src" value="src" />
-	<property name="build" value="build" />
-	<property name="bin" value="bin" />
-	<property name="dist" value="dist" />
-	<property name="lib.name" value="PieceMaker4J" />
-	<property name="java.target.version" value="1.5" />
+	<property name="src" 		value="src" 			/>
+	<property name="build" 		value="build" 			/>
+	<property name="bin" 		value="bin" 			/>
+	<property name="dist" 		value="dist" 			/>
+	<property name="docs" 		value="docs" 			/>
+	<property name="lib.name" 	value="PieceMakerLib" 	/>
+	<property name="author"		value="Florian Jenett" 	/>
+	<property name="client"		value="Motion Bank" 	/>
+	<property name="version" 	value="0.0.1" 			/>
+	<property name="java.target.version" 
+								value="1.5" 			/>
 	
 	<!--property name="processing.classes" location="/Applications/Processing.app/Contents/Resources/Java/"/-->
-	<property name="processing.classes" location="/Users/fjenett/Repos/processing/processing/build/macosx/work/Processing.app/Contents/Resources/Java/"/>
-	<property name="processing.libs" location="/Users/fjenett/Documents/Processing/libraries"/>	
+	<property name="processing.classes" 
+			  location="/Users/fjenett/Repos/processing/processing/build/macosx/work/Processing.app/Contents/Resources/Java/"/>
+	<property name="processing.libs" 
+			  location="/Users/fjenett/Documents/Processing/libraries"/>	
 
 	<path id="library-classpath">
 		<fileset dir="${processing.classes}" >
@@ -26,12 +32,27 @@
 		</fileset>
 	</path>
 	
+	<path id="junit-classpath">
+		<fileset dir="res" >
+			<include name="junit-4.9b3.jar"/>
+		</fileset>
+	</path>
+	
+	<taskdef name="jscomp" classname="com.google.javascript.jscomp.ant.CompileTask"
+	           			   classpath="../_resources/closure-compiler/compiler.jar"/>
+	
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		HELP
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	<target name="help">
 		<echo>
-I guess i will put it on github some day ..
+See readme for time being please.
 		</echo>
 	</target>
-
+	
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		BUILD
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	<target name="build">
 		
 		<mkdir dir="${build}" />
@@ -44,18 +65,52 @@ I guess i will put it on github some day ..
 			</classpath>
 		</javac>
 		
+		<buildnumber file="res/build_number"/>
+		
 	</target>
 	
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		PACK
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	<target name="package" depends="build">
 		
 		<delete dir="${dist}" />
 		<mkdir dir="${dist}" />
 		<mkdir dir="${dist}/library" />
 		
-		<jar jarfile="${dist}/library/${lib.name}.jar" basedir="${bin}"/>
+		<jar jarfile="${dist}/library/${lib.name}.jar" basedir="${bin}" />
+		
+		<mkdir dir="${dist}/${docs}" />
+		<javadoc bottom="${lib.name}, vers. ${version} - build #${build.number}, by ${author} for ${client}. ${copyright}"
+				 public="true" version="false" destdir="${dist}/${docs}" verbose="false" 
+				 stylesheetfile="res/stylesheet.css" 
+				 doctitle="${lib.name} #${vers}-${build.number} Java documentation" 
+				 windowtitle="${lib.name} #${vers}-${build.number} Java documentation">
+			<fileset dir="${src}" defaultexcludes="yes">
+				<include name="**/*"/>
+			</fileset>
+			<classpath>
+				<path refid="library-classpath" />
+				<path refid="junit-classpath" />
+			</classpath>
+		</javadoc>
+		
+		<concat destfile="${bin}/${lib.name}.js">
+			<fileset file="src-js/*.js" />
+		</concat>
+		
+		<jscomp compilationLevel="simple" warning="default" 
+		        debug="false" output="${dist}/library/${lib.name}.js">
+			<sources dir="${bin}">
+				<file name="${lib.name}.js" />
+			</sources>
+		</jscomp>
 		
 	</target>
 	
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		INSTALL
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	<target name="install" depends="package" >
 		
 		<delete dir="${processing.libs}/${lib.name}" />
@@ -66,7 +121,10 @@ I guess i will put it on github some day ..
 		</copy>
 		
 	</target>
-
+	
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		CLEAN
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	<target name="clean" >
 
 		<delete dir="${processing.libs}/${lib.name}" />
@@ -75,5 +133,11 @@ I guess i will put it on github some day ..
 
 	</target>
 
+	
+	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
+		TEST
+	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
+	<target name="test" depends="build">
+	</target>
 </project>
 
