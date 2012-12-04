@@ -25,8 +25,9 @@
 	<!--property name="processing.classes" location="/Applications/Processing.app/Contents/Resources/Java/"/-->
 	<property name="processing.classes" 
 			  location="/Users/fjenett/Repos/processing/processing/build/macosx/work/Processing.app/Contents/Resources/Java/"/>
+
 	<property name="processing.libs" 
-			  location="/Users/fjenett/Documents/Processing/libraries"/>	
+			  location="/Users/fjenett/Documents/Processing/libraries"/>
 
 	<path id="library-classpath">
 		<fileset dir="${processing.classes}" >
@@ -85,17 +86,17 @@ See readme for time being please.
 		
 		<delete dir="${dist}" />
 		<mkdir dir="${dist}" />
-		<mkdir dir="${dist}/library" />
+		<mkdir dir="${dist}/${lib.name}/library" />
 		
-		<jar jarfile="${dist}/library/${lib.name}.jar" basedir="${bin}" />
+		<jar jarfile="${dist}/${lib.name}/library/${lib.name}.jar" basedir="${bin}" />
 
-		<copy todir="${dist}/library/">
+		<copy todir="${dist}/${lib.name}/library/">
 			<path refid="library-classpath" />
 		</copy>
 		
-		<mkdir dir="${dist}/${docs}" />
+		<mkdir dir="${dist}/${lib.name}/${docs}" />
 		<javadoc bottom="${lib.name}, vers. ${version} - build #${build.number}, by ${author} for ${client}. ${copyright}"
-				 public="true" version="false" destdir="${dist}/${docs}" verbose="false" 
+				 public="true" version="false" destdir="${dist}/${lib.name}/${docs}" verbose="false" 
 				 stylesheetfile="res/stylesheet.css" 
 				 doctitle="${lib.name} #${version}-${build.number} Java documentation" 
 				 windowtitle="${lib.name} #${version}-${build.number} Java documentation">
@@ -113,19 +114,23 @@ See readme for time being please.
 		<concat destfile="${bin}/${lib.name}.js">
 			<fileset file="src-js/*.js" />
 		</concat>
-
-		<replaceregexp file="${bin}/${lib.name}.js" flags="g"
-  					   match="##build##" replace="${build.number}" />
-		<replaceregexp file="${bin}/${lib.name}.js" flags="g"
-  					   match="##version##" replace="${version}" />
 		
 		<jscomp compilationLevel="simple" warning="default" 
-		        debug="false" output="${dist}/library/${lib.name}.js">
+		        debug="false" output="${bin}/${lib.name}-compiled.js">
 			<sources dir="${bin}">
 				<file name="${lib.name}.js" />
 			</sources>
 		</jscomp>
-		
+
+		<concat destfile="${dist}/${lib.name}/library/${lib.name}.js">
+			<fileset file="res/js-header.js" />
+			<fileset file="${bin}/${lib.name}-compiled.js" />
+		</concat>
+
+		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
+  					   match="##build##" replace="${build.number}" />
+		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
+  					   match="##version##" replace="${version}" />
 	</target>
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
