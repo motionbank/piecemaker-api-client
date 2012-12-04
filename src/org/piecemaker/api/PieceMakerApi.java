@@ -42,7 +42,7 @@ public class PieceMakerApi
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
 
-	private String base_url;
+	private String base_url = "http://127.0.0.1";
 	private String user_name, user_pass;
 	private String api_key;
 
@@ -55,42 +55,47 @@ public class PieceMakerApi
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
 
-	public PieceMakerApi ( Object...args ) 
+	public PieceMakerApi ( String api_key )
 	{
-		if ( args.length > 0 ) 
-		{
-			if ( args[0] != null )
-			{
-				if ( args[0].getClass() == HashMap.class )
-				{
-					HashMap params = (HashMap)args[0];
-					
-					Object context = params.get( "context" );
-					setContext( context );
+		setApiKey( api_key );
 
-					String base_url = (String)params.get( "base_url" );
-					setBaseUrl( base_url );
+		ensureApiKey();
+	}
 
-					String api_key = (String)params.get( "api_key" );
-					setApiKey( api_key );
-				}
-				else
-				{
-					if ( args[0] != null && args[0].getClass() == String.class ) 
-						setApiKey( (String)args[0] );
+	public PieceMakerApi ( Object context, String api_key ) {
+		setApiKey( api_key );
+		setContext( context );
 
-					if ( args.length > 1 && args[1] != null ) 
-						setContext( args[1] );
-					
-					if ( args.length > 2 && args[2] != null && args[2].getClass() == String.class ) 
-						setBaseUrl( (String)args[2] );
-				}
-			}
-		}
+		ensureApiKey();
+	}
 
-		if ( api_key == null ) {
-			System.err.println("A Piecemaker API-key is required!");
-		}
+	public PieceMakerApi ( String api_key, String base_url ) {
+		setApiKey( api_key );
+		setBaseUrl( base_url );
+
+		ensureApiKey();
+	}
+
+	public PieceMakerApi ( Object context, String api_key, String base_url ) {
+		setApiKey( api_key );
+		setContext( context );
+		setBaseUrl( base_url );
+
+		ensureApiKey();
+	}
+
+	public PieceMakerApi ( HashMap params ) 
+	{
+		Object context = params.get( "context" );
+		setContext( context );
+
+		String base_url = (String)params.get( "base_url" );
+		setBaseUrl( base_url );
+
+		String api_key = (String)params.get( "api_key" );
+		setApiKey( api_key );
+
+		ensureApiKey();
 	}
 
 	/* + + + + + + + + + + + + + + + + + + + + +
@@ -149,6 +154,11 @@ public class PieceMakerApi
 	public void saveEvent ( int eventId, HashMap data, ApiCallback callback ) {}
 	public void deleteEvent ( int eventId, ApiCallback callback ) {}
 	public void findEvents ( HashMap opts, ApiCallback callback ) {}
+
+	public ApiCallback createCallback ( String method )
+	{
+		return new ApiCallback( context, method );
+	}
 
 	public ApiCallback createCallback ( Object target, String method )
 	{
@@ -285,6 +295,13 @@ public class PieceMakerApi
 	 +	Private methods
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
+
+	private void ensureApiKey ()
+	{
+		if ( api_key == null ) {
+			System.err.println("A Piecemaker API-key is required!");
+		}
+	}
 
 	private void setBaseUrl ( String base_url )
 	{

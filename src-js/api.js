@@ -20,7 +20,7 @@ var PieceMakerApi = (function(){
 	// http://www.html5rocks.com/en/tutorials/cors/
 	
     var xhrRequest = function ( context, url, type, data, success ) {
-    	if ( user && api_key ) {
+    	if ( api_key ) {
     		if ( data && !('api_key' in data) ) {
     			data['api_key'] = api_key
     		} else if ( !data ) {
@@ -79,9 +79,21 @@ var PieceMakerApi = (function(){
          
 		var params = arguments[0];
 		
-        context 	= params.context || {};
-		api_key		= params.api_key || false;
-		baseUrl 	= params['baseUrl'] || 'http://localhost:3000';
+		if ( arguments.length == 1 && typeof params == 'object' ) {
+	        context 	= params.context || {};
+			api_key		= params.api_key || false;
+			baseUrl 	= params['baseUrl'] || 'http://localhost:3000';
+		} else {
+			if ( arguments.length >= 1 && typeof arguments[0] == 'object' ) {
+				context = arguments[0];
+			}
+			if ( arguments.length >= 2 && typeof arguments[1] == 'string' ) {
+				api_key = arguments[1];
+			}
+			if ( arguments.length >= 3 && typeof arguments[2] == 'string' ) {
+				baseUrl = arguments[2];
+			}
+		}
 	}
 
 	/* PieceMakerApi.USER 		= 0; */
@@ -230,9 +242,13 @@ var PieceMakerApi = (function(){
 	    });
 	}
 
-	PieceMakerApi.prototype.createCallback = function ( obj, fn ) {
-		console.log( obj[fn] );
-		return obj[fn];
+	PieceMakerApi.prototype.createCallback = function () {
+		if ( arguments.length == 1 )
+			return context[arguments[0]];
+		else if ( arguments.length == 2 )
+			return arguments[0][arguments[1]];
+		else
+			throw( "PieceMakerAPI error: wrong number of arguments" );
 	}
 
     /* var isLoggedIn 	= false; */
