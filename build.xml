@@ -30,6 +30,13 @@
 		<fileset dir="${processing.classes}" >
 			<include name="core.jar"/>
 		</fileset>
+		<fileset dir="external">
+			<include name="commons-codec-1.3.jar" />
+			<include name="commons-httpclient-3.1.jar" />
+			<include name="commons-logging-1.1.jar" />
+			<include name="commons-validator-1.4.0.jar" />
+			<include name="json.jar" />
+		</fileset>
 	</path>
 	
 	<path id="junit-classpath">
@@ -79,13 +86,17 @@ See readme for time being please.
 		<mkdir dir="${dist}/library" />
 		
 		<jar jarfile="${dist}/library/${lib.name}.jar" basedir="${bin}" />
+
+		<copy todir="${dist}/library/">
+			<path refid="library-classpath" />
+		</copy>
 		
 		<mkdir dir="${dist}/${docs}" />
 		<javadoc bottom="${lib.name}, vers. ${version} - build #${build.number}, by ${author} for ${client}. ${copyright}"
 				 public="true" version="false" destdir="${dist}/${docs}" verbose="false" 
 				 stylesheetfile="res/stylesheet.css" 
-				 doctitle="${lib.name} #${vers}-${build.number} Java documentation" 
-				 windowtitle="${lib.name} #${vers}-${build.number} Java documentation">
+				 doctitle="${lib.name} #${version}-${build.number} Java documentation" 
+				 windowtitle="${lib.name} #${version}-${build.number} Java documentation">
 			<fileset dir="${src}" defaultexcludes="yes">
 				<include name="**/*"/>
 			</fileset>
@@ -94,10 +105,17 @@ See readme for time being please.
 				<path refid="junit-classpath" />
 			</classpath>
 		</javadoc>
+
+		<!-- PACKAGE JavaScript FILES -->
 		
 		<concat destfile="${bin}/${lib.name}.js">
 			<fileset file="src-js/*.js" />
 		</concat>
+
+		<replaceregexp file="${bin}/${lib.name}.js" flags="g"
+  					   match="##build##" replace="${build.number}" />
+		<replaceregexp file="${bin}/${lib.name}.js" flags="g"
+  					   match="##version##" replace="${version}" />
 		
 		<jscomp compilationLevel="simple" warning="default" 
 		        debug="false" output="${dist}/library/${lib.name}.js">

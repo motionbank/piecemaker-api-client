@@ -4,11 +4,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Calendar;
 
-public class BasicEvent extends RateableModel
+public class BasicEvent extends BasicModel
 {	
 	protected String eventType;
 	protected Date happenedAt;
-	protected int duration;
+	protected float duration;
 	protected Date finishedAt;
 	
 	protected Date createdAt;
@@ -66,6 +66,18 @@ public class BasicEvent extends RateableModel
 		return createdBy;
 	}
 
+	public void setHappenedAt ( float ts ) {
+		setHappenedAt(new java.util.Date((long)(ts*1000)));
+	}
+
+	public void setHappenedAt ( double ts ) {
+		setHappenedAt(new java.util.Date((long)(ts*1000)));
+	}
+
+	public void setHappenedAt ( java.math.BigDecimal dec ) {
+		setHappenedAt(dec.doubleValue());
+	}
+
 	public void setHappenedAt ( Date hat ) {
 		happenedAt = hat;
 	}
@@ -100,7 +112,7 @@ public class BasicEvent extends RateableModel
 		if ( finishedAt == null && happenedAt != null ) {
 			Calendar cal = Calendar.getInstance();
 			cal.setTime( happenedAt );
-			cal.add( Calendar.SECOND, duration );
+			cal.add( Calendar.SECOND, (int)Math.ceil(duration) );
 			finishedAt = cal.getTime();
 		}
 		return finishedAt;
@@ -119,7 +131,19 @@ public class BasicEvent extends RateableModel
 		this.duration = duration;
 	}
 	
-	public int getDuration () {
+	public void setDuration ( float duration ) {
+		this.duration = duration;
+	}
+	
+	public void setDuration ( double duration ) {
+		this.duration = (float)duration;
+	}
+	
+	public void setDuration ( java.math.BigDecimal duration ) {
+		this.duration = duration.floatValue();
+	}
+	
+	public float getDuration () {
 		return duration;
 	}
 }

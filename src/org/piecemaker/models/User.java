@@ -33,7 +33,7 @@ import java.util.HashMap;
 +---------------------------+--------------+------+-----+---------+----------------+
 */
 
-public class User extends BasicIDModel
+public class User extends BasicModel
 {
 	// columns
 	public int id;

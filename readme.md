@@ -1,4 +1,4 @@
-***PieceMaker wrapper for Java***
+***PieceMaker wrapper for Java and JavaScript***
 
 See:
 "piecemaker.org":http://piecemaker.org

@@ -19,13 +19,15 @@ import java.util.Date;
 +-------------+--------------+------+-----+---------+----------------+
 */
 
-public class Piece extends BasicIDModel
+public class Piece extends BasicModel
 {
 	// db columns
 	//public int id;
 	private Date createdAt;
+
 	private Date updatedAt;
-	private String modifiedBy;
+	//private String modifiedBy;
+	protected String updatedBy;
 	
 	private String title;
 	private int groupId;
@@ -127,6 +129,34 @@ public class Piece extends BasicIDModel
 	public String getTitle ()
 	{
 		return title;
+	}
+	
+	public void setUpdatedAt ( Date uat )
+	{	
+		updatedAt = uat;
+	}
+
+	public Date getUpdatedAt ( )
+	{	
+		return updatedAt;
+	}
+
+	public void setUpdatedBy ( String uby ) {
+		updatedBy = uby;
+	}
+
+	public String getUpdatedBy ( ) {
+		return updatedBy;
+	}
+	
+	public void setIsActive ( boolean active )
+	{	
+		isActive = active;
+	}
+
+	public boolean getIsActive ( )
+	{	
+		return isActive;
 	}
 	
 	public void setCreatedAt ( Date cat )

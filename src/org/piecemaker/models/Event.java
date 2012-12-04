@@ -84,11 +84,15 @@ public class Event extends BasicEvent
   	//before_update :check_for_everyone, :except => 'unlock'
 
 	public Event () {
-		
 	}
 
 	public Event ( HashMap properties ) {
 		super( properties );
+	}
+
+	public void setTitle ( String title )
+	{
+		this.title = title;
 	}
 	
 	public void setPiece ( Piece piece )
@@ -104,5 +108,10 @@ public class Event extends BasicEvent
 	/* fixing non-consistant var names */
 	public String getModifiedBy ( ) {
 		return updatedBy;
+	}
+
+	public void setDescription ( String description )
+	{
+		this.description = description;
 	}
 }

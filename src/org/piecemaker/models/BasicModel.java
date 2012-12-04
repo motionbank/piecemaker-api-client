@@ -6,10 +6,24 @@ import java.lang.reflect.*;
 
 public class BasicModel
 {
+	public int id;
+	
 	/**
 	 *	Just to make Java happy.
 	 */
 	public BasicModel () {}
+
+	/**
+	 *	Because every kid needs a name
+	 */
+
+	public void setId ( int id ) {
+		this.id = id;
+	}
+
+	public int getId () {
+		return this.id;
+	}
 	
 	/**
 	 *	Takes a HashMap and sets objects fields to it's values.

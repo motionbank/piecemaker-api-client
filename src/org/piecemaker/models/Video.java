@@ -57,6 +57,8 @@ public class Video extends BasicEvent
 	public String title;
 	public String vidType;
 
+	public String videoUrl;
+
 	
 	// relations
 	protected ArrayList<Event> events; //,:dependent => :nullify, :order => :happened_at,:conditions => "state = 'normal'"
@@ -91,6 +93,18 @@ public class Video extends BasicEvent
 		this.piece = piece;
 		this.pieceId = piece.getId();
 	}
+
+	public void setRecordedAt ( float ts ) {
+		setHappenedAt(new java.util.Date((long)(ts*1000)));
+	}
+
+	public void setRecordedAt ( double ts ) {
+		setHappenedAt(new java.util.Date((long)(ts*1000)));
+	}
+
+	public void setRecordedAt ( java.math.BigDecimal dec ) {
+		setRecordedAt(dec.doubleValue());
+	}
 	
 	/* fixing non-consistant var names */
 	public void setRecordedAt ( Date rat ) {
@@ -100,5 +114,20 @@ public class Video extends BasicEvent
 	/* fixing non-consistant var names */
 	public Date getRecordedAt ( ) {
 		return happenedAt;
+	}
+
+	public void setTitle ( String title )
+	{
+		this.title = title;
+	}
+
+	public String getTitle ()
+	{
+		return title;
+	}
+
+	public void setVideoUrl ( String url )
+	{
+		videoUrl = url;
 	}
 }
