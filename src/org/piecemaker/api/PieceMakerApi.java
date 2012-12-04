@@ -1,6 +1,7 @@
 package org.piecemaker.api;
 
 import java.util.*;
+import java.lang.reflect.*;
 
 import org.piecemaker.models.*;
 
@@ -33,6 +34,7 @@ public class PieceMakerApi
 	public final static int VIDEOS 	= 6;
 
 	private final static int API_KEY_LENGTH = 40;
+	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
 
 	/* + + + + + + + + + + + + + + + + + + + + +
 	 +
@@ -44,7 +46,8 @@ public class PieceMakerApi
 	private String user_name, user_pass;
 	private String api_key;
 
-	private Object[] listeners;
+	private Object context;
+	private Method pmErrorCallback;
 
 	/* + + + + + + + + + + + + + + + + + + + + +
 	 +
@@ -62,8 +65,8 @@ public class PieceMakerApi
 				{
 					HashMap params = (HashMap)args[0];
 					
-					Object listener = params.get( "listener" );
-					addListener( listener );
+					Object context = params.get( "context" );
+					setContext( context );
 
 					String base_url = (String)params.get( "base_url" );
 					setBaseUrl( base_url );
@@ -75,8 +78,10 @@ public class PieceMakerApi
 				{
 					if ( args[0] != null && args[0].getClass() == String.class ) 
 						setApiKey( (String)args[0] );
+
 					if ( args.length > 1 && args[1] != null ) 
-						addListener( args[1] );
+						setContext( args[1] );
+					
 					if ( args.length > 2 && args[2] != null && args[2].getClass() == String.class ) 
 						setBaseUrl( (String)args[2] );
 				}
@@ -296,11 +301,22 @@ public class PieceMakerApi
 		if ( api_key != null && api_key.length() == API_KEY_LENGTH ) this.api_key = api_key;
 	}
 
-	private void addListener ( Object listener )
+	private void setContext ( Object context )
 	{
-		if ( listener != null )
+		if ( context != null )
 		{
-
+			this.context = context;
+			try {
+				Method[] meths = context.getClass().getMethods();
+				for ( Method meth : meths ) {
+					if ( meth.equals( DEFAULT_ERROR_CALLBACK ) ) {
+						pmErrorCallback = meth;
+						break;
+					}
+				}
+			} catch ( Exception e ) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
