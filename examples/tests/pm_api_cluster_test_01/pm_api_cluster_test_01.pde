@@ -20,7 +20,7 @@ String loadingMessage = "Loading pieces ...";
 
 void setup ()
 {
-    size( 200, 200 );
+    size( 600, 200 );
     
     api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://localhost:3000" );
     
@@ -50,31 +50,3 @@ void drawLoading ()
     textAlign( CENTER );
     text( loadingMessage, width/2, height/2 );
 }
-
-void piecesLoaded ( Pieces pieces )
-{
-    loadingMessage = "Loading videos ...";
-    
-    if ( pieces.pieces.length > 0 ) {
-        piece = pieces.pieces[0];
-        api.loadVideosForPiece( piece.id, api.createCallback( "videosLoaded") );
-    }
-}
-
-void videosLoaded ( Videos vids )
-{
-    loadingMessage = "Loading events ...";
-    
-    if ( vids.videos.length > 0 ) {
-        videos = vids.videos;
-        api.loadEventsForVideo( videos[0].id, api.createCallback( "eventsLoaded") );
-    }
-}
-
-void eventsLoaded ( Events evts )
-{
-    events = evts.events;
-    println( events );
-    loading = false;
-}
-

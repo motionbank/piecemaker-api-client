@@ -94,6 +94,8 @@ var PieceMakerApi = (function(){
 				baseUrl = arguments[2];
 			}
 		}
+
+		if ( !api_key ) throw( "PieceMakerAPI: need an API_KEY for this to work" );
 	}
 
 	/* PieceMakerApi.USER 		= 0; */
@@ -110,7 +112,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/piece/'+pieceId,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.PIECE;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -121,7 +123,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/pieces',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.PIECES;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -132,7 +134,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/piece/'+pieceId+'/events',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -143,7 +145,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/piece/'+pieceId+'/videos',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEOS;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -154,7 +156,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/video/'+videoId,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEO;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -165,7 +167,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/video/'+videoId+'/events',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -178,7 +180,7 @@ var PieceMakerApi = (function(){
 					parseInt(Math.ceil(to.getTime() / 1000)),
 			success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
-				callback.call( cb || context, response );
+				callback.call( context || cb, response );
 	        }
 		});
 	}
@@ -189,7 +191,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/event/'+eventId,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	            callback.call( cb || context, response );
+	            callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -201,7 +203,7 @@ var PieceMakerApi = (function(){
 	        data: data,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	            callback.call( cb || context, response );
+	            callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -213,7 +215,7 @@ var PieceMakerApi = (function(){
 	        data: data,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	            callback.call( cb || context, response );
+	            callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -225,7 +227,7 @@ var PieceMakerApi = (function(){
 	        url: baseUrl + '/api/event/'+eventId+'/delete',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	            callback.call( cb || context, response );
+	            callback.call( context || cb, response );
 	        }
 	    });
 	}
@@ -237,11 +239,14 @@ var PieceMakerApi = (function(){
 	        data: opts,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
-	            callback.call( cb || context, response );
+	            callback.call( context || cb, response );
 	        }
 	    });
 	}
 
+	/**
+	 *	Create a callback for the async events above
+ 	 */
 	PieceMakerApi.prototype.createCallback = function () {
 		if ( arguments.length == 1 )
 			return context[arguments[0]];
@@ -268,7 +273,7 @@ var PieceMakerApi = (function(){
 	        success: function ( response ) {
 				if ( response.status ) {
 	            	isLoggedIn = true;
-					callback.call( cb || context, PieceMakerApi.USER, response );
+					callback.call( context || cb, PieceMakerApi.USER, response );
 				} else {
 					if ( context && 'pmLoginFailed' in context )
 						context.pmLoginFailed();

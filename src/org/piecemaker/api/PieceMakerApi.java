@@ -4,6 +4,7 @@ import java.util.*;
 import java.lang.reflect.*;
 
 import org.piecemaker.models.*;
+import org.piecemaker.collections.*;
 
 // See Apache Commons:
 // http://hc.apache.org/httpclient-3.x/apidocs/org/apache/commons/httpclient/methods/GetMethod.html

@@ -29,7 +29,7 @@ public class Piece extends BasicModel
 	//private String modifiedBy;
 	protected String updatedBy;
 	
-	private String title;
+	public String title;
 	private int groupId;
 	private String shortName;
 	private boolean isActive;

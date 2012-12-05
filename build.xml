@@ -93,6 +93,10 @@ See readme for time being please.
 		<copy todir="${dist}/${lib.name}/library/">
 			<path refid="library-classpath" />
 		</copy>
+
+		<copy todir="${dist}/${lib.name}/examples">
+			<dirset dir="examples" />
+		</copy>
 		
 		<mkdir dir="${dist}/${lib.name}/${docs}" />
 		<javadoc bottom="${lib.name}, vers. ${version} - build #${build.number}, by ${author} for ${client}. ${copyright}"
@@ -144,6 +148,11 @@ See readme for time being please.
 		<copy todir="${processing.libs}/${lib.name}">
 			<fileset dir="${dist}" />
 		</copy>
+
+		<zip destfile="releases/${lib.name}-${version}.zip"
+	  	     basedir="${dist}"
+	  	     excludes="**/_DS.Store"
+		/>
 		
 	</target>
 	
