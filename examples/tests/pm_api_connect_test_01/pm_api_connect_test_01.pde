@@ -7,6 +7,7 @@
  *    created: fjenett 20121203
  */
 
+import org.piecemaker.collections.*;
 import org.piecemaker.models.*;
 import org.piecemaker.api.*;
 
