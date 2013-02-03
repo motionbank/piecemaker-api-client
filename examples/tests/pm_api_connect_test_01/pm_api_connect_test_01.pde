@@ -23,9 +23,9 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://localhost:3000" );
+    api = new PieceMakerApi( this, "http://localhost:8080" );
     
-    api.loadPieces( api.createCallback( "piecesLoaded") );
+    api.listGroups( api.createCallback( "groupsLoaded") );
 }
 
 void draw ()
@@ -52,30 +52,33 @@ void drawLoading ()
     text( loadingMessage, width/2, height/2 );
 }
 
-void piecesLoaded ( Pieces pieces )
+void groupsLoaded ( EventGroup[] groups )
 {
     loadingMessage = "Loading videos ...";
     
-    if ( pieces.pieces.length > 0 ) {
-        piece = pieces.pieces[0];
-        api.loadVideosForPiece( piece.id, api.createCallback( "videosLoaded") );
+    if ( groups.length > 0 ) {
+        group = groups[0];
+        //api.loadVideosForPiece( piece.id, api.createCallback( "videosLoaded") );
+        api.listGroupEvents( group.id, api.createCallback( "groupEventsLoaded" ) );
     }
 }
 
-void videosLoaded ( Videos vids )
+void groupEventsLoaded ( Event[] events )
 {
-    loadingMessage = "Loading events ...";
+    console.log( events.length );
     
-    if ( vids.videos.length > 0 ) {
-        videos = vids.videos;
-        api.loadEventsForVideo( videos[0].id, api.createCallback( "eventsLoaded") );
-    }
+//    loadingMessage = "Loading events ...";
+//    
+//    if ( vids.videos.length > 0 ) {
+//        videos = vids.videos;
+//        api.loadEventsForVideo( videos[0].id, api.createCallback( "eventsLoaded") );
+//    }
 }
 
-void eventsLoaded ( Events evts )
-{
-    events = evts.events;
-    println( events );
-    loading = false;
-}
+//void eventsLoaded ( Events evts )
+//{
+//    events = evts.events;
+//    println( events );
+//    loading = false;
+//}
 

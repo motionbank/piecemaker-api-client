@@ -15,10 +15,10 @@
 	<property name="bin" 		value="bin" 			/>
 	<property name="dist" 		value="dist" 			/>
 	<property name="docs" 		value="docs" 			/>
-	<property name="lib.name" 	value="PieceMakerLib" 	/>
+	<property name="lib.name" 	value="PieceMaker2Lib" 	/>
 	<property name="author"		value="Florian Jenett" 	/>
 	<property name="client"		value="Motion Bank" 	/>
-	<property name="version" 	value="0.0.1" 			/>
+	<property name="version" 	value="0.0.2" 			/>
 	<property name="java.target.version" 
 								value="1.5" 			/>
 	

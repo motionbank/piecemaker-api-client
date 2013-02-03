@@ -1,4 +1,6 @@
-***PieceMaker API wrapper for Java and JavaScript***
+***THIS BRANCH IS HEAVILY BEING REWORKED AS MATTHIAS IS WORKING ON THE NEW PIECEMAKER2 API***
+
+**PieceMaker API wrapper for Java and JavaScript**
 
 Uses jQuery for JS XHR and Apache Commons for Java.
 
