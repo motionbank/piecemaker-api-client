@@ -143,7 +143,7 @@ public class PieceMakerApi
 
 	public void loadEventsBetween ( Date from, Date to, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/events/between/" + from.getTime() + "/" + to.getTime(), ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/events/between/" + (from.getTime() / 1000) + "/" + (to.getTime() / 1000), ApiRequest.GET, null, callback ) ).start();
 	}
 
 	public void loadEvent ( int eventId, ApiCallback callback )
@@ -156,14 +156,42 @@ public class PieceMakerApi
 	public void deleteEvent ( int eventId, ApiCallback callback ) {}
 	public void findEvents ( HashMap opts, ApiCallback callback ) {}
 
-	public ApiCallback createCallback ( String method )
+	public ApiCallback createCallback ( Object ... args )
 	{
-		return new ApiCallback( context, method );
-	}
+		if ( args == null || args.length == 0 ) 
+		{
+			System.err.println( "Called createCallback with null or zero arguments" );
+			return null;
+		}
+		
+		Object target = context;
+		String method = (String)args[0];
+		int shift = 1;
 
-	public ApiCallback createCallback ( Object target, String method )
-	{
-		return new ApiCallback( target, method );
+		if ( args.length >= 2 && args[0].getClass() != String.class )
+		{
+			target = args[0];
+			method = (String)args[1];
+			shift = 2;
+		}
+
+		if ( args.length > shift )
+		{
+			Object[] tmp = new Object[args.length - shift];
+			System.arraycopy( args, shift, tmp, 0, tmp.length );
+			args = tmp;
+		}
+		else
+		{
+			args = null;
+		}
+
+		ApiCallback cb = new ApiCallback( context, method );
+		if ( args != null && args.length > 0 )
+		{
+			cb.addArguments( args );
+		}
+		return cb;
 	}
 
 	/* + + + + + + + + + + + + + + + + + + + + +

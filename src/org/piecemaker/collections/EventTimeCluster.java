@@ -13,6 +13,6 @@ public class EventTimeCluster
 
 	public void clusterEvents ( Event[] ungroupedEvents )
 	{
-
+		
 	}
 }

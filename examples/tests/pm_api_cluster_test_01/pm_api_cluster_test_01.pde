@@ -1,19 +1,25 @@
 /** 
  *    Motion Bank research, http://motionbank.org/
  *
- *    Piecemaker API test: connection to PM and loading some ..
+ *    Piecemaker API: building clusters of events that overlap
  *
  *    P-2.0
  *    created: fjenett 20121203
+ *    changed: fjenett 20130205
  */
 
+import org.piecemaker.collections.*;
 import org.piecemaker.models.*;
 import org.piecemaker.api.*;
+
+import java.util.Date;
 
 PieceMakerApi api;
 Piece piece;
 Video[] videos;
 org.piecemaker.models.Event[] events;
+
+ArrayList<VideoTimeCluster> clusters;
 
 boolean loading = true;
 String loadingMessage = "Loading pieces ...";
@@ -38,7 +44,9 @@ void draw ()
         background( 255 );
         textAlign( LEFT );
         
-        text( "Loaded piece \""+piece.title+"\" \nwith "+videos.length+" videos \nand "+events.length+" events.", 10, 20 );
+        text( "Loaded piece \""+piece.title+"\" \n"+
+              "with "+videos.length+" videos in \n"+
+              clusters.size() + " clusters", 10, 20 );
     }
 }
 
