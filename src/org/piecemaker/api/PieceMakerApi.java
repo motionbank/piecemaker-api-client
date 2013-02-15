@@ -15,6 +15,8 @@ import org.apache.commons.httpclient.methods.*;
 // http://www.json.org/javadoc/org/json/JSONObject.html
 import org.json.*;
 
+import org.yaml.snakeyaml.*;
+
 /**
  *	Class PieceMakerApi
  */
@@ -61,28 +63,35 @@ public class PieceMakerApi
 		setApiKey( api_key );
 
 		ensureApiKey();
+		printVersion();
 	}
 
-	public PieceMakerApi ( Object context, String api_key ) {
+	public PieceMakerApi ( Object context, String api_key ) 
+	{
 		setApiKey( api_key );
 		setContext( context );
 
 		ensureApiKey();
+		printVersion();
 	}
 
-	public PieceMakerApi ( String api_key, String base_url ) {
+	public PieceMakerApi ( String api_key, String base_url ) 
+	{
 		setApiKey( api_key );
 		setBaseUrl( base_url );
 
 		ensureApiKey();
+		printVersion();
 	}
 
-	public PieceMakerApi ( Object context, String api_key, String base_url ) {
+	public PieceMakerApi ( Object context, String api_key, String base_url ) 
+	{
 		setApiKey( api_key );
 		setContext( context );
 		setBaseUrl( base_url );
 
 		ensureApiKey();
+		printVersion();
 	}
 
 	public PieceMakerApi ( HashMap params ) 
@@ -97,6 +106,17 @@ public class PieceMakerApi
 		setApiKey( api_key );
 
 		ensureApiKey();
+		printVersion();
+	}
+
+	static String getVersion ()
+	{
+		return "PieceMaker client Library - ##version## - ##build##";
+	}
+
+	static void printVersion ()
+	{
+		System.out.println( PieceMakerApi.getVersion() );
 	}
 
 	/* + + + + + + + + + + + + + + + + + + + + +
@@ -298,10 +318,29 @@ public class PieceMakerApi
 
 						event.setId( e.getInt("id") );
 						event.setTitle( e.getString("title") );
-						event.setUpdatedAt( new Date( e.getString("updated_at") ) );
 						event.setDuration( e.getInt("duration") );
 						event.setEventType( e.getString("event_type") );
 						event.setDescription( e.getString("description") );
+
+						event.setCreatedAt( new Date( e.getString("created_at") ) );
+						event.setCreatedBy( e.getString("created_by") );
+
+						event.setUpdatedAt( new Date( e.getString("updated_at") ) );
+						event.setUpdatedBy( e.getString("modified_by") );
+
+						String[] performers = new String[0];
+						Yaml perfsYaml = new Yaml();
+						String perfsYamlSrc = e.getString("performers");
+						if ( perfsYamlSrc != null && !perfsYamlSrc.equals("") )
+						{
+							ArrayList perfsMap = (ArrayList)perfsYaml.load( perfsYamlSrc );
+							performers = new String[perfsMap.size()];
+							for ( int p = 0; p < performers.length; p++ )
+							{
+								performers[p] = perfsMap.get(p).toString();
+							}
+						}
+						event.setPerformers( performers );
 						
 						Date happened_at = new Date();
 						happened_at.setTime( e.getLong("happened_at_float"));

@@ -1,3 +1,7 @@
+/**
+ *	A collection of Piece objects
+ */
+
 package org.piecemaker.collections;
 
 import org.piecemaker.models.*;

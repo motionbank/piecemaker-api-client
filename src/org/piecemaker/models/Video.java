@@ -59,7 +59,6 @@ public class Video extends BasicEvent
 
 	public String videoUrl;
 
-	
 	// relations
 	protected ArrayList<Event> events; //,:dependent => :nullify, :order => :happened_at,:conditions => "state = 'normal'"
  	protected ArrayList<VideoRecording> videoRecordings; //, :dependent => :destroy

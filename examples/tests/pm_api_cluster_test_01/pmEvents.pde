@@ -72,7 +72,15 @@ void eventsLoaded ( Events evts, VideoTimeCluster c )
         c.addEvent( e );
     }
     
+    clustersTimeMin = clustersTimeMin > c.from.getTime() ? c.from.getTime() : clustersTimeMin;
+    clustersTimeMax = clustersTimeMax < c.to.getTime()   ? c.to.getTime()   : clustersTimeMax;
+    while ( clustersBusy ) { ; }
     clusters.add( c );
+    java.util.Collections.sort( clusters, new java.util.Comparator (){
+        public int compare ( Object a, Object b ) {
+            return ((VideoTimeCluster)a).from.compareTo( ((VideoTimeCluster)b).from );
+        }
+    });
     loading = false;
 }
 

@@ -39,6 +39,7 @@
 			<include name="commons-logging-1.1.jar" />
 			<include name="commons-validator-1.4.0.jar" />
 			<include name="json.jar" />
+			<include name="snakeyaml.jar" />
 		</fileset>
 	</path>
 	
@@ -64,18 +65,29 @@ See readme for time being please.
 		BUILD
 	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	<target name="build">
+
+		<buildnumber file="res/build_number"/>
 		
 		<mkdir dir="${build}" />
 		<delete dir="${bin}" />
 		<mkdir dir="${bin}" />
+
+		<copy todir="${src}-versioned">
+			<fileset dir="${src}" />
+		</copy>
+
+		<replaceregexp file="${src}-versioned/org/piecemaker/api/PieceMakerApi.java" flags="g"
+  					   match="##build##" replace="${build.number}" />
+		<replaceregexp file="${src}-versioned/org/piecemaker/api/PieceMakerApi.java" flags="g"
+  					   match="##version##" replace="${version}" />
 		
-		<javac srcdir="${src}" destdir="${bin}" source="${java.target.version}">
+		<javac srcdir="${src}-versioned" destdir="${bin}" source="${java.target.version}">
 			<classpath>
 				<path refid="library-classpath"/>
 			</classpath>
 		</javac>
-		
-		<buildnumber file="res/build_number"/>
+
+		<delete dir="${src}-versioned" />
 		
 	</target>
 	

@@ -58,7 +58,7 @@ public class Event extends BasicEvent
 	public String location;
 	public String locked;
 	public String modifiedBy; // updatedBy?
-	public String performers;
+	public String[] performers;
 	public String state = STATE_NORMAL;
 	public String title;
 	public String description;
@@ -113,5 +113,15 @@ public class Event extends BasicEvent
 	public void setDescription ( String description )
 	{
 		this.description = description;
+	}
+
+	public void setPerformers ( String[] perfs )
+	{
+		this.performers = perfs;
+	}
+
+	public String[] getPerformers ()
+	{
+		return this.performers;
 	}
 }
