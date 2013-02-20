@@ -19,47 +19,27 @@ void videosLoaded ( Videos vids, int piece_id )
         
         // building clusters from videos
         
-        // a cluster is all videos that overlap:
-        //   |-------|    video 1
-        // |-------|      video 2
-        //       |---|    video 3
-        // |=========|    cluster
-        
+        EventTimeCluster[] clustersTemp = EventTimeClusters.clusterEvents( videos );
         
         clusters = new ArrayList();
-        ArrayList<VideoTimeCluster> clustersTemp = new ArrayList();
-        
-        for ( Video v : videos ) 
-        {
-            boolean hasCluster = false;
-            for ( VideoTimeCluster c : clustersTemp )
-            {
-                if ( c.overlapsWith( v ) )
-                {
-                    c.addVideo( v );
-                    hasCluster = true;
-                }
-            }
-            if ( !hasCluster )
-            {
-                VideoTimeCluster cc = new VideoTimeCluster( v );
-                clustersTemp.add( cc );
-            }
-        }
+        clustersToLoad = 0;
         
         // now load events for clusters by querying for from-to
         
-        for ( VideoTimeCluster c : clustersTemp )
+        for ( EventTimeCluster c : clustersTemp )
         {
-            api.loadEventsBetween( c.from, c.to, api.createCallback( "eventsLoaded", c ) );
+            api.loadEventsBetween( c.from(), c.to(), api.createCallback( "eventsLoaded", c ) );
+            clustersToLoad++;
         }
         
         clustersTemp = null;
     }
 }
 
-void eventsLoaded ( Events evts, VideoTimeCluster c )
+void eventsLoaded ( Events evts, EventTimeCluster c )
 {
+    clustersToLoad--;
+    
     if ( evts == null ) return;
     if ( c == null ) return;
     
@@ -69,18 +49,23 @@ void eventsLoaded ( Events evts, VideoTimeCluster c )
     
     for ( org.piecemaker.models.Event e : events )
     {
-        c.addEvent( e );
+        c.add( e );
     }
     
-    clustersTimeMin = clustersTimeMin > c.from.getTime() ? c.from.getTime() : clustersTimeMin;
-    clustersTimeMax = clustersTimeMax < c.to.getTime()   ? c.to.getTime()   : clustersTimeMax;
-    while ( clustersBusy ) { ; }
+    clustersTimeMin = clustersTimeMin > c.from().getTime() ? c.from().getTime() : clustersTimeMin;
+    clustersTimeMax = clustersTimeMax < c.to().getTime()   ? c.to().getTime()   : clustersTimeMax;
+
     clusters.add( c );
-    java.util.Collections.sort( clusters, new java.util.Comparator (){
-        public int compare ( Object a, Object b ) {
-            return ((VideoTimeCluster)a).from.compareTo( ((VideoTimeCluster)b).from );
-        }
-    });
-    loading = false;
+    
+    if ( clustersToLoad == 0 )
+    { 
+        java.util.Collections.sort( clusters, new java.util.Comparator (){
+            public int compare ( Object a, Object b ) {
+                return ((EventTimeCluster)a).from().compareTo( ((EventTimeCluster)b).from() );
+            }
+        });
+        
+        loading = false;
+    }
 }
 
