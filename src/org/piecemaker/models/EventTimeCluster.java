@@ -32,15 +32,15 @@ public class EventTimeCluster
     	return !( be.getFinishedAt().compareTo(from) < 0 || be.getHappenedAt().compareTo(to) > 0 );
 	}
 
-	public void addEvents ( BasicEvent[] events )
+	public void addAll ( BasicEvent[] events )
 	{
 		for ( BasicEvent be : events )
 		{
-			addEvent( be );
+			add( be );
 		}
 	}
 
-	public void addEvent ( BasicEvent be )
+	public void add ( BasicEvent be )
 	{
 		if ( allEvents != null && allEvents.length > 0 )
 		{
@@ -80,7 +80,7 @@ public class EventTimeCluster
         }
 	}
 
-	public BasicEvent[] getAnyEvents ()
+	public BasicEvent[] getAll ()
 	{
 		return allEvents;
 	}
@@ -97,6 +97,6 @@ public class EventTimeCluster
 
 	public String toString ()
 	{
-		return "EventTimeCluster: " + from.toString + " " + to.toString();
+		return "EventTimeCluster: " + from.toString() + " " + to.toString();
 	}
 }

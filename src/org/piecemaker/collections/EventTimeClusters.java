@@ -39,7 +39,7 @@ public class EventTimeClusters
 			{
 				if ( vc.overlapsWith(be) )
 				{
-					vc.addEvent( be );
+					vc.add( be );
 					inCluster = true;
 					break;
 				}
@@ -48,7 +48,7 @@ public class EventTimeClusters
 			{
 				EventTimeCluster c = new EventTimeCluster();
 				clusters.add( c );
-				c.addEvent( be );
+				c.add( be );
 			}
 		}
 
