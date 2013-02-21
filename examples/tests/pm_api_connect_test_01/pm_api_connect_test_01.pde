@@ -15,6 +15,7 @@ PieceMakerApi api;
 Piece piece;
 Video[] videos;
 org.piecemaker.models.Event[] events;
+int eventCalls = 0;
 
 boolean loading = true;
 String loadingMessage = "Loading pieces ...";
@@ -23,7 +24,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://localhost:3000" );
+    api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://notimetofly.herokuapp.com" ); // http://notimetofly.herokuapp.com
     
     api.loadPieces( api.createCallback( "piecesLoaded") );
 }
@@ -65,17 +66,38 @@ void piecesLoaded ( Pieces pieces )
 void videosLoaded ( Videos vids )
 {
     loadingMessage = "Loading events ...";
+    eventCalls = 0;
     
-    if ( vids.videos.length > 0 ) {
+    events = new org.piecemaker.models.Event[0];
+    
+    if ( vids.videos.length > 0 ) 
+    {
         videos = vids.videos;
-        api.loadEventsForVideo( videos[0].id, api.createCallback( "eventsLoaded") );
+        for ( Video v : videos )
+        {
+            api.loadEventsByTypeForVideo( v.id, "scene", api.createCallback( "eventsLoaded", v ) );
+            eventCalls++;
+        }
     }
 }
 
-void eventsLoaded ( Events evts )
+void eventsLoaded ( Events evts, Video vid )
 {
-    events = evts.events;
-    println( events );
-    loading = false;
+    eventCalls--;
+    loadingMessage = String.format("Loading events %s ...", eventCalls);
+    
+    if ( evts.events != null && evts.total > 0 )
+    {
+        org.piecemaker.models.Event[] tmp = new org.piecemaker.models.Event[events.length + evts.events.length];
+        System.arraycopy( events, 0, tmp, 0, events.length );
+        System.arraycopy( evts.events, 0, tmp, events.length, evts.events.length );
+        events = tmp;
+        tmp = null;
+    }
+    
+    if ( eventCalls == 0 )
+    {
+        loading = false;
+    }
 }
 

@@ -29,6 +29,8 @@ public class ApiRequest implements Runnable
 		this.methodType = methodType == POST ? POST : GET;
 		this.data = data;
 		this.callBack = callBack;
+
+		System.out.println( url + ".json" );
 	}
 
 	public void run ()

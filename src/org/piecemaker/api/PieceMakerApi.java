@@ -161,6 +161,11 @@ public class PieceMakerApi
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events", ApiRequest.GET, null, callback ) ).start();
 	}
 
+	public void loadEventsByTypeForVideo ( int videoId, String type, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events/type/" + type, ApiRequest.GET, null, callback ) ).start();
+	}
+
 	public void loadEventsBetween ( Date from, Date to, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/events/between/" + (from.getTime() / 1000) + "/" + (to.getTime() / 1000), ApiRequest.GET, null, callback ) ).start();
@@ -304,6 +309,8 @@ public class PieceMakerApi
 			else if ( request.getType() == EVENTS )
 			{
 				Events events = new Events();
+
+				//System.out.println( request.getResponse() );
 
 				events.total = jsonResponse.getInt("total");
 
