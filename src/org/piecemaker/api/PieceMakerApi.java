@@ -28,6 +28,7 @@ public class PieceMakerApi
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
 
+	public final static int IGNORE 	= 0;
 	//public final static int USER 	= 0;
 	public final static int PIECE 	= 1;
 	public final static int PIECES 	= 2;
@@ -111,7 +112,7 @@ public class PieceMakerApi
 
 	static String getVersion ()
 	{
-		return "PieceMaker client Library - ##version## - ##build##";
+		return "PieceMaker client library - ##version## - ##build## \nhttps://github.com/fjenett/piecemaker-api-client";
 	}
 
 	static void printVersion ()
@@ -146,6 +147,11 @@ public class PieceMakerApi
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/piece/" + pieceId + "/events", ApiRequest.GET, null, callback ) ).start();
 	}
 
+	public void loadEventsByTypeForPiece ( int pieceId, String type, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/piece/" + pieceId + "/events/type/" + type, ApiRequest.GET, null, callback ) ).start();
+	}
+
 	public void loadVideosForPiece ( int pieceId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, VIDEOS, base_url + "/api/piece/" + pieceId + "/videos", ApiRequest.GET, null, callback ) ).start();
@@ -176,10 +182,25 @@ public class PieceMakerApi
 		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
 	}
 
-	public void createEvent ( HashMap data, ApiCallback callback ) {}
-	public void saveEvent ( int eventId, HashMap data, ApiCallback callback ) {}
-	public void deleteEvent ( int eventId, ApiCallback callback ) {}
-	public void findEvents ( HashMap opts, ApiCallback callback ) {}
+	public void createEvent ( HashMap data, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event", ApiRequest.POST, data, callback ) ).start();
+	}
+
+	public void updateEvent ( int eventId, HashMap data, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId + "/update", ApiRequest.POST, data, callback ) ).start();
+	}
+
+	public void deleteEvent ( int eventId, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, IGNORE, base_url + "/api/event/" + eventId + "/delete", ApiRequest.POST, null, callback ) ).start();
+	}
+
+	public void findEvents ( HashMap opts, ApiCallback callback )
+	{
+		System.err.println( "Not implemented yet. Sorry." );
+	}
 
 	public ApiCallback createCallback ( Object ... args )
 	{
@@ -227,6 +248,12 @@ public class PieceMakerApi
 
 	public void handleResponse ( ApiRequest request )
 	{
+		//System.out.println( request );
+
+		ApiCallback callback = request.getCallback();
+
+		if ( callback == null ) return;
+
 		JSONObject jsonResponse = null;
 	    try {
 
@@ -358,6 +385,48 @@ public class PieceMakerApi
 				}
 
 				request.getCallback().call( events );
+			}
+			else if ( request.getType() == EVENT )
+			{
+				Event event = new Event();
+				
+				JSONObject e = jsonResponse.getJSONObject("event");
+
+				event.setId( e.getInt("id") );
+				event.setTitle( e.getString("title") );
+				event.setDuration( e.getInt("duration") );
+				event.setEventType( e.getString("event_type") );
+				event.setDescription( e.getString("description") );
+
+				event.setCreatedAt( new Date( e.getString("created_at") ) );
+				event.setCreatedBy( e.getString("created_by") );
+
+				event.setUpdatedAt( new Date( e.getString("updated_at") ) );
+				event.setUpdatedBy( e.getString("modified_by") );
+
+				String[] performers = new String[0];
+				Yaml perfsYaml = new Yaml();
+				String perfsYamlSrc = e.getString("performers");
+				if ( perfsYamlSrc != null && !perfsYamlSrc.equals("") )
+				{
+					ArrayList perfsMap = (ArrayList)perfsYaml.load( perfsYamlSrc );
+					performers = new String[perfsMap.size()];
+					for ( int p = 0; p < performers.length; p++ )
+					{
+						performers[p] = perfsMap.get(p).toString();
+					}
+				}
+				event.setPerformers( performers );
+				
+				Date happened_at = new Date();
+				happened_at.setTime( e.getLong("happened_at_float"));
+				event.setHappenedAt( happened_at );
+
+				request.getCallback().call( event );
+			}
+			else
+			{
+				request.getCallback().call();
 			}
 
 		} catch ( org.json.JSONException jse ) {

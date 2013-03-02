@@ -94,6 +94,11 @@ public class Event extends BasicEvent
 	{
 		this.title = title;
 	}
+
+	public String getTitle ()
+	{
+		return title;
+	}
 	
 	public void setPiece ( Piece piece )
 	{

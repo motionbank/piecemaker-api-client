@@ -42,4 +42,9 @@ public class ApiCallback
 	{
 		arguments = args;
 	}
+
+	public String toString ()
+	{
+		return String.format( "<ApiCallback #%s %s %s>", hashCode(), obj.toString(), meth );
+	}
 }

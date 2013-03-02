@@ -59,11 +59,11 @@ void eventsLoaded ( Events evts, EventTimeCluster c )
     
     if ( clustersToLoad == 0 )
     { 
-        java.util.Collections.sort( clusters, new java.util.Comparator (){
-            public int compare ( Object a, Object b ) {
-                return ((EventTimeCluster)a).from().compareTo( ((EventTimeCluster)b).from() );
-            }
-        });
+//        java.util.Collections.sort( clusters, new java.util.Comparator (){
+//            public int compare ( Object a, Object b ) {
+//                return ((EventTimeCluster)a).from().compareTo( ((EventTimeCluster)b).from() );
+//            }
+//        });
         
         loading = false;
     }

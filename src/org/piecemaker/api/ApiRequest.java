@@ -11,6 +11,8 @@ public class ApiRequest implements Runnable
 	public final static int GET  = 0;
 	public final static int POST = 1;
 
+	public static boolean DEBUG = false;
+
 	PieceMakerApi api;
 	String url;
 	int methodType;
@@ -30,7 +32,7 @@ public class ApiRequest implements Runnable
 		this.data = data;
 		this.callBack = callBack;
 
-		System.out.println( url + ".json" );
+		if ( DEBUG ) System.out.println( url + ".json" );
 	}
 
 	public void run ()
@@ -113,6 +115,10 @@ public class ApiRequest implements Runnable
 	    if ( serverResponse != null && serverResponse.length() > 0 ) {
 	    	api.handleResponse( this );
 	    }
+	    else
+	    {
+	    	System.out.println( "No response." );
+	    }
 	}
 
 	public ApiCallback getCallback ()
@@ -128,5 +134,10 @@ public class ApiRequest implements Runnable
 	public int getType ()
 	{
 		return requestType;
+	}
+
+	public String toString ()
+	{
+		return String.format( "<ApiRequest #%s %s>", hashCode(), callBack.toString() );
 	}
 }

@@ -24,7 +24,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://notimetofly.herokuapp.com" ); // http://notimetofly.herokuapp.com
+    api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://localhost:3000" ); // http://notimetofly.herokuapp.com
     
     api.loadPieces( api.createCallback( "piecesLoaded") );
 }
@@ -40,7 +40,14 @@ void draw ()
         background( 255 );
         textAlign( LEFT );
         
-        text( "Loaded piece \""+piece.title+"\" \nwith "+videos.length+" videos \nand "+events.length+" events.", 10, 20 );
+        String txt = "";
+        if ( piece != null )
+            txt = "Loaded piece \""+piece.title+"\"";
+        if ( videos != null )
+            txt += "\nwith "+videos.length+" videos";
+        if ( events != null )
+            txt += "\nand "+events.length+" events.";
+        text( txt, 10, 20 );
     }
 }
 
@@ -57,34 +64,43 @@ void piecesLoaded ( Pieces pieces )
 {
     loadingMessage = "Loading videos ...";
     
-    if ( pieces.pieces.length > 0 ) {
+    if ( pieces.pieces != null && pieces.pieces.length > 0 ) {
         piece = pieces.pieces[0];
-        api.loadVideosForPiece( piece.id, api.createCallback( "videosLoaded") );
+        api.loadVideosForPiece( piece.id, api.createCallback( "videosLoaded", piece ) );
+    }
+    else
+    {
+        loadingMessage = "No pieces found";
     }
 }
 
-void videosLoaded ( Videos vids )
+void videosLoaded ( Videos vids, Piece piece )
 {
     loadingMessage = "Loading events ...";
     eventCalls = 0;
     
     events = new org.piecemaker.models.Event[0];
     
-    if ( vids.videos.length > 0 ) 
+    if ( vids.videos != null && vids.videos.length > 0 ) 
     {
         videos = vids.videos;
         for ( Video v : videos )
         {
-            api.loadEventsByTypeForVideo( v.id, "scene", api.createCallback( "eventsLoaded", v ) );
+            api.loadEventsByTypeForVideo( v.id, "scene", api.createCallback( "eventsLoaded" ) );
             eventCalls++;
         }
     }
+    else
+    {
+        api.loadEventsByTypeForPiece( piece.id, "scene", api.createCallback( "eventsLoaded" ) );
+        eventCalls++;
+    }
 }
 
-void eventsLoaded ( Events evts, Video vid )
+void eventsLoaded ( Events evts )
 {
     eventCalls--;
-    loadingMessage = String.format("Loading events %s ...", eventCalls);
+    loadingMessage = "Loading events "+eventCalls+" ...";
     
     if ( evts.events != null && evts.total > 0 )
     {
@@ -93,6 +109,10 @@ void eventsLoaded ( Events evts, Video vid )
         System.arraycopy( evts.events, 0, tmp, events.length, evts.events.length );
         events = tmp;
         tmp = null;
+    }
+    else
+    {
+        println( "No events found ..." );
     }
     
     if ( eventCalls == 0 )

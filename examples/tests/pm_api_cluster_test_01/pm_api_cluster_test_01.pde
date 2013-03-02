@@ -21,7 +21,7 @@ org.piecemaker.models.Event[] events;
 int clustersToLoad = 0;
 
 ArrayList<EventTimeCluster> clusters;
-long clustersTimeMin = Long.MAX_VALUE, clustersTimeMax = Long.MIN_VALUE;
+long clustersTimeMin = new Date().getTime(), clustersTimeMax = 0;
 
 boolean loading = true;
 String loadingMessage = "Loading pieces ...";
