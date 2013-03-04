@@ -201,6 +201,46 @@ var PieceMakerApi = (function(){
 	    });
 	}
 
+	PieceMakerApi.prototype.createVideo = function ( data, cb ) {
+		var callback = cb || noop;
+		xhrPost( this, {
+	        url: baseUrl + '/api/video',
+	        data: data,
+	        success: function ( response ) {
+	        	response.requestType = PieceMakerApi.VIDEO;
+	        	pm1PrepareVideo( response );
+	            callback.call( context || cb, response );
+	        }
+	    });
+	}
+
+	PieceMakerApi.prototype.updateVideo = function ( videoId, data, cb ) {
+		var callback = cb || noop;
+		if ( (typeof videoId === 'object') && ('id' in videoId) ) videoId = videoId.id;
+		xhrPost( this, {
+	        url: baseUrl + '/api/video/'+videoId+'/update',
+	        data: data,
+	        success: function ( response ) {
+	        	response.requestType = PieceMakerApi.VIDEO;
+	        	pm1PrepareVideo( response );
+	            callback.call( context || cb, response );
+	        }
+	    });
+	}
+
+	PieceMakerApi.prototype.deleteVideo = function ( videoId, cb ) {
+		var callback = cb || noop;
+		if ( (typeof videoId === 'object') && ('id' in videoId) ) videoId = videoId.id;
+		xhrPost( this, {
+	        url: baseUrl + '/api/video/'+videoId+'/delete',
+	        success: function ( response ) {
+	        	response.requestType = PieceMakerApi.VIDEO;
+	        	pm1PrepareVideo( response );
+	            callback.call( context || cb, response );
+	        }
+	    });
+	}
+
 	PieceMakerApi.prototype.loadEventsForVideo = function ( videoId, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {

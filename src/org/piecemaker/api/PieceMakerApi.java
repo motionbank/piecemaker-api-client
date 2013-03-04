@@ -162,6 +162,21 @@ public class PieceMakerApi
 		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId, ApiRequest.GET, null, callback ) ).start();
 	}
 
+	public void createVideo ( HashMap data, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video", ApiRequest.POST, data, callback ) ).start();
+	}
+
+	public void updateVideo ( int videoId, HashMap data, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, EVENT, base_url + "/api/video/" + videoId + "/update", ApiRequest.POST, data, callback ) ).start();
+	}
+
+	public void deleteVideo ( int videoId, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, IGNORE, base_url + "/api/video/" + videoId + "/delete", ApiRequest.POST, null, callback ) ).start();
+	}
+
 	public void loadEventsForVideo ( int videoId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events", ApiRequest.GET, null, callback ) ).start();
