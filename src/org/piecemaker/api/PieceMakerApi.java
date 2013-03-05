@@ -370,38 +370,7 @@ public class PieceMakerApi
 					events.events = new Event[ jsonEvents.length() ];
 					for ( int i = 0, k = jsonEvents.length(); i < k; i++ )
 					{
-						JSONObject e = jsonEvents.getJSONObject( i );
-						Event event = new Event();
-
-						event.setId( e.getInt("id") );
-						event.setTitle( e.getString("title") );
-						event.setDuration( e.getInt("duration") );
-						event.setEventType( e.getString("event_type") );
-						event.setDescription( e.getString("description") );
-
-						event.setCreatedAt( new Date( e.getString("created_at") ) );
-						event.setCreatedBy( e.getString("created_by") );
-
-						event.setUpdatedAt( new Date( e.getString("updated_at") ) );
-						event.setUpdatedBy( e.getString("modified_by") );
-
-						String[] performers = new String[0];
-						Yaml perfsYaml = new Yaml();
-						String perfsYamlSrc = e.getString("performers");
-						if ( perfsYamlSrc != null && !perfsYamlSrc.equals("") )
-						{
-							ArrayList perfsMap = (ArrayList)perfsYaml.load( perfsYamlSrc );
-							performers = new String[perfsMap.size()];
-							for ( int p = 0; p < performers.length; p++ )
-							{
-								performers[p] = perfsMap.get(p).toString();
-							}
-						}
-						event.setPerformers( performers );
-						
-						Date happened_at = new Date();
-						happened_at.setTime( e.getLong("happened_at_float"));
-						event.setHappenedAt( happened_at );
+						Event event = eventFromJson( jsonEvents.getJSONObject( i ) );
 
 						events.events[i] = event;
 					}
@@ -411,39 +380,7 @@ public class PieceMakerApi
 			}
 			else if ( request.getType() == EVENT )
 			{
-				Event event = new Event();
-				
-				JSONObject e = jsonResponse.getJSONObject("event");
-
-				event.setId( e.getInt("id") );
-				event.setTitle( e.getString("title") );
-				event.setDuration( e.getInt("duration") );
-				event.setEventType( e.getString("event_type") );
-				event.setDescription( e.getString("description") );
-
-				event.setCreatedAt( new Date( e.getString("created_at") ) );
-				event.setCreatedBy( e.getString("created_by") );
-
-				event.setUpdatedAt( new Date( e.getString("updated_at") ) );
-				event.setUpdatedBy( e.getString("modified_by") );
-
-				String[] performers = new String[0];
-				Yaml perfsYaml = new Yaml();
-				String perfsYamlSrc = e.getString("performers");
-				if ( perfsYamlSrc != null && !perfsYamlSrc.equals("") )
-				{
-					ArrayList perfsMap = (ArrayList)perfsYaml.load( perfsYamlSrc );
-					performers = new String[perfsMap.size()];
-					for ( int p = 0; p < performers.length; p++ )
-					{
-						performers[p] = perfsMap.get(p).toString();
-					}
-				}
-				event.setPerformers( performers );
-				
-				Date happened_at = new Date();
-				happened_at.setTime( e.getLong("happened_at_float"));
-				event.setHappenedAt( happened_at );
+				Event event = eventFromJson( jsonResponse.getJSONObject("event") );
 
 				request.getCallback().call( event );
 			}
@@ -496,6 +433,62 @@ public class PieceMakerApi
 	 +	Private methods
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
+
+	private Event eventFromJson ( JSONObject e )
+	{
+		try 
+		{
+			Event event = new Event();
+
+			event.setId( e.getInt("id") );
+			event.setTitle( e.getString("title") );
+			event.setDuration( e.getInt("duration") );
+			event.setEventType( e.getString("event_type") );
+			event.setDescription( e.getString("description") );
+
+			event.setCreatedAt( new Date( e.getString("created_at") ) );
+			event.setCreatedBy( e.getString("created_by") );
+
+			event.setUpdatedAt( new Date( e.getString("updated_at") ) );
+			event.setUpdatedBy( e.getString("modified_by") );
+
+			String[] performers = new String[0];
+			Yaml perfsYaml = new Yaml();
+			String perfsYamlSrc = e.getString("performers");
+			if ( perfsYamlSrc != null && !perfsYamlSrc.equals("") )
+			{
+				Object perfsYmlObj = perfsYaml.load( perfsYamlSrc );
+				//System.out.println( perfsYmlObj );
+				if ( perfsYmlObj.getClass() == String.class )
+				{
+					performers = new String[]{
+						(String)perfsYmlObj
+					};
+				}
+				else if ( perfsYmlObj.getClass() == ArrayList.class )
+				{
+					ArrayList perfsMap = (ArrayList)perfsYmlObj;
+					performers = new String[perfsMap.size()];
+					for ( int p = 0; p < performers.length; p++ )
+					{
+						performers[p] = perfsMap.get(p).toString();
+					}
+				}
+			}
+			event.setPerformers( performers );
+			
+			Date happened_at = new Date();
+			happened_at.setTime( e.getLong("happened_at_float"));
+			event.setHappenedAt( happened_at );
+
+			return event;
+		}
+		catch ( Exception excp )
+		{
+			excp.printStackTrace();
+		}
+		return null;
+	}
 
 	private void ensureApiKey ()
 	{

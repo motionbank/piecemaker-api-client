@@ -120,6 +120,11 @@ public class Event extends BasicEvent
 		this.description = description;
 	}
 
+	public String getDescription ()
+	{
+		return description;
+	}
+
 	public void setPerformers ( String[] perfs )
 	{
 		this.performers = perfs;
