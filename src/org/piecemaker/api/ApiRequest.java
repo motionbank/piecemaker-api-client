@@ -32,7 +32,7 @@ public class ApiRequest implements Runnable
 		this.data = data;
 		this.callBack = callBack;
 
-		if ( DEBUG ) System.out.println( url + ".json" );
+		if ( DEBUG ) System.out.println( (methodType == POST ? "POST" : "GET") + " " + url + ".json" );
 	}
 
 	public void run ()

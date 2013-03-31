@@ -15,11 +15,52 @@ var PieceMakerApi = (function(){
     var context 	= undefined;
 
     var noop		= function(){};
+
+    /*
+     +	Connector interface for data retrieval
+     +
+     L + + + + + + + + + + + + + + + */
+
+    var Connector = function () {}
+    Connector.prototype = {
+    	get :  function (cntxt, opts) {},
+    	post : function (cntxt, opts) {},
+    	put :  function (cntxt, opts) {},
+    	del :  function (cntxt, opts) {},
+    	fetch: function (cntxt, url, type, data, success, error) {}
+    }
+    var defaultConnectorError = function ( resp ) {
+    	if ( context 
+			 && 'piecemakerError' in context 
+			 && typeof context['piecemakerError'] == 'function' )
+			context['piecemakerError']( resp );
+		else
+			throw( resp );
+    }
+
+	/*
+	 +	XHR connector implementation
+	 +
+	 L + + + + + + + + + + + + + + + */
 	
 	// cross origin resource sharing
 	// http://www.html5rocks.com/en/tutorials/cors/
 	
-    var xhrRequest = function ( context, url, type, data, success ) {
+	var XHRConnector = function () {}
+	XHRConnector.prototype = new Connector();
+	XHRConnector.prototype.get = function ( pm, opts ) {
+		this.fetch( pm, opts.url, 'get', null, opts.success, opts.error || defaultConnectorError );
+	}
+	XHRConnector.prototype.put = function ( pm, opts ) {
+	    this.fetch( pm, opts.url, 'put', opts.data, opts.success, opts.error || defaultConnectorError );
+	}
+	XHRConnector.prototype.post = function ( pm, opts ) {
+	    this.fetch( pm, opts.url, 'post', opts.data, opts.success, opts.error || defaultConnectorError );
+	}
+	XHRConnector.prototype.del = function ( pm, opts ) {
+	    this.fetch( pm, opts.url, 'delete', null, opts.success, opts.error || defaultConnectorError );
+	}
+    XHRConnector.prototype.fetch = function ( context, url, type, data, success, error ) {
     	if ( api_key ) {
     		if ( data && !('api_key' in data) ) {
     			data['api_key'] = api_key
@@ -28,7 +69,7 @@ var PieceMakerApi = (function(){
     		}
     	}
 
-    	console.log( url + '.json' );
+    	//console.log( type + ' ' + url + '.json' );
 
         jQuery.ajax({
                 url: url,
@@ -45,38 +86,84 @@ var PieceMakerApi = (function(){
 				// },
 				context: context,
                 success: success,
-                error: function ( response ) {
-                    xhrError( response );
-                },
+                error: error,
                 xhrFields: { withCredentials: true }
 				// , headers: { 'Cookie' : document.cookie }
             });
     };
 
-	var xhrGet = function ( pm, opts ) {
-		xhrRequest( pm, opts.url, 'get', null, opts.success );
+	/*
+	 +	Remote connector implementation
+	 +
+	 L + + + + + + + + + + + + + + + */
+
+	var RemoteConnector = function ( win, org ) {
+		this.targetWindow = win;
+		this.targetOrigin = org;
+		this.requests = {};
+	}
+	RemoteConnector.prototype = new Connector();
+	RemoteConnector.prototype.get = function ( pm, opts ) {
+		this.fetch( pm, opts.url, 'get', null, opts.success, opts.error || defaultConnectorError );
+	}
+	RemoteConnector.prototype.fetch = function ( context, url, type, data, success, error ) {
+
+    	if ( api_key ) {
+    		if ( data && !('api_key' in data) ) {
+    			data['api_key'] = api_key
+    		} else if ( !data ) {
+    			data = { api_key: api_key }
+    		}
+    	}
+
+		var xhrOptions = {
+                url: url,
+                type: type,
+                dataType: 'json',
+                data: data,
+// 			   context: context,
+//             success: success,
+//             error: error,
+                xhrFields: { 
+                	withCredentials: true 
+                }
+        };
+
+        var requestId = 'piecemaker_request_'+(new Date().getTime());
+        while ( connector.requests[requestId] ) {
+        	requestId = 'piecemaker_request_'+(new Date().getTime());
+        }
+
+        connector.requests[requestId] = {
+			context: context,
+            success: function () {
+            	success.apply( context, arguments );
+            },
+            error: function ( response ) {
+                error.call( null, response );
+            }
+        }
+
+        connector.targetWindow.postMessage({
+        	command: 'piecemakerapi',
+        	options: xhrOptions,
+        	requestId: requestId
+        }, connector.targetOrigin);
+    }
+	RemoteConnector.prototype.handle = function ( response ) {
+		if ( connector.requests[response.requestId] ) {
+			connector.requests[response.requestId].success( response.data );
+			delete connector.requests[response.requestId];
+		} else {
+			console.log( 'Unable to find request with ID: '+response.requestId );
+			console.log( connector.requests );
+		}
 	}
 
-	var xhrPut = function ( pm, opts ) {
-	    xhrRequest( pm, opts.url, 'put', opts.data, opts.success );
-	}
-
-	var xhrPost = function ( pm, opts ) {
-	    xhrRequest( pm, opts.url, 'post', opts.data, opts.success );
-	}
-
-	var xhrDelete = function ( pm, opts ) {
-	    xhrRequest( pm, opts.url, 'delete', null, opts.success );
-	}
-	
-	var xhrError = function ( resp ) {
-		if ( context 
-			 && 'piecemakerError' in context 
-			 && typeof context['piecemakerError'] == 'function' )
-			context['piecemakerError']( resp );
-		else
-			throw( resp );
-	}
+	/*
+	 +	PieceMaker1 data sanitation
+	 +
+	 L + + + + + + + + + + + + + + + */
 
 	var pm1PrepareVideos = function ( videos ) {
 		if ( !videos || videos.length == 0 ) return;
@@ -111,6 +198,11 @@ var PieceMakerApi = (function(){
 			}
 		}
 	}
+
+	/*
+	 +	PieceMaker API
+	 +
+	 L + + + + + + + + + + + + + + + */
     
     var PieceMakerApi = function () {
          
@@ -133,6 +225,8 @@ var PieceMakerApi = (function(){
 		}
 
 		if ( !api_key ) throw( "PieceMakerAPI: need an API_KEY for this to work" );
+
+		connector = new XHRConnector(); // default connector
 	}
 
 	/* PieceMakerApi.USER 		= 0; */
@@ -145,18 +239,18 @@ var PieceMakerApi = (function(){
 
 	PieceMakerApi.prototype.loadPiece = function ( pieceId, cb ) {
 		var callback = cb || noop;
-	    xhrGet( this, {
+	    connector.get( this, {
 	        url: baseUrl + '/api/piece/'+pieceId,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.PIECE;
-				callback.call( context || cb, response );
+				callback.call( context || cb, response.piece );
 	        }
 	    });
 	}
 
 	PieceMakerApi.prototype.loadPieces = function ( cb ) {
 		var callback = cb || noop;
-	    xhrGet( this, {
+	    connector.get( this, {
 	        url: baseUrl + '/api/pieces',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.PIECES;
@@ -167,7 +261,7 @@ var PieceMakerApi = (function(){
 	
 	PieceMakerApi.prototype.loadEventsForPiece = function ( pieceId, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 	        url: baseUrl + '/api/piece/'+pieceId+'/events',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
@@ -179,7 +273,7 @@ var PieceMakerApi = (function(){
 
 	PieceMakerApi.prototype.loadVideosForPiece = function ( pieceId, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 	        url: baseUrl + '/api/piece/'+pieceId+'/videos',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEOS;
@@ -191,25 +285,27 @@ var PieceMakerApi = (function(){
 
 	PieceMakerApi.prototype.loadVideo = function ( videoId, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 	        url: baseUrl + '/api/video/'+videoId,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEO;
-	        	pm1PrepareVideo( response );
-				callback.call( context || cb, response );
+	        	var v = response.video;
+	        	pm1PrepareVideo( v );
+				callback.call( context || cb, v );
 	        }
 	    });
 	}
 
 	PieceMakerApi.prototype.createVideo = function ( data, cb ) {
 		var callback = cb || noop;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/video',
 	        data: data,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEO;
-	        	pm1PrepareVideo( response );
-	            callback.call( context || cb, response );
+	        	var v = response.video;
+	        	pm1PrepareVideo( v );
+				callback.call( context || cb, v );
 	        }
 	    });
 	}
@@ -217,13 +313,14 @@ var PieceMakerApi = (function(){
 	PieceMakerApi.prototype.updateVideo = function ( videoId, data, cb ) {
 		var callback = cb || noop;
 		if ( (typeof videoId === 'object') && ('id' in videoId) ) videoId = videoId.id;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/video/'+videoId+'/update',
 	        data: data,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEO;
-	        	pm1PrepareVideo( response );
-	            callback.call( context || cb, response );
+	        	var v = response.video;
+	        	pm1PrepareVideo( v );
+				callback.call( context || cb, v );
 	        }
 	    });
 	}
@@ -231,19 +328,20 @@ var PieceMakerApi = (function(){
 	PieceMakerApi.prototype.deleteVideo = function ( videoId, cb ) {
 		var callback = cb || noop;
 		if ( (typeof videoId === 'object') && ('id' in videoId) ) videoId = videoId.id;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/video/'+videoId+'/delete',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.VIDEO;
-	        	pm1PrepareVideo( response );
-	            callback.call( context || cb, response );
+	        	var v = response.video;
+	        	pm1PrepareVideo( v );
+				callback.call( context || cb, v );
 	        }
 	    });
 	}
 
 	PieceMakerApi.prototype.loadEventsForVideo = function ( videoId, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 	        url: baseUrl + '/api/video/'+videoId+'/events',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
@@ -255,7 +353,7 @@ var PieceMakerApi = (function(){
 
 	PieceMakerApi.prototype.loadEventsByTypeForVideo = function ( videoId, type, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 	        url: baseUrl + '/api/video/'+videoId+'/events/type/'+type,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENTS;
@@ -267,7 +365,7 @@ var PieceMakerApi = (function(){
 
 	PieceMakerApi.prototype.loadEventsBetween = function ( from, to, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 			url: baseUrl + '/api/events/between/'+
 					parseInt(from.getTime() / 1000) + '/' + 
 					parseInt(Math.ceil(to.getTime() / 1000)),
@@ -281,38 +379,41 @@ var PieceMakerApi = (function(){
 
 	PieceMakerApi.prototype.loadEvent = function ( eventId, cb ) {
 		var callback = cb || noop;
-		xhrGet( this, {
+		connector.get( this, {
 	        url: baseUrl + '/api/event/'+eventId,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	        	pm1PrepareEvent( response );
-	            callback.call( context || cb, response );
+	        	var e = response.event;
+	        	pm1PrepareEvent( e );
+	            callback.call( context || cb, e );
 	        }
 	    });
 	}
 
 	PieceMakerApi.prototype.createEvent = function ( data, cb ) {
 		var callback = cb || noop;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/event',
 	        data: data,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	        	pm1PrepareEvent( response );
-	            callback.call( context || cb, response );
+	        	var e = response.event;
+	        	pm1PrepareEvent( e );
+	            callback.call( context || cb, e );
 	        }
 	    });
 	}
 
 	PieceMakerApi.prototype.updateEvent = function ( eventId, data, cb ) {
 		var callback = cb || noop;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/event/'+eventId+'/update',
 	        data: data,
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	        	pm1PrepareEvent( response );
-	            callback.call( context || cb, response );
+	        	var e = response.event;
+	        	pm1PrepareEvent( e );
+	            callback.call( context || cb, e );
 	        }
 	    });
 	}
@@ -320,19 +421,20 @@ var PieceMakerApi = (function(){
 	PieceMakerApi.prototype.deleteEvent = function ( eventId, cb ) {
 		var callback = cb || noop;
 		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/event/'+eventId+'/delete',
 	        success: function ( response ) {
 	        	response.requestType = PieceMakerApi.EVENT;
-	        	pm1PrepareEvent( response );
-	            callback.call( context || cb, response );
+	        	var e = response.event;
+	        	pm1PrepareEvent( e );
+	            callback.call( context || cb, e );
 	        }
 	    });
 	}
 
 	PieceMakerApi.prototype.findEvents = function ( opts, cb ) {
 		var callback = cb || noop;
-		xhrPost( this, {
+		connector.post( this, {
 	        url: baseUrl + '/api/events/find',
 	        data: opts,
 	        success: function ( response ) {
@@ -385,34 +487,25 @@ var PieceMakerApi = (function(){
 			throw( "PieceMakerAPI error: wrong number of arguments" );
 	}
 
-    /* var isLoggedIn 	= false; */
-	/* PieceMakerApi.prototype.login = function ( cb ) {
-		var callback = cb || noop;
-		if ( arguments.length == 1 ) {
-			callback = arguments[0];
-		} else if ( arguments.length == 2 ) {
-			// TODO: validate user / pass before sending to server?
-			user = { login: arguments[0], 
-					 password: arguments[1] };
-		}
-		var self = this;
-	    xhrPost( this, {
-	        url: baseUrl + '/api/login',
-	        data: { login: user.login, password: user.password, api_key: user.api_key },
-	        success: function ( response ) {
-				if ( response.status ) {
-	            	isLoggedIn = true;
-					callback.call( context || cb, PieceMakerApi.USER, response );
-				} else {
-					if ( context && 'pmLoginFailed' in context )
-						context.pmLoginFailed();
-				}
-	        }
-	    });
-	} */
-	/* PieceMakerApi.prototype.isLoggedIn = function () {
-		return isLoggedIn;
-	} */
+	/**
+	 *	
+	 */
+	PieceMakerApi.prototype.useProxy = function ( win, org ) {
 		
+		connector = new RemoteConnector(win, org);
+
+		window.addEventListener( 'message', function(msg){
+			if ( connector instanceof RemoteConnector && 
+				 msg.origin === connector.targetOrigin && 
+			     msg.data.command === 'piecemakerapi' ) {
+				connector.handle( msg.data );
+			}
+		}, true );
+	}
+
+	PieceMakerApi.prototype.fetch = function ( options, success, error ) {
+		connector.fetch( null, options.url, options.type, options.data, success, error || defaultConnectorError );
+	}
+
     return PieceMakerApi;
 })();

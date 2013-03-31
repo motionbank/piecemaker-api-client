@@ -28,7 +28,7 @@ public class PieceMakerApi
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
 
-	public final static int IGNORE 	= 0;
+	public final static int IGNORE 	= 100;
 	//public final static int USER 	= 0;
 	public final static int PIECE 	= 1;
 	public final static int PIECES 	= 2;
@@ -142,81 +142,129 @@ public class PieceMakerApi
 		new Thread( new ApiRequest( this, PIECE, base_url + "/api/piece/" + pieceId, ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load all events for a piece
+	 */
 	public void loadEventsForPiece ( int pieceId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/piece/" + pieceId + "/events", ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load all events of certain type for a piece
+	 */
 	public void loadEventsByTypeForPiece ( int pieceId, String type, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/piece/" + pieceId + "/events/type/" + type, ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load all videos for a piece
+	 */
 	public void loadVideosForPiece ( int pieceId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, VIDEOS, base_url + "/api/piece/" + pieceId + "/videos", ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load one video by ID
+	 */
 	public void loadVideo ( int videoId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId, ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Create a video
+	 */
 	public void createVideo ( HashMap data, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video", ApiRequest.POST, data, callback ) ).start();
 	}
 
+	/**
+	 *	Update a video by ID
+	 */
 	public void updateVideo ( int videoId, HashMap data, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId + "/update", ApiRequest.POST, data, callback ) ).start();
 	}
 
+	/**
+	 *	Delete a video by ID
+	 */
 	public void deleteVideo ( int videoId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, IGNORE, base_url + "/api/video/" + videoId + "/delete", ApiRequest.POST, null, callback ) ).start();
+		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId + "/delete", ApiRequest.POST, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load all events (that fall in from + duration) for a video by ID
+	 */
 	public void loadEventsForVideo ( int videoId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events", ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load all events by type for a video by ID
+	 */
 	public void loadEventsByTypeForVideo ( int videoId, String type, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events/type/" + type, ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load all events that fall into from - to
+	 */
 	public void loadEventsBetween ( Date from, Date to, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/events/between/" + (from.getTime() / 1000) + "/" + (to.getTime() / 1000), ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Load one event by ID
+	 */
 	public void loadEvent ( int eventId, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
 	}
 
+	/**
+	 *	Create one event
+	 */
 	public void createEvent ( HashMap data, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event", ApiRequest.POST, data, callback ) ).start();
 	}
 
+	/**
+	 *	Update one event by ID
+	 */
 	public void updateEvent ( int eventId, HashMap data, ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId + "/update", ApiRequest.POST, data, callback ) ).start();
 	}
 
+	/**
+	 *	Delete one event by ID
+	 */
 	public void deleteEvent ( int eventId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, IGNORE, base_url + "/api/event/" + eventId + "/delete", ApiRequest.POST, null, callback ) ).start();
+		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId + "/delete", ApiRequest.POST, null, callback ) ).start();
 	}
 
+	/**
+	 *	Find all events for parameters
+	 */
 	public void findEvents ( HashMap opts, ApiCallback callback )
 	{
 		System.err.println( "Not implemented yet. Sorry." );
 	}
 
+	/**
+	 *	Create a callback to be called with results from API
+	 */
 	public ApiCallback createCallback ( Object ... args )
 	{
 		if ( args == null || args.length == 0 ) 
@@ -226,7 +274,7 @@ public class PieceMakerApi
 		}
 		
 		Object target = context;
-		String method = (String)args[0];
+		String method = "";
 		int shift = 1;
 
 		if ( args.length >= 2 && args[0].getClass() != String.class )
@@ -234,6 +282,10 @@ public class PieceMakerApi
 			target = args[0];
 			method = (String)args[1];
 			shift = 2;
+		}
+		else
+		{
+			method = (String)args[0];
 		}
 
 		if ( args.length > shift )
@@ -247,7 +299,7 @@ public class PieceMakerApi
 			args = null;
 		}
 
-		ApiCallback cb = new ApiCallback( context, method );
+		ApiCallback cb = new ApiCallback( target, method );
 		if ( args != null && args.length > 0 )
 		{
 			cb.addArguments( args );
@@ -292,25 +344,24 @@ public class PieceMakerApi
 					JSONArray jsonPieces = jsonResponse.getJSONArray("pieces");
 					pieces.pieces = new Piece[ jsonPieces.length() ];
 					for ( int i = 0, k = jsonPieces.length(); i < k; i++ ) {
+						
 						JSONObject p = jsonPieces.getJSONObject(i);
-						Piece piece = new Piece();
-
-						// {"id":3,"title":"No time to fly",
-						// "updated_at":"2012/05/30 15:49:45 +0200",
-						// "modified_by":null,"is_active":true,"group_id":null,
-						// "created_at":"2011/02/21 09:45:18 +0100","short_name":"notimetofly"}
-						piece.setId( p.getInt("id") );
-						piece.setTitle( p.getString("title") );
-						piece.setUpdatedAt( new Date( p.getString("updated_at") ) );
-						piece.setUpdatedBy( p.getString("modified_by") );
-						piece.setIsActive( p.getBoolean("is_active") );
-						piece.setCreatedAt( new Date( p.getString("created_at") ) );
+						
+						Piece piece = pieceFromJson(p);
 
 						pieces.pieces[i] = piece;
 					}
 				} 
 
 				request.getCallback().call( pieces );
+			}
+			else if ( request.getType() == PIECE )
+			{
+				JSONObject p = jsonResponse.getJSONObject("piece");
+				
+				Piece piece = pieceFromJson(p);
+
+				request.getCallback().call( piece );
 			}
 			else if ( request.getType() == VIDEOS )
 			{
@@ -433,6 +484,30 @@ public class PieceMakerApi
 	 +	Private methods
 	 +
 	 + + + + + + + + + + + + + + + + + + + + + */
+
+	private Piece pieceFromJson ( JSONObject p )
+	{
+		try {
+			Piece piece = new Piece();
+
+			// {"id":3,"title":"No time to fly",
+			// "updated_at":"2012/05/30 15:49:45 +0200",
+			// "modified_by":null,"is_active":true,"group_id":null,
+			// "created_at":"2011/02/21 09:45:18 +0100","short_name":"notimetofly"}
+			piece.setId( p.getInt("id") );
+			piece.setTitle( p.getString("title") );
+			piece.setUpdatedAt( new Date( p.getString("updated_at") ) );
+			piece.setUpdatedBy( p.getString("modified_by") );
+			piece.setIsActive( p.getBoolean("is_active") );
+			piece.setCreatedAt( new Date( p.getString("created_at") ) );
+			
+			return piece;
+
+		} catch ( Exception e ) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	private Event eventFromJson ( JSONObject e )
 	{

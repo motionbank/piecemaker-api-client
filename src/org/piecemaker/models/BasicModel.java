@@ -1,3 +1,6 @@
+
+// TODO: Implement Iterateble, Compareable
+
 package org.piecemaker.models;
 
 import java.util.Map;
