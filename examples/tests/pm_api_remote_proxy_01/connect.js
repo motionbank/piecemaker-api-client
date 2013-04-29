@@ -8,7 +8,7 @@ jQuery(function(){
     
     window.addEventListener( 'message', function(msg){
 //        if ( allowedOrigins.indexOf( msg.origin ) !== -1 ) {
-            if ( msg.data.command === 'setWindow' ) {
+            if ( msg.data.name === 'setWindow' ) {
                 parentWindow = msg.source;
                 parentWindowOrigin = msg.origin;
                 

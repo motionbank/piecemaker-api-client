@@ -394,7 +394,7 @@ public class PieceMakerApi
 						//video.setCreatedAt( new Date( v.getString("created_at") ) );
 						
 						Date happened_at = new Date();
-						happened_at.setTime(v.getLong("happened_at_float"));
+						happened_at.setTime( v.getLong("happened_at_float") );
 						video.setHappenedAt( happened_at );
 
 						video.setVideoUrl( v.getString("s3_url") );

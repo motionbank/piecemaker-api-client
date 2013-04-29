@@ -144,18 +144,26 @@ var PieceMakerApi = (function(){
             }
         }
 
-        connector.targetWindow.postMessage({
-        	command: 'piecemakerapi',
-        	options: xhrOptions,
-        	requestId: requestId
-        }, connector.targetOrigin);
+        connector.targetWindow.postMessage(
+    	(function(opt,rid){
+    		return {
+	        	name: 'piecemakerapi',
+	        	data: JSON.stringify({
+	        		options: opt,
+	        		requestId: rid
+	        	})
+    		};
+        })(xhrOptions,requestId), 
+        connector.targetOrigin);
     }
+    // note that "data" here is dom-message{data:{data:{DATA:XXX}}} ... three levels in
 	RemoteConnector.prototype.handle = function ( response ) {
 		if ( connector.requests[response.requestId] ) {
 			connector.requests[response.requestId].success( response.data );
 			delete connector.requests[response.requestId];
 		} else {
 			console.log( 'Unable to find request with ID: '+response.requestId );
+			console.log( response );
 			console.log( connector.requests );
 		}
 	}
@@ -196,6 +204,17 @@ var PieceMakerApi = (function(){
 				event.happened_at = new Date( event.happened_at_float );
 				event.finished_at = new Date( event.happened_at.getTime() + event.duration * 1000 );
 			}
+		}
+		event.getHappenedAt = function () {
+			return event.happened_at;
+		}
+		event.setHappenedAt = function ( date ) {
+			if ( !( date instanceof 'Date' ) ) return;
+			event.happened_at = date;
+			event.happened_at_float = date.getTime();
+		}
+		event.getEventType = function () {
+			return event.event_type;
 		}
 	}
 
@@ -497,8 +516,9 @@ var PieceMakerApi = (function(){
 		window.addEventListener( 'message', function(msg){
 			if ( connector instanceof RemoteConnector && 
 				 msg.origin === connector.targetOrigin && 
-			     msg.data.command === 'piecemakerapi' ) {
-				connector.handle( msg.data );
+			     msg.data.name === 'piecemakerapi' ) {
+				var json = JSON.parse( msg.data );
+				connector.handle( json.data );
 			}
 		}, true );
 	}

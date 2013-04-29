@@ -18,11 +18,11 @@
 				var api = new PieceMakerApi(this,'another-faux-api-key','http://moba-lab.local');
 				window.addEventListener('message',function(msg){
 					if ( msg.origin === mainOrigin ) {
-						if ( msg.data.command === 'piecemakerapi' ) {
-							api.fetch( msg.data.options, 
+						if ( msg.data.name === 'piecemakerapi' ) {
+							api.fetch( msg.data.data, 
 								function ( resp ) {
 									iframeWindow.postMessage({
-										command: 'piecemakerapi',
+										name: 'piecemakerapi',
 										data: resp,
 										requestId: msg.data.requestId
 									},mainOrigin);
