@@ -24,7 +24,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "this-is-not-an-api-key", "http://localhost:3000" ); // http://notimetofly.herokuapp.com
+    api = new PieceMakerApi( this, "this-is-not-an-api-key", "http://localhost:3000" );
     
     api.loadPieces( api.createCallback( "piecesLoaded") );
 }

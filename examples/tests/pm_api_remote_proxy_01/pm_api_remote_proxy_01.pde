@@ -13,7 +13,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "faux-api-key", "http://notimetofly.herokuapp.com" );
+    api = new PieceMakerApi( this, "faux-api-key", "http://localhost:3000" );
 }
 
 void draw ()

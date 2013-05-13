@@ -15,7 +15,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "not-a-real-api-key", "http://localhost:3000" ); // http://notimetofly.herokuapp.com
+    api = new PieceMakerApi( this, "not-a-real-api-key", "http://localhost:3000" );
     
     HashMap<String, String> eventData = new HashMap<String, String>();
     eventData.put( "title", "test marker" );

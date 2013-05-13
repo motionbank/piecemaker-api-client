@@ -15,7 +15,7 @@
 				jQuery('iframe').attr('src', 'index.html').load(function(){
 					this.contentWindow.postMessage({command:'setWindow'},mainOrigin);
 				});
-				var api = new PieceMakerApi(this,'another-faux-api-key','http://moba-lab.local');
+				var api = new PieceMakerApi(this,'another-faux-api-key','http://localhost:3000');
 				window.addEventListener('message',function(msg){
 					if ( msg.origin === mainOrigin ) {
 						if ( msg.data.name === 'piecemakerapi' ) {

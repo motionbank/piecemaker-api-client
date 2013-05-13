@@ -12,6 +12,10 @@ This client library for Java/Processing and JavaScript allows to connect to Piec
 
 Technically the communication to the API is using [jQuery](http://api.jquery.com/jQuery.ajax/) for JS XHR ("ajax") and [Apache HTTP Components](http://hc.apache.org/) for Java.
 
+## Usage
+
+Currently the only way to use this client library is with an installation of PM somewhere. We have MB data online but as we are still changing and fixing things so we are hessitant to open up just now. Please mail us at "florian at motionbank org" if you really want/need access just now.
+
 More information:
 - [piecemaker.org](http://piecemaker.org)
 - [motionbank.org](http://motionbank.org)
