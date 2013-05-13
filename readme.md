@@ -1,8 +1,8 @@
 _Please note that this code and the API is going to change a lot in the upcoming months as we move on from the original PieceMaker 1 to the brand new PieceMaker 2_
 
-***PieceMaker API wrapper for Java and JavaScript***
+# PieceMaker API wrapper for Java and JavaScript
 
-As part of the Motion Bank research project the PieceMaker software by David Kern is further developed. PieceMaker is essentially a process documentation tool that allows to align events in time. You can think of it as a video annotation tool.
+As part of the Motion Bank research project the PieceMaker software by [David Kern](http://www.nutbitsresearch.com/) is further developed. PieceMaker is essentially a process documentation tool that allows to align events in time. You can think of it as a video annotation tool.
 
 Official information about PieceMaker as part of Motion Bank is [here](http://motionbank.org/en/piecemaker-2/).
 
