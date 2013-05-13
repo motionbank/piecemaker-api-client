@@ -30,7 +30,7 @@ void setup ()
 {
     size( 600, 200 );
 
-    api = new PieceMakerApi( this, "a79c66c0bb4864c06bc44c0233ebd2d2b1100fbe", "http://sdcp-nttf-node13.herokuapp.com" );
+    api = new PieceMakerApi( this, "your-real-api-key-here", "http://sdcp-nttf-node13.herokuapp.com" );
 
     api.loadPieces( api.createCallback( "piecesLoaded") );
 }
