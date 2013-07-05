@@ -10,13 +10,16 @@
 import org.piecemaker2.api.*;
 
 PieceMakerApi2 api;
+Group group;
+Event[] videos;
+Event[] allEvents;
 
 boolean loading = true;
 String loadingMessage = "Loading pieces ...";
 
 void setup ()
 {
-    size( 200, 200 );
+    size( 400, 200 );
     
     api = new PieceMaker2Api( this, 
                               false ? "http://localhost:8080" : "http://jbmf-piecemaker2-prod.eu01.aws.af.cm",
@@ -27,16 +30,19 @@ void setup ()
 
 void draw ()
 {
-    if ( loading ) {
-        drawLoading();
-        return;
-    }
-    else
+    if ( videos != null && allEvents != null )
     {
         background( 255 );
         textAlign( LEFT );
         
-        text( "Loaded piece \""+piece.title+"\" \nwith "+videos.length+" videos \nand "+events.length+" events.", 10, 20 );
+        text( "Loaded piece \"" + group.title + "\" \n"+
+              "with " + videos.length + " videos "+
+              "and " + allEvents.length + " events (incl. videos)", 
+              10, 20 );
+    }
+    else
+    {
+        drawLoading();
     }
 }
 
@@ -51,16 +57,22 @@ void drawLoading ()
 
 void groupsLoaded ( EventGroup[] groups )
 {
-    api.listEvents( groups[0].id, api.createCallback( "groupEventsLoaded" ) );
-    api.listEventsOfType( groups[0].id, "video", api.createCallback( "groupVideosLoaded" ) );
+    group = groups[0];
+    
+    api.listEvents( group.id, api.createCallback( "groupEventsLoaded" ) );
+    api.listEventsOfType( group.id, "video", api.createCallback( "groupVideosLoaded" ) );
 }
 
-void groupEventsLoaded ( Events groupEvents )
+void groupEventsLoaded ( Event[] groupEvents )
 {
-    console.log( groupEvents.queryTime );
+    allEvents = groupEvents;
+    
+    console.log( groupEvents.length, groupEvents.queryTime, (1.0 * groupEvents.queryTime) / groupEvents.length );
 }
 
-void groupVideosLoaded ( Videos groupVideos )
+void groupVideosLoaded ( Event[] groupVideos )
 {
-    console.log( groupVideos.queryTime );
+    videos = groupVideos;
+    
+    console.log( groupVideos.length, groupVideos.queryTime, (1.0 * groupVideos.queryTime) / groupVideos.length );
 }
