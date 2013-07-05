@@ -7,14 +7,9 @@
  *    created: fjenett 20121203
  */
 
-import org.piecemaker2.collections.*;
-import org.piecemaker2.models.*;
 import org.piecemaker2.api.*;
 
-PieceMakerApi api;
-Piece piece;
-Video[] videos;
-org.piecemaker2.models.Event[] events;
+PieceMakerApi2 api;
 
 boolean loading = true;
 String loadingMessage = "Loading pieces ...";
@@ -23,7 +18,9 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMaker2Api( this, "http://localhost:8080" );
+    api = new PieceMaker2Api( this, 
+                              false ? "http://localhost:8080" : "http://jbmf-piecemaker2-prod.eu01.aws.af.cm",
+                              "1eda23758be9e36e5e0d2a6a87de584aaca0193f" );
     
     api.listGroups( api.createCallback( "groupsLoaded") );
 }
@@ -54,31 +51,16 @@ void drawLoading ()
 
 void groupsLoaded ( EventGroup[] groups )
 {
-    loadingMessage = "Loading videos ...";
-    
-    if ( groups.length > 0 ) {
-        group = groups[0];
-        //api.loadVideosForPiece( piece.id, api.createCallback( "videosLoaded") );
-        api.listGroupEvents( group.id, api.createCallback( "groupEventsLoaded" ) );
-    }
+    api.listEvents( groups[0].id, api.createCallback( "groupEventsLoaded" ) );
+    api.listEventsOfType( groups[0].id, "video", api.createCallback( "groupVideosLoaded" ) );
 }
 
-void groupEventsLoaded ( Event[] events )
+void groupEventsLoaded ( Events groupEvents )
 {
-    console.log( events.length );
-    
-//    loadingMessage = "Loading events ...";
-//    
-//    if ( vids.videos.length > 0 ) {
-//        videos = vids.videos;
-//        api.loadEventsForVideo( videos[0].id, api.createCallback( "eventsLoaded") );
-//    }
+    console.log( groupEvents.queryTime );
 }
 
-//void eventsLoaded ( Events evts )
-//{
-//    events = evts.events;
-//    println( events );
-//    loading = false;
-//}
-
+void groupVideosLoaded ( Videos groupVideos )
+{
+    console.log( groupVideos.queryTime );
+}

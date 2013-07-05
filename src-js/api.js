@@ -29,8 +29,10 @@ var PieceMaker2Api = (function(){
     		}
     	}
 
+    	var ts = (new Date()).getTime();
+
         jQuery.ajax({
-                url: url,
+                url: url + '.json',
                 type: type,
                 dataType: 'json',
                 data: data,
@@ -43,9 +45,16 @@ var PieceMaker2Api = (function(){
 				// 	// }
 				// },
 				context: context,
-                success: success,
-                error: function ( response ) {
-                    xhrError( response );
+                success: function () {
+                	if ( arguments && arguments[0] && 
+                		 typeof arguments[0] === 'object' && 
+                		 !('queryTime' in arguments[0]) ) {
+                		arguments[0]['queryTime'] = ((new Date()).getTime()) - ts;
+                	}
+                	success.apply( context, arguments );
+                },
+                error: function (err) {
+                    xhrError(err);
                 }
                 // , xhrFields: { withCredentials: true }
 				// , headers: { 'Cookie' : document.cookie }
@@ -69,10 +78,10 @@ var PieceMaker2Api = (function(){
 	}
 	
 	var xhrError = function ( resp ) {
-		if ( context 
-			 && 'piecemakerError' in context 
-			 && typeof context['piecemakerError'] == 'function' )
-			context['piecemakerError']( resp );
+		if ( api.context 
+			 && 'piecemakerError' in api.context 
+			 && typeof api.context['piecemakerError'] == 'function' )
+			api.context['piecemakerError']( resp );
 		else
 			throw( resp );
 	}
@@ -113,11 +122,11 @@ var PieceMaker2Api = (function(){
 
 		// pm2 needs the API key
 
-		if ( !api_key ) throw( "PieceMaker2API: need an API_KEY for this to work" );
+		if ( !this.api_key ) throw( "PieceMaker2API: need an API_KEY for this to work" );
 
 		// ... for internal use only
 
-		var api = this;
+		api = this;
 	}
 
 	// just as a personal reference: discussing the routes
@@ -253,6 +262,17 @@ var PieceMaker2Api = (function(){
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.baseUrl + '/group/'+groupId+'/events',
+	        success: function ( response ) {
+				callback.call( api.context || cb, response );
+	        }
+	    });
+	}
+	
+	_PieceMakerApi2.prototype.listEventsOfType = function ( groupId, type, cb ) {
+		var callback = cb || noop;
+		xhrGet( this, {
+	        url: api.baseUrl + '/group/'+groupId+'/events',
+	        data: { type: type },
 	        success: function ( response ) {
 				callback.call( api.context || cb, response );
 	        }
@@ -426,5 +446,5 @@ var PieceMaker2Api = (function(){
 			throw( "PieceMakerAPI error: wrong number of arguments" );
 	}
 
-    return PieceMakerApi;
+    return _PieceMakerApi2;
 })();
