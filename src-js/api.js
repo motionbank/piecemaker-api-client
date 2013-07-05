@@ -71,6 +71,8 @@ var PieceMakerApi = (function(){
 
     	//console.log( type + ' ' + url + '.json' );
 
+    	var ts = new Date().getTime();
+
         jQuery.ajax({
                 url: url,
                 type: type,
@@ -85,7 +87,14 @@ var PieceMakerApi = (function(){
 				// 	// }
 				// },
 				context: context,
-                success: success,
+                success: function () {
+                	if ( arguments && arguments[0] &&
+                		 typeof arguments[0] === 'object' &&
+                		 !('queryTime' in arguments[0]) ) {
+                		arguments[0]['queryTime'] = (new Date().getTime()) - ts;
+                	}
+                	success.apply( context, arguments );
+                },
                 error: error,
                 xhrFields: { withCredentials: true }
 				// , headers: { 'Cookie' : document.cookie }
