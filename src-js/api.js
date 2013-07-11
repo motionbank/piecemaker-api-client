@@ -302,26 +302,28 @@ var PieceMaker2Api = (function(){
 
 	// ###Update a group
 
-	_PieceMakerApi2.prototype.updateGroup = function ( groupId, cb ) {
-		/* var callback = cb || noop;
-		   xhrGet( this, {
-		       url: api.base_url + '/group/'+groupId,
-		       success: function ( response ) {
+	_PieceMakerApi2.prototype.updateGroup = function ( groupId, groupData, cb ) {
+		var data = convertData( groupData );
+		var callback = cb || noop;
+		xhrPut( this, {
+			url: api.base_url + '/group/'+groupId,
+			data: data,
+			success: function ( response ) {
 				callback.call( api.context || cb, response );
-		       }
-		   }); */
+			}
+		});
 	}
 
 	// ###Delete a group
 
 	_PieceMakerApi2.prototype.deleteGroup = function ( groupId, cb ) {
-		/* var callback = cb || noop;
-		   xhrGet( this, {
-		       url: api.base_url + '/group/'+groupId,
-		       success: function ( response ) {
+		var callback = cb || noop;
+		xhrDelete( this, {
+				url: api.base_url + '/group/'+groupId,
+				success: function ( response ) {
 				callback.call( api.context || cb, response );
-		       }
-		   }); */
+			}
+		});
 	}
 
 	// ###Get all users in this group

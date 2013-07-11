@@ -60,12 +60,17 @@ void eventLoaded ( Event event )
 }
 
 void eventUpdated ( org.piecemaker2.models.Event event, Object e2 )
-{
-    console.log( e2 );
+{    
+    api.deleteEvent( group.id, e2.id, api.createCallback( "eventDeleted" ) );
 }
 
-//void eventDeleted ( org.piecemaker2.models.Event deletedEvent )
-//{
-//    println( "Event #" + deletedEvent.id + " has been deleted ..." );
-//}
+void eventDeleted ( org.piecemaker2.models.Event event )
+{
+    api.deleteGroup( group.id, api.createCallback( "groupDeleted" ) );
+}
+
+void groupDeleted ()
+{
+    console.log( "All done!" );
+}
 
