@@ -1,62 +1,71 @@
 /** 
  *    Motion Bank research, http://motionbank.org/
  *
- *    Piecemaker API test: create, update and delete some markers ...
+ *    Piecemaker 2 API test: 
+ *    create, update and delete some markers ...
  *
- *    Processing 2.0b
+ *    Processing 2.0
  *    created: fjenett 20130302
  */
 
 import org.piecemaker2.api.*;
 
 PieceMakerApi api;
+Group group;
 
 void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMaker2Api( this, "not-a-real-api-key", "http://localhost:3000" );
+    api = new PieceMaker2Api( this, "http://localhost:3001", "9bBa7k4Q4C" );
     
-    HashMap<String, String> eventData = new HashMap<String, String>();
-    eventData.put( "title", "test marker" );
-    eventData.put( "event_type", "data" );
-    api.createEvent( eventData, api.createCallback( "eventCreated" ) );
+    api.createGroup( "test group", "", api.createCallback( "groupCreated" ) );
 }
 
 void draw ()
 {
 }
 
+void groupCreated ( Group g )
+{
+    group = g;
+    
+    HashMap<String, String> eventData = new HashMap<String, String>();
+    
+    eventData.put( "utc_timestamp", new Date().getTime() );
+    eventData.put( "duration", 1000 );
+    
+    eventData.put( "title", "Where does this end up?" );
+    eventData.put( "type", "test type" );
+    
+    api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
+}
+
 void eventCreated ( org.piecemaker2.models.Event event )
 {
-    if ( event != null )
-    {
-        println( "Title is: " + event.getTitle() );
-        
-        HashMap<String, String> eventData = new HashMap<String, String>();
-        eventData.put( "title", "my new title" );
-    
-        api.updateEvent( event.id, eventData, api.createCallback( "eventUpdated", event ) );
-    }
+    api.getEvent( group.id, event.id, api.createCallback( "eventLoaded" ) ); 
 }
 
-void eventUpdated ( org.piecemaker2.models.Event updatedEvent, org.piecemaker2.models.Event originalEvent )
+void eventLoaded ( Event event )
 {
-    if ( originalEvent != null )
-    {
-        println( "Title changed from: " + originalEvent.getTitle() );
-    }
+    HashMap<String, String> eventData = new HashMap<String, String>();
     
-    if ( updatedEvent != null )
-    {
-        println( updatedEvent.getTitle() );
-    }
+    eventData.put( "utc_timestamp", new Date().getTime() );
+    eventData.put( "duration", 2000 );
     
-    api.deleteEvent( updatedEvent.id, api.createCallback( "eventDeleted", updatedEvent ) );
+    eventData.put( "title", "Oh my goodness" );
+    eventData.put( "super-type", "a-super-fancy-type" );
+    
+    api.updateEvent( group.id, event.id, eventData, api.createCallback( "eventUpdated", event ) );
 }
 
-void eventDeleted ( org.piecemaker2.models.Event deletedEvent )
+void eventUpdated ( org.piecemaker2.models.Event event, Object e2 )
 {
-    println( "Event #" + deletedEvent.id + " has been deleted ..." );
+    console.log( e2 );
 }
+
+//void eventDeleted ( org.piecemaker2.models.Event deletedEvent )
+//{
+//    println( "Event #" + deletedEvent.id + " has been deleted ..." );
+//}
 
