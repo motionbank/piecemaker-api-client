@@ -1,5 +1,15 @@
 package org.piecemaker2.api;
 
+/**
+ *	Class ApiCallback
+ *
+ *	<p>This class is used to facilitate asynchronous callback
+ *	functionality in Java / Processing.</p>
+ *
+ *	@version ##version## - ##build##
+ *	@author florian@motionbank.org
+ */
+
 import java.lang.reflect.*;
 
 public class ApiCallback

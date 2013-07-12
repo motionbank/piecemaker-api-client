@@ -1,10 +1,27 @@
 package org.piecemaker2.api;
 
+/**
+ *	Class PieceMakerApi
+ *
+ *	<p>
+ *	This reflects the main entry to the Piecemaker 2 API.
+ *	</p>
+ *
+ *	References:
+ *	<ul>
+ *		<li>http://piecemaker.org</li>
+ *		<li>http://motionbank.org</li>
+ *		<li>https://github.com/motionbank/piecemaker-api-client</li>
+ *	</ul>
+ *
+ *	@author florian@motionbank.org
+ *	@version ##version## - ##build##
+ */
+
 import java.util.*;
 import java.lang.reflect.*;
 
 import org.piecemaker2.models.*;
-import org.piecemaker2.collections.*;
 
 // See Apache Commons:
 // http://hc.apache.org/httpclient-3.x/apidocs/org/apache/commons/httpclient/methods/GetMethod.html
@@ -17,9 +34,6 @@ import org.json.*;
 
 import org.yaml.snakeyaml.*;
 
-/**
- *	Class PieceMakerApi
- */
 public class PieceMakerApi
 {
 	/* + + + + + + + + + + + + + + + + + + + + +
@@ -29,13 +43,15 @@ public class PieceMakerApi
 	 + + + + + + + + + + + + + + + + + + + + + */
 
 	public final static int IGNORE 	= 100;
-	//public final static int USER 	= 0;
-	public final static int PIECE 	= 1;
-	public final static int PIECES 	= 2;
+	
+	public final static int USER 	= 0;
+	public final static int USERS 	= 5;
+	
+	public final static int GROUP 	= 1;
+	public final static int GROUPS 	= 2;
+	
 	public final static int EVENT 	= 3;
 	public final static int EVENTS 	= 4;
-	public final static int VIDEO 	= 5;
-	public final static int VIDEOS 	= 6;
 
 	private final static int API_KEY_LENGTH = 40;
 	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
@@ -112,7 +128,8 @@ public class PieceMakerApi
 
 	static String getVersion ()
 	{
-		return "PieceMaker client library - ##version## - ##build## \nhttps://github.com/fjenett/piecemaker-api-client";
+		return "Piecemaker client library - ##version## - ##build## \n"+
+			   "https://github.com/motionbank/piecemaker-api-client";
 	}
 
 	static void printVersion ()
@@ -127,19 +144,36 @@ public class PieceMakerApi
 	 + + + + + + + + + + + + + + + + + + + + + */
 
 	/**
-	 *	Load available pieces
+	 *	getGroups()
+	 *
+	 *	Load available (visible to user) groups
+	 *
+	 *	In Piecemaker 1: listPieces( ApiCallback callback )
+	 *
+	 *	@param callback A callback to be run once groups become available
+	 *
+	 *	@see createCallback( Object ... args )
 	 */
-	public void loadPieces ( ApiCallback callback )
+	public void getGroups ( ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, PIECES, base_url + "/api/pieces", ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, GROUPS, base_url + "/groups", ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/**
-	 *	Load one piece by ID
+	 *	getGroup()
+	 *
+	 *	Load one group by ID
+	 *
+	 *	In Piecemaker 1: loadPiece ( int pieceId, ApiCallback callback )
+	 *
+	 *	@param groupId The ID of the group
+	 *	@param callback A callback to be run once the group is available
+	 *
+	 *	@see createCallback( Object ... args )
 	 */
-	public void loadPiece ( int pieceId, ApiCallback callback )
+	public void getGroup ( int groupId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, PIECE, base_url + "/api/piece/" + pieceId, ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/**
@@ -334,7 +368,7 @@ public class PieceMakerApi
 	        	return;
 	        }
 	    
-			if ( request.getType() == PIECES ) 
+			if ( request.getType() == GROUPS ) 
 			{
 				Pieces pieces = new Pieces();
 
@@ -355,7 +389,7 @@ public class PieceMakerApi
 
 				request.getCallback().call( pieces );
 			}
-			else if ( request.getType() == PIECE )
+			else if ( request.getType() == GROUP )
 			{
 				JSONObject p = jsonResponse.getJSONObject("piece");
 				
@@ -584,7 +618,7 @@ public class PieceMakerApi
 
 	private void setApiKey ( String api_key )
 	{
-		if ( api_key != null && api_key.length() == API_KEY_LENGTH ) this.api_key = api_key;
+		if ( api_key != null /*&& api_key.length() == API_KEY_LENGTH*/ ) this.api_key = api_key;
 	}
 
 	private void setContext ( Object context )

@@ -10,6 +10,8 @@
 		SETTINGS
 	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
 	
+	<property name="absolute.path" location="${basedir}"/>
+
 	<property name="src" 		value="src" 			/>
 	<property name="build" 		value="build" 			/>
 	<property name="bin" 		value="bin" 			/>
@@ -99,9 +101,9 @@ See readme for time being please.
 			<dirset dir="examples" />
 		</copy>
 		
-		<mkdir dir="${dist}/${lib.name}/${docs}" />
+		<mkdir dir="${dist}/${lib.name}/${docs}/java" />
 		<javadoc bottom="${lib.name}, vers. ${version} - build #${build.number}, by ${author} for ${client}. ${copyright}"
-				 public="true" version="false" destdir="${dist}/${lib.name}/${docs}" verbose="false" 
+				 public="true" version="false" destdir="${dist}/${lib.name}/${docs}/java" verbose="false" 
 				 stylesheetfile="res/stylesheet.css" 
 				 doctitle="${lib.name} #${version}-${build.number} Java documentation" 
 				 windowtitle="${lib.name} #${version}-${build.number} Java documentation">
@@ -119,6 +121,24 @@ See readme for time being please.
 		<concat destfile="${bin}/${lib.name}.js">
 			<fileset file="src-js/*.js" />
 		</concat>
+
+		<replaceregexp file="${bin}/${lib.name}.js" flags="g"
+  					   match="##build##" replace="${build.number}" />
+		<replaceregexp file="${bin}/${lib.name}.js" flags="g"
+  					   match="##version##" replace="${version}" />
+
+		<copy todir="${dist}/${lib.name}/${docs}/js">
+			<fileset dir="res/docco-template" />
+		</copy>
+		<!-- <mkdir dir="${dist}/${lib.name}/${docs}/js" /> -->
+		<exec executable="/usr/local/bin/docco">
+			<env key="PATH" path="${env.PATH}:/usr/local/bin"/>
+			<arg value="-o" />
+			<arg value="${absolute.path}/${dist}/${lib.name}/${docs}/js" />
+			<arg value="${absolute.path}/${bin}/${lib.name}.js" />
+		</exec>
+		<move file="${dist}/${lib.name}/${docs}/js/${lib.name}.html" 
+			  tofile="${dist}/${lib.name}/${docs}/js/index.html"/>
 		
 		<jscomp compilationLevel="simple" warning="default" 
 		        debug="false" output="${bin}/${lib.name}-compiled.js">
@@ -131,11 +151,6 @@ See readme for time being please.
 			<fileset file="res/js-header.js" />
 			<fileset file="${bin}/${lib.name}-compiled.js" />
 		</concat>
-
-		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
-  					   match="##build##" replace="${build.number}" />
-		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
-  					   match="##version##" replace="${version}" />
 	</target>
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +

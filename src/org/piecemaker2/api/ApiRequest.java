@@ -1,5 +1,16 @@
 package org.piecemaker2.api;
 
+/**
+ *	Class ApiRequest
+ *
+ *	<p>
+ *	This class does the actual asynchronous request handling.
+ *	</p>
+ *
+ *	@version ##version## - ##build##
+ *	@author florian@motionbank.org
+ */
+
 import java.util.*;
 import java.io.*;
 

@@ -185,6 +185,8 @@ var PieceMaker2Api = (function(){
 
 	// ###Get all users
 
+	// Returns a list of all users
+
 	_PieceMakerApi2.prototype.listUsers = function ( cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
@@ -197,14 +199,18 @@ var PieceMaker2Api = (function(){
 
 	// ###Create a user
 
-	_PieceMakerApi2.prototype.createUser = function ( userId, cb ) {
-		/* var callback = cb || noop;
-		   xhrGet( this, {
-		       url: api.base_url + '/user/' + userId,
-		       success: function ( response ) {
+	_PieceMakerApi2.prototype.createUser = function ( userName, userEmail, userPassword, userToken, cb ) {
+		var callback = cb || noop;
+		xhrPost( this, {
+			url: api.base_url + '/user',
+			data: {
+				name: userName, email: userEmail,
+				password: userPassword, api_access_key: userToken
+			},
+			success: function ( response ) {
 				callback.call( api.context || cb, response );
-		       }
-		   }); */
+			}
+		});
 	}
 
 	// ###Get one user
@@ -221,26 +227,30 @@ var PieceMaker2Api = (function(){
 
 	// ###Update one user
 
-	_PieceMakerApi2.prototype.updateUser = function ( userId, cb ) {
-		/* var callback = cb || noop;
-		   xhrGet( this, {
-		       url: api.base_url + '/user/' + userId,
-		       success: function ( response ) {
+	_PieceMakerApi2.prototype.updateUser = function ( userId, userName, userEmail, userPassword, userToken, cb ) {
+		var callback = cb || noop;
+		xhrPut( this, {
+			url: api.base_url + '/user/' + userId,
+			data: {
+				name: userName, email: userEmail,
+				password: userPassword, api_access_key: userToken
+			},
+			success: function ( response ) {
 				callback.call( api.context || cb, response );
-		       }
-		   }); */
+			}
+		}); 
 	}
 
 	// ###Delete one user
 
 	_PieceMakerApi2.prototype.deleteUser = function ( userId, cb ) {
-		/* var callback = cb || noop;
-		   xhrGet( this, {
-		       url: api.base_url + '/user/' + userId,
-		       success: function ( response ) {
+		var callback = cb || noop;
+		xhrDelete( this, {
+			url: api.base_url + '/user/' + userId,
+			success: function ( response ) {
 				callback.call( api.context || cb, response );
-		       }
-		   }); */
+			}
+		});
 	}
 
 	// Groups
