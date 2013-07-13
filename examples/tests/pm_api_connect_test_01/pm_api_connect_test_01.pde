@@ -8,71 +8,61 @@
  */
 
 import org.piecemaker2.api.*;
+import org.piecemaker2.models.*;
 
-PieceMakerApi2 api;
-Group group;
-Event[] videos;
-Event[] allEvents;
-
-boolean loading = true;
-String loadingMessage = "Loading pieces ...";
+PieceMakerApi api;
 
 void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMaker2Api( this, 
-                              false ? "http://localhost:8080" : "http://jbmf-piecemaker2-prod.eu01.aws.af.cm",
-                              "1eda23758be9e36e5e0d2a6a87de584aaca0193f" );
+    api = new PieceMakerApi( this,
+                              "http://localhost:3001",
+                             "9bBa7k4Q4C" );
     
-    api.listGroups( api.createCallback( "groupsLoaded") );
+    api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
 void draw ()
 {
-    if ( videos != null && allEvents != null )
+}
+
+void groupsLoaded ( Group[] groups )
+{
+    println( groups );
+    
+    if ( groups.length > 0 )
     {
-        background( 255 );
-        textAlign( LEFT );
-        
-        text( "Loaded piece \"" + group.title + "\" \n"+
-              "with " + videos.length + " videos "+
-              "and " + allEvents.length + " events (incl. videos)", 
-              10, 20 );
+        groupLoaded( groups[0] ); 
     }
     else
     {
-        drawLoading();
+        api.createGroup( "Fancy title", "Fancy text", api.createCallback( "groupCreated" ) );
     }
 }
 
-void drawLoading ()
+void groupCreated ( Group g )
 {
-    background( 255 );
-    
-    fill( 0 );
-    textAlign( CENTER );
-    text( loadingMessage, width/2, height/2 );
+    api.getGroup( g.id, api.createCallback( "groupLoaded" ) );
 }
 
-void groupsLoaded ( EventGroup[] groups )
+void groupLoaded ( Group g )
 {
-    group = groups[0];
-    
-    api.listEvents( group.id, api.createCallback( "groupEventsLoaded" ) );
-    api.listEventsOfType( group.id, "video", api.createCallback( "groupVideosLoaded" ) );
+    api.listEvents( g.id, api.createCallback( "groupEventsLoaded", g ) );
+//    api.listEventsOfType( g.id, "video", api.createCallback( "groupVideosLoaded" ) );
 }
 
-void groupEventsLoaded ( Event[] groupEvents )
+void groupEventsLoaded ( org.piecemaker2.models.Event[] groupEvents, Group group )
 {
-    allEvents = groupEvents;
-    
-    console.log( groupEvents.length, groupEvents.queryTime, (1.0 * groupEvents.queryTime) / groupEvents.length );
+    api.deleteGroup( group.id, api.createCallback( "groupDeleted" ) );
 }
 
-void groupVideosLoaded ( Event[] groupVideos )
+//void groupVideosLoaded ( org.piecemaker2.models.Event[] groupVideos )
+//{
+//    println( groupVideos.length );
+//}
+
+void groupDeleted ()
 {
-    videos = groupVideos;
-    
-    console.log( groupVideos.length, groupVideos.queryTime, (1.0 * groupVideos.queryTime) / groupVideos.length );
+    println( "All done!" );
 }

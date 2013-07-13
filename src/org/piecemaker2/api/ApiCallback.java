@@ -14,24 +14,44 @@ import java.lang.reflect.*;
 
 public class ApiCallback
 {
+	String methodName;
 	Method meth;
 	Object obj;
 	Object[] arguments;
+	boolean ignoreNoMethod = false;
 
 	public ApiCallback ( Object target, String method )
 	{
-		Method[] meths = target.getClass().getMethods();
-		for ( Method meth : meths ) {
-			if ( meth.getName().equals(method) ) {
-				this.meth = meth;
-				break;
-			}
+		if ( target == null || method == null ) 
+		{
+			System.err.println( "Either target or method are null here!" );
 		}
-		obj = target;
+		else
+		{
+			methodName = method;
+
+			Method[] meths = target.getClass().getMethods();
+			for ( Method meth : meths ) {
+				if ( meth.getName().equals(method) ) {
+					this.meth = meth;
+					break;
+				}
+			}
+			obj = target;
+		}
 	}
 
 	public void call ( Object...args )
 	{
+		if ( meth == null ) 
+		{
+			if ( !ignoreNoMethod ) 
+			{
+				System.err.println( "Method '" + methodName + "' was not found in '" + obj.toString() + "'!" );	
+			}
+			return;
+		}
+
 		if ( arguments != null && arguments.length > 0 ) 
 		{
 			Object[] tmp = new Object[args.length + arguments.length];
@@ -51,6 +71,16 @@ public class ApiCallback
 	public void addArguments ( Object[] args )
 	{
 		arguments = args;
+	}
+
+	public Object getTarget ()
+	{
+		return obj;
+	}
+
+	public void setIgnoreNoMethod ( boolean yesNo )
+	{
+		ignoreNoMethod = yesNo;
 	}
 
 	public String toString ()

@@ -32,15 +32,11 @@ import org.apache.commons.httpclient.methods.*;
 // http://www.json.org/javadoc/org/json/JSONObject.html
 import org.json.*;
 
-import org.yaml.snakeyaml.*;
-
 public class PieceMakerApi
 {
-	/* + + + + + + + + + + + + + + + + + + + + +
-	 +
-	 +	Static variables
-	 +
-	 + + + + + + + + + + + + + + + + + + + + + */
+	// -----------------------------------------
+	//	Static variables
+	// -----------------------------------------
 
 	public final static int IGNORE 	= 100;
 	
@@ -53,27 +49,21 @@ public class PieceMakerApi
 	public final static int EVENT 	= 3;
 	public final static int EVENTS 	= 4;
 
-	private final static int API_KEY_LENGTH = 40;
 	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
 
-	/* + + + + + + + + + + + + + + + + + + + + +
-	 +
-	 +	Instance variables
-	 +
-	 + + + + + + + + + + + + + + + + + + + + + */
+	// -----------------------------------------
+	//	Instance variables
+	// -----------------------------------------
 
 	private String base_url = "http://127.0.0.1";
-	private String user_name, user_pass;
 	private String api_key;
-
 	private Object context;
+
 	private Method pmErrorCallback;
 
-	/* + + + + + + + + + + + + + + + + + + + + +
-	 +
-	 +	Constructor
-	 +
-	 + + + + + + + + + + + + + + + + + + + + + */
+	// -----------------------------------------
+	//	Constructor
+	// -----------------------------------------
 
 	public PieceMakerApi ( String api_key )
 	{
@@ -92,7 +82,7 @@ public class PieceMakerApi
 		printVersion();
 	}
 
-	public PieceMakerApi ( String api_key, String base_url ) 
+	public PieceMakerApi ( String base_url, String api_key ) 
 	{
 		setApiKey( api_key );
 		setBaseUrl( base_url );
@@ -101,7 +91,7 @@ public class PieceMakerApi
 		printVersion();
 	}
 
-	public PieceMakerApi ( Object context, String api_key, String base_url ) 
+	public PieceMakerApi ( Object context, String base_url, String api_key ) 
 	{
 		setApiKey( api_key );
 		setContext( context );
@@ -137,11 +127,69 @@ public class PieceMakerApi
 		System.out.println( PieceMakerApi.getVersion() );
 	}
 
-	/* + + + + + + + + + + + + + + + + + + + + +
-	 +
-	 +	Public, API methods
-	 +
-	 + + + + + + + + + + + + + + + + + + + + + */
+	// -----------------------------------------
+	//	Public, API methods
+	// -----------------------------------------
+
+	/**
+	 *	listUsers()
+	 *
+	 *	Get all users visible to current user
+	 *
+	 *	@param callback A callback to be run once groups become available
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void listUsers ( ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, api_key, USERS, base_url + "/users", ApiRequest.GET, null, callback ) ).start();
+	}
+
+	/** 
+	 *	createUser()
+	 */
+	public void createUser ( String userName, String userEmail, String userPassword, String userToken, ApiCallback callback )
+	{
+		HashMap userData = new HashMap();
+		userData.put( "name", userName );
+		userData.put( "email", userEmail );
+		userData.put( "password", userPassword );
+		userData.put( "api_access_key", userToken );
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, callback ) ).start();
+	}
+
+	/** 
+	 *	getUser()
+	 */
+	public void getUser ( int userId, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
+	}
+
+	/** 
+	 *	updateUser()
+	 */
+	public void updateUser ( int userId, String userName, String userEmail, String userPassword, String userToken, ApiCallback callback )
+	{
+		HashMap userData = new HashMap();
+		userData.put( "name", userName );
+		userData.put( "email", userEmail );
+		userData.put( "password", userPassword );
+		userData.put( "api_access_key", userToken );
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, callback ) ).start();
+	}
+
+	/** 
+	 *	deleteUser()
+	 */
+	public void deleteUser ( int userId, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.DELETE, null, callback ) ).start();
+	}
+
+	// ----------------------------------------
+	//	GROUPS
+	// ----------------------------------------
 
 	/**
 	 *	getGroups()
@@ -152,11 +200,11 @@ public class PieceMakerApi
 	 *
 	 *	@param callback A callback to be run once groups become available
 	 *
-	 *	@see createCallback( Object ... args )
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void getGroups ( ApiCallback callback )
+	public void listGroups ( ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, GROUPS, base_url + "/groups", ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, GROUPS, base_url + "/groups", ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/**
@@ -169,144 +217,169 @@ public class PieceMakerApi
 	 *	@param groupId The ID of the group
 	 *	@param callback A callback to be run once the group is available
 	 *
-	 *	@see createCallback( Object ... args )
+	 *	@see #createCallback( Object[] args )
 	 */
 	public void getGroup ( int groupId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/**
-	 *	Load all events for a piece
+	 *	createGroup()
+	 *
+	 *	Create a new group (for events)
+	 *
+	 *	@param groupTitle The title / name for the new group
+	 *	@param groupText The text / description of the group
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void loadEventsForPiece ( int pieceId, ApiCallback callback )
+	public void createGroup ( String groupTitle, String groupText, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/piece/" + pieceId + "/events", ApiRequest.GET, null, callback ) ).start();
+		HashMap groupData = new HashMap();
+		groupData.put( "title", groupTitle );
+		groupData.put( "text", groupText );
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group", ApiRequest.POST, groupData, callback ) ).start();
+	}
+
+	/**
+	 *	updateGroup()
+	 *
+	 *	Update a group (of events)
+	 *
+	 *	@param groupId The ID of the group to update
+	 *	@param groupData The data for the new group as HashMap
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void updateGroup ( int groupId, HashMap groupData, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, callback ) ).start();
+	}
+
+	/**
+	 *	deleteGroup()
+	 *
+	 *	Delete a group (of events)
+	 *
+	 *	@param groupId The ID of the group to delete
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void deleteGroup ( int groupId, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.DELETE, null, callback ) ).start();
+	}
+
+	// ----------------------------------------
+	//	EVENTS
+	// ----------------------------------------
+
+	/**
+	 *	Load all events for a group
+	 *
+	 *	In Piecemaker 1: loadEventsForPiece( int pieceId, ApiCallback callback )
+	 *
+	 *	@param groupId The ID of the group
+	 *	@param callback A callback to be run once events become available
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void listEvents ( int groupId, ApiCallback callback )
+	{
+		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/**
 	 *	Load all events of certain type for a piece
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void loadEventsByTypeForPiece ( int pieceId, String type, ApiCallback callback )
+	public void listEventsOfType ( int groupId, String eventType, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/piece/" + pieceId + "/events/type/" + type, ApiRequest.GET, null, callback ) ).start();
+		HashMap<String, String> data = new HashMap();
+		data.put( "type", eventType );
+		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, data, callback ) ).start();
 	}
 
 	/**
-	 *	Load all videos for a piece
+	 *	listEventsWithFields()
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void loadVideosForPiece ( int pieceId, ApiCallback callback )
+	public void listEventsWithFields ( int groupId, HashMap fieldsData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, VIDEOS, base_url + "/api/piece/" + pieceId + "/videos", ApiRequest.GET, null, callback ) ).start();
-	}
-
-	/**
-	 *	Load one video by ID
-	 */
-	public void loadVideo ( int videoId, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId, ApiRequest.GET, null, callback ) ).start();
-	}
-
-	/**
-	 *	Create a video
-	 */
-	public void createVideo ( HashMap data, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video", ApiRequest.POST, data, callback ) ).start();
-	}
-
-	/**
-	 *	Update a video by ID
-	 */
-	public void updateVideo ( int videoId, HashMap data, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId + "/update", ApiRequest.POST, data, callback ) ).start();
-	}
-
-	/**
-	 *	Delete a video by ID
-	 */
-	public void deleteVideo ( int videoId, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, VIDEO, base_url + "/api/video/" + videoId + "/delete", ApiRequest.POST, null, callback ) ).start();
-	}
-
-	/**
-	 *	Load all events (that fall in from + duration) for a video by ID
-	 */
-	public void loadEventsForVideo ( int videoId, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events", ApiRequest.GET, null, callback ) ).start();
-	}
-
-	/**
-	 *	Load all events by type for a video by ID
-	 */
-	public void loadEventsByTypeForVideo ( int videoId, String type, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/video/" + videoId + "/events/type/" + type, ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fieldsData, callback ) ).start();
 	}
 
 	/**
 	 *	Load all events that fall into from - to
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void loadEventsBetween ( Date from, Date to, ApiCallback callback )
+	public void loadEventsBetween ( Date from, Date to, ApiCallback callback ) throws Exception
 	{
-		new Thread( new ApiRequest( this, EVENTS, base_url + "/api/events/between/" + (from.getTime() / 1000) + "/" + (to.getTime() / 1000), ApiRequest.GET, null, callback ) ).start();
+		throw new Exception( "Currently not implemented" );
 	}
 
 	/**
 	 *	Load one event by ID
+	 *
+	 *	In Piecemaker 1: loadEvent ( int eventId, ApiCallback callback )
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void loadEvent ( int eventId, ApiCallback callback )
+	public void getEvent ( int groupId, int eventId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/**
 	 *	Create one event
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void createEvent ( HashMap data, ApiCallback callback )
+	public void createEvent ( int groupId, HashMap eventData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event", ApiRequest.POST, data, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
 	}
 
 	/**
 	 *	Update one event by ID
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void updateEvent ( int eventId, HashMap data, ApiCallback callback )
+	public void updateEvent ( int groupId, int eventId, HashMap eventData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId + "/update", ApiRequest.POST, data, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.PUT, eventData, callback ) ).start();
 	}
 
 	/**
 	 *	Delete one event by ID
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void deleteEvent ( int eventId, ApiCallback callback )
+	public void deleteEvent ( int groupId, int eventId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, EVENT, base_url + "/api/event/" + eventId + "/delete", ApiRequest.POST, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.DELETE, null, callback ) ).start();
 	}
 
 	/**
 	 *	Find all events for parameters
+	 *
+	 *	@see #createCallback( Object[] args )
 	 */
-	public void findEvents ( HashMap opts, ApiCallback callback )
-	{
-		System.err.println( "Not implemented yet. Sorry." );
-	}
+	public void findEvents ( HashMap opts, ApiCallback callback ) {}
+
+	// ----------------------------------------
+	//	CALLBACK
+	// ----------------------------------------
 
 	/**
 	 *	Create a callback to be called with results from API
 	 */
 	public ApiCallback createCallback ( Object ... args )
 	{
-		if ( args == null || args.length == 0 ) 
-		{
-			System.err.println( "Called createCallback with null or zero arguments" );
-			return null;
-		}
-		
 		Object target = context;
 		String method = "";
 		int shift = 1;
@@ -341,11 +414,9 @@ public class PieceMakerApi
 		return cb;
 	}
 
-	/* + + + + + + + + + + + + + + + + + + + + +
-	 +
-	 +	Non-API public methods
-	 +
-	 + + + + + + + + + + + + + + + + + + + + + */
+	// -----------------------------------------
+	//	Non-API public methods
+	// -----------------------------------------
 
 	public void handleResponse ( ApiRequest request )
 	{
@@ -356,153 +427,176 @@ public class PieceMakerApi
 		if ( callback == null ) return;
 
 		JSONObject jsonResponse = null;
+    	String responseBody = request.getResponse();
+    	//System.out.println( responseBody );
+
+    	// FIXME: this is an API design bug? always return JSON if that was requested?
+    	try {
+    		if ( request.getType() == USERS || request.getType() == GROUPS || request.getType() == EVENTS ) {
+    			JSONArray jsonTest = new JSONArray( responseBody );
+    		}
+    		else
+    		{
+    			JSONObject jsonTest = new JSONObject( responseBody );
+    		}
+    	} catch ( JSONException jsonEx ) {
+    		System.err.println( "Piecemaker API: Response body is not JSON!" );
+    		request.getCallback().call( /* no args? this is a wild guess! */ );
+    		return;
+    	}
+
 	    try {
 
-	    	String responseBody = request.getResponse();
-	    	//System.out.println( responseBody );
-	        jsonResponse = new JSONObject( responseBody );
-
-	        if ( jsonResponse.has("status") && jsonResponse.getString("status").equals("error") )
-	        {
-	        	System.err.println( jsonResponse.getString("status") + "\n" + jsonResponse.getString("message") );
-	        	return;
-	        }
+	        // FIXME: handle errors more gently
+	        // if ( jsonResponse.has("status") && jsonResponse.getString("status").equals("error") )
+	        // {
+	        // 	System.err.println( jsonResponse.getString("status") + "\n" + jsonResponse.getString("message") );
+	        // 	return;
+	        // }
 	    
 			if ( request.getType() == GROUPS ) 
 			{
-				Pieces pieces = new Pieces();
+				JSONArray jsonGroup = new JSONArray( responseBody );
+		        Group[] groups = new Group[jsonGroup.length()];
 
-				pieces.total = jsonResponse.getInt("total");
-				if ( pieces.total > 0 )
-				{
-					JSONArray jsonPieces = jsonResponse.getJSONArray("pieces");
-					pieces.pieces = new Piece[ jsonPieces.length() ];
-					for ( int i = 0, k = jsonPieces.length(); i < k; i++ ) {
-						
-						JSONObject p = jsonPieces.getJSONObject(i);
-						
-						Piece piece = pieceFromJson(p);
+				for ( int i = 0, k = jsonGroup.length(); i < k; i++ ) 
+				{	
+					JSONObject g = jsonGroup.getJSONObject(i);
+					
+					Group group = groupFromJson(g);
 
-						pieces.pieces[i] = piece;
-					}
-				} 
+					groups[i] = group;
+				}
 
-				request.getCallback().call( pieces );
+				request.getCallback().call( (Object)groups );
 			}
+
 			else if ( request.getType() == GROUP )
 			{
-				JSONObject p = jsonResponse.getJSONObject("piece");
-				
-				Piece piece = pieceFromJson(p);
-
-				request.getCallback().call( piece );
+				request.getCallback().call( groupFromJson( new JSONObject( responseBody ) ) );
 			}
-			else if ( request.getType() == VIDEOS )
-			{
-				Videos videos = new Videos();
 
-				videos.total = jsonResponse.getInt("total");
-				if ( videos.total > 0 )
-				{
-					JSONArray jsonVideos = jsonResponse.getJSONArray("videos");
-					videos.videos = new Video[ jsonVideos.length() ];
-					for ( int i = 0, k = jsonVideos.length(); i < k; i++ ) {
-						JSONObject v = jsonVideos.getJSONObject(i);
-						Video video = new Video();
-
-						// { "recorded_at_float":1319117217000,
-						// "happened_at":1.319117217E9,
-						// "happened_at_float":1319117217000,
-						// "s3_url":"http://motionbank-deborah.s3.amazonaws.com/piecemaker/D04_T05_Juliette_AJA.mp4",
-						// "vid_type":"rehearsal","fn_s3":".mp4","fn_local":".mp4",
-						// "group_id":null,"recorded_at":"2011/10/20 13:26:57 +0000",
-						// "rec_date_verified":false,"meta_data":null,"old_title":null,
-						// "id":280,"video_recordings":[],
-						// "title":"D04_T05_Juliette_AJA","duration":2534,
-						// "updated_at":"2012/09/12 11:27:13 +0200","piece_id":3,
-						// "created_at":"2012/04/18 10:55:33 +0200","fn_arch":null,"rating":0}
-						video.setId( v.getInt("id") );
-						video.setTitle( v.getString("title") );
-						video.setUpdatedAt( new Date( v.getString("updated_at") ) );
-						//video.setUpdatedBy( v.getString("modified_by") );
-						//video.setCreatedAt( new Date( v.getString("created_at") ) );
-						
-						Date happened_at = new Date();
-						happened_at.setTime( v.getLong("happened_at_float") );
-						video.setHappenedAt( happened_at );
-
-						video.setVideoUrl( v.getString("s3_url") );
-						video.setDuration( v.getInt("duration") );
-						//video.setPieceId( v.getInt("piece_id") );
-
-						videos.videos[i] = video;
-					}
-				}
-
-				request.getCallback().call( videos );
-			}
 			else if ( request.getType() == EVENTS )
 			{
-				Events events = new Events();
+				JSONArray jsonEvents = new JSONArray( responseBody );
 
-				//System.out.println( request.getResponse() );
+				Event[] events = new Event[ jsonEvents.length() ];
 
-				events.total = jsonResponse.getInt("total");
-
-				if ( events.total > 0 )
+				for ( int i = 0, k = jsonEvents.length(); i < k; i++ )
 				{
-					JSONArray jsonEvents = jsonResponse.getJSONArray( "events" );
-					events.events = new Event[ jsonEvents.length() ];
-					for ( int i = 0, k = jsonEvents.length(); i < k; i++ )
-					{
-						Event event = eventFromJson( jsonEvents.getJSONObject( i ) );
+					Event event = eventFromJson( jsonEvents.getJSONObject( i ) );
 
-						events.events[i] = event;
-					}
+					events[i] = event;
 				}
-
-				request.getCallback().call( events );
+			
+				request.getCallback().call( (Object)events );
 			}
+
 			else if ( request.getType() == EVENT )
 			{
-				Event event = eventFromJson( jsonResponse.getJSONObject("event") );
-
-				request.getCallback().call( event );
+				request.getCallback().call( eventFromJson( new JSONObject( responseBody ) ) );
 			}
-			else if ( request.getType() == VIDEO )
+
+			else if ( request.getType() == USERS )
 			{
-				JSONObject v = jsonResponse.getJSONObject("video");
+				JSONArray jsonUsers = new JSONArray( responseBody );
 
-				Video video = new Video();
+				User[] users = new User[ jsonUsers.length() ];
 
-				// { "recorded_at_float":1319117217000,
-				// "happened_at":1.319117217E9,
-				// "happened_at_float":1319117217000,
-				// "s3_url":"http://motionbank-deborah.s3.amazonaws.com/piecemaker/D04_T05_Juliette_AJA.mp4",
-				// "vid_type":"rehearsal","fn_s3":".mp4","fn_local":".mp4",
-				// "group_id":null,"recorded_at":"2011/10/20 13:26:57 +0000",
-				// "rec_date_verified":false,"meta_data":null,"old_title":null,
-				// "id":280,"video_recordings":[],
-				// "title":"D04_T05_Juliette_AJA","duration":2534,
-				// "updated_at":"2012/09/12 11:27:13 +0200","piece_id":3,
-				// "created_at":"2012/04/18 10:55:33 +0200","fn_arch":null,"rating":0}
-				video.setId( v.getInt("id") );
-				video.setTitle( v.getString("title") );
-				video.setUpdatedAt( new Date( v.getString("updated_at") ) );
-				//video.setUpdatedBy( v.getString("modified_by") );
-				//video.setCreatedAt( new Date( v.getString("created_at") ) );
-				
-				Date happened_at = new Date();
-				happened_at.setTime(v.getLong("happened_at_float"));
-				video.setHappenedAt( happened_at );
+				for ( int i = 0, k = jsonUsers.length(); i < k; i++ )
+				{
+					User user = userFromJson( jsonUsers.getJSONObject( i ) );
 
-				video.setVideoUrl( v.getString("s3_url") );
-				video.setDuration( v.getInt("duration") );
-				//video.setPieceId( v.getInt("piece_id") );
-
-
-				request.getCallback().call( video );
+					users[i] = user;
+				}
+			
+				request.getCallback().call( (Object)users );
 			}
+
+			else if ( request.getType() == USER )
+			{
+				request.getCallback().call( userFromJson( new JSONObject( responseBody ) ) );
+			}
+
+			// else if ( request.getType() == VIDEOS )
+			// {
+			// 	Videos videos = new Videos();
+
+			// 	videos.total = jsonResponse.getInt("total");
+			// 	if ( videos.total > 0 )
+			// 	{
+			// 		JSONArray jsonVideos = jsonResponse.getJSONArray("videos");
+			// 		videos.videos = new Video[ jsonVideos.length() ];
+			// 		for ( int i = 0, k = jsonVideos.length(); i < k; i++ ) {
+			// 			JSONObject v = jsonVideos.getJSONObject(i);
+			// 			Video video = new Video();
+
+			// 			// { "recorded_at_float":1319117217000,
+			// 			// "happened_at":1.319117217E9,
+			// 			// "happened_at_float":1319117217000,
+			// 			// "s3_url":"http://motionbank-deborah.s3.amazonaws.com/piecemaker/D04_T05_Juliette_AJA.mp4",
+			// 			// "vid_type":"rehearsal","fn_s3":".mp4","fn_local":".mp4",
+			// 			// "group_id":null,"recorded_at":"2011/10/20 13:26:57 +0000",
+			// 			// "rec_date_verified":false,"meta_data":null,"old_title":null,
+			// 			// "id":280,"video_recordings":[],
+			// 			// "title":"D04_T05_Juliette_AJA","duration":2534,
+			// 			// "updated_at":"2012/09/12 11:27:13 +0200","piece_id":3,
+			// 			// "created_at":"2012/04/18 10:55:33 +0200","fn_arch":null,"rating":0}
+			// 			video.setId( v.getInt("id") );
+			// 			video.setTitle( v.getString("title") );
+			// 			video.setUpdatedAt( new Date( v.getString("updated_at") ) );
+			// 			//video.setUpdatedBy( v.getString("modified_by") );
+			// 			//video.setCreatedAt( new Date( v.getString("created_at") ) );
+						
+			// 			Date happened_at = new Date();
+			// 			happened_at.setTime( v.getLong("happened_at_float") );
+			// 			video.setHappenedAt( happened_at );
+
+			// 			video.setVideoUrl( v.getString("s3_url") );
+			// 			video.setDuration( v.getInt("duration") );
+			// 			//video.setPieceId( v.getInt("piece_id") );
+
+			// 			videos.videos[i] = video;
+			// 		}
+			// 	}
+
+			// 	request.getCallback().call( videos );
+			// }
+			// else if ( request.getType() == VIDEO )
+			// {
+			// 	JSONObject v = jsonResponse.getJSONObject("video");
+
+			// 	Video video = new Video();
+
+			// 	// { "recorded_at_float":1319117217000,
+			// 	// "happened_at":1.319117217E9,
+			// 	// "happened_at_float":1319117217000,
+			// 	// "s3_url":"http://motionbank-deborah.s3.amazonaws.com/piecemaker/D04_T05_Juliette_AJA.mp4",
+			// 	// "vid_type":"rehearsal","fn_s3":".mp4","fn_local":".mp4",
+			// 	// "group_id":null,"recorded_at":"2011/10/20 13:26:57 +0000",
+			// 	// "rec_date_verified":false,"meta_data":null,"old_title":null,
+			// 	// "id":280,"video_recordings":[],
+			// 	// "title":"D04_T05_Juliette_AJA","duration":2534,
+			// 	// "updated_at":"2012/09/12 11:27:13 +0200","piece_id":3,
+			// 	// "created_at":"2012/04/18 10:55:33 +0200","fn_arch":null,"rating":0}
+			// 	video.setId( v.getInt("id") );
+			// 	video.setTitle( v.getString("title") );
+			// 	video.setUpdatedAt( new Date( v.getString("updated_at") ) );
+			// 	//video.setUpdatedBy( v.getString("modified_by") );
+			// 	//video.setCreatedAt( new Date( v.getString("created_at") ) );
+				
+			// 	Date happened_at = new Date();
+			// 	happened_at.setTime(v.getLong("happened_at_float"));
+			// 	video.setHappenedAt( happened_at );
+
+			// 	video.setVideoUrl( v.getString("s3_url") );
+			// 	video.setDuration( v.getInt("duration") );
+			// 	//video.setPieceId( v.getInt("piece_id") );
+
+
+			// 	request.getCallback().call( video );
+			// }
+
 			else
 			{
 				request.getCallback().call();
@@ -513,90 +607,133 @@ public class PieceMakerApi
 	    }
 	}
 
-	/* + + + + + + + + + + + + + + + + + + + + +
-	 +
-	 +	Private methods
-	 +
-	 + + + + + + + + + + + + + + + + + + + + + */
-
-	private Piece pieceFromJson ( JSONObject p )
+	public void handleError ( int statusCode, String errorMessage, ApiRequest request, Object method )
 	{
-		try {
-			Piece piece = new Piece();
-
-			// {"id":3,"title":"No time to fly",
-			// "updated_at":"2012/05/30 15:49:45 +0200",
-			// "modified_by":null,"is_active":true,"group_id":null,
-			// "created_at":"2011/02/21 09:45:18 +0100","short_name":"notimetofly"}
-			piece.setId( p.getInt("id") );
-			piece.setTitle( p.getString("title") );
-			piece.setUpdatedAt( new Date( p.getString("updated_at") ) );
-			piece.setUpdatedBy( p.getString("modified_by") );
-			piece.setIsActive( p.getBoolean("is_active") );
-			piece.setCreatedAt( new Date( p.getString("created_at") ) );
-			
-			return piece;
-
-		} catch ( Exception e ) {
-			e.printStackTrace();
-		}
-		return null;
+		ApiCallback callback = new ApiCallback( request.getCallback().getTarget(), DEFAULT_ERROR_CALLBACK );
+		callback.setIgnoreNoMethod( true );
+		callback.call( statusCode, errorMessage, request.getTypeString() + " " + request.getURL() );
 	}
 
-	private Event eventFromJson ( JSONObject e )
+	// -----------------------------------------
+	//	Private methods
+	// -----------------------------------------
+
+	/**
+	 *	groupFromJson()
+	 *
+	 *	Create a Group object from JSON data
+	 *
+	 *	@param json The JSON data on form of a JSONObject
+	 *	@return Group The newly created group object
+	 */
+	private Group groupFromJson ( JSONObject g )
 	{
+		Group group = null;
+
 		try 
 		{
-			Event event = new Event();
-
-			event.setId( e.getInt("id") );
-			event.setTitle( e.getString("title") );
-			event.setDuration( e.getInt("duration") );
-			event.setEventType( e.getString("event_type") );
-			event.setDescription( e.getString("description") );
-
-			event.setCreatedAt( new Date( e.getString("created_at") ) );
-			event.setCreatedBy( e.getString("created_by") );
-
-			event.setUpdatedAt( new Date( e.getString("updated_at") ) );
-			event.setUpdatedBy( e.getString("modified_by") );
-
-			String[] performers = new String[0];
-			Yaml perfsYaml = new Yaml();
-			String perfsYamlSrc = e.getString("performers");
-			if ( perfsYamlSrc != null && !perfsYamlSrc.equals("") )
-			{
-				Object perfsYmlObj = perfsYaml.load( perfsYamlSrc );
-				//System.out.println( perfsYmlObj );
-				if ( perfsYmlObj.getClass() == String.class )
-				{
-					performers = new String[]{
-						(String)perfsYmlObj
-					};
-				}
-				else if ( perfsYmlObj.getClass() == ArrayList.class )
-				{
-					ArrayList perfsMap = (ArrayList)perfsYmlObj;
-					performers = new String[perfsMap.size()];
-					for ( int p = 0; p < performers.length; p++ )
-					{
-						performers[p] = perfsMap.get(p).toString();
-					}
-				}
-			}
-			event.setPerformers( performers );
-			
-			Date happened_at = new Date();
-			happened_at.setTime( e.getLong("happened_at_float"));
-			event.setHappenedAt( happened_at );
-
-			return event;
+			group = new Group();
+			group.id = g.getInt( "id" );
 		}
 		catch ( Exception excp )
 		{
 			excp.printStackTrace();
+			return null;
 		}
-		return null;
+
+		try {
+			group.title 	= g.getString( "title" );
+			group.text 		= g.getString( "text" );
+		}
+		catch ( Exception excp )
+		{
+			/* ignore for now */
+		}
+
+		return group;
+	}
+
+	/**
+	 *	eventFromJson()
+	 *
+	 *	Create an Event from JSON data
+	 *
+	 *	@param json The JSON data in form of a JSONObject
+	 *  @return Event The newly created Event object 
+	 */
+	private Event eventFromJson ( JSONObject e )
+	{
+		Event event = null;
+
+		try 
+		{
+			event = new Event();
+			event.id 			= e.getInt( "id" );
+		}
+		catch ( Exception excp )
+		{
+			excp.printStackTrace();
+			return null;
+		}
+
+		try {
+			event.utc_timestamp = new java.util.Date( e.getLong( "utc_timestamp" ) );
+			event.duration 		= e.getLong( "duration" );
+
+			event.fields 		= new HashMap<String, String>();
+
+			JSONObject jsonEventFields = e.getJSONObject( "fields" );
+			java.util.Iterator<String> iter = jsonEventFields.keys();
+
+			while ( iter.hasNext() ) {
+				String key = iter.next();
+				String val = jsonEventFields.getString( key );
+				event.fields.put( key, val );
+			}
+		}
+		catch ( Exception excp )
+		{
+			/* ignore for now */
+		}
+
+		return event;
+	}
+
+
+
+	/**
+	 *	userFromJson()
+	 *
+	 *	Create an User from JSON data
+	 *
+	 *	@param json The JSON data in form of a JSONObject
+	 *  @return User The newly created User object 
+	 */
+	private User userFromJson ( JSONObject e )
+	{
+		User user = null;
+
+		try 
+		{
+			user = new User();
+			user.id = e.getInt( "id" );
+		}
+		catch ( Exception excp )
+		{
+			excp.printStackTrace();
+			return null;
+		}
+
+		try {
+			user.name = e.getString( "name" );
+			user.email = e.getString( "email" );
+		}
+		catch ( Exception excp )
+		{
+			/* ignore for now */
+		}
+
+		return user;
 	}
 
 	private void ensureApiKey ()
@@ -639,4 +776,77 @@ public class PieceMakerApi
 			}
 		}
 	}
+
+	// ----------------------------------------
+	//	PUBLIC DEPRECATED API
+	// ----------------------------------------
+
+	/**
+	 *	Load all videos for a piece
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@see #listEventsOfType( int groupId, String eventType, ApiCallback callback )
+	 *	@deprecated This method has been replaced by listEventsOfType( int groupId, String eventType, ApiCallback callback )
+	 */
+	public void loadVideosForPiece ( int pieceId, ApiCallback callback ) {}
+
+	/**
+	 *	Load all events (that fall in from + duration) for a video by ID
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@deprecated This method has not yet been ported to Piecemaker 2.0
+	 */
+	public void loadEventsForVideo ( int videoId, ApiCallback callback ) {}
+
+	/**
+	 *	Load one video by ID
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@see #getEvent( int groupId, int eventId, ApiCallback callback )
+	 *	@deprecated This method has been replaced by getEvent( int groupId, int eventId, ApiCallback callback )
+	 */
+	public void loadVideo ( int videoId, ApiCallback callback ) {}
+
+	/**
+	 *	Create a video
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@see #createEvent( int groupId, HashMap eventData, ApiCallback callback )
+	 *	@deprecated This method has been replaced by createEvent( int groupId, HashMap eventData, ApiCallback callback )
+	 */
+	public void createVideo ( HashMap data, ApiCallback callback ) {}
+
+	/**
+	 *	Update a video by ID
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@see #updateEvent( int groupId, int eventId, HashMap eventData, ApiCallback callback )
+	 *	@deprecated This method has been replaced by updateEvent( int groupId, int eventId, HashMap eventData, ApiCallback callback )
+	 */
+	public void updateVideo ( int videoId, HashMap data, ApiCallback callback ) {}
+
+	/**
+	 *	Delete a video by ID
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@see #deleteEvent( int groupId, int eventId, ApiCallback callback )
+	 *	@deprecated This method has been replaced by deleteEvent( int groupId, int eventId, ApiCallback callback )
+	 */
+	public void deleteVideo ( int videoId, ApiCallback callback ) {}
+
+	/**
+	 *	Load all events by type for a video by ID
+	 *
+	 *	Videos are now just events of type "video"
+	 *
+	 *	@see #listEventsOfType( int groupId, String eventType, ApiCallback callback )
+	 *	@deprecated This method has been replaced by listEventsOfType( int groupId, String eventType, ApiCallback callback )
+	 */
+	public void loadEventsByTypeForVideo ( int videoId, String type, ApiCallback callback ) {}
 }

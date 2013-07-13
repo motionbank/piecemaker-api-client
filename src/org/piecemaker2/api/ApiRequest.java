@@ -19,8 +19,14 @@ import org.apache.commons.httpclient.methods.*;
 
 public class ApiRequest implements Runnable
 {
-	public final static int GET  = 0;
-	public final static int POST = 1;
+	public final static int GET    = 0;
+	public final static int POST   = 1;
+	public final static int PUT    = 2;
+	public final static int DELETE = 3;
+
+	private final String methodTypes[] = {
+		"GET", "POST", "PUT", "DELETE"
+	};
 
 	public static boolean DEBUG = false;
 
@@ -34,16 +40,27 @@ public class ApiRequest implements Runnable
 	HttpMethodBase method = null;
 	String serverResponse;
 
-	public ApiRequest ( PieceMakerApi api, int requestType, String url, int methodType, HashMap<String,String> data, ApiCallback callBack )
+	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, String url, int methodType, HashMap<String,String> data, ApiCallback callBack )
 	{
 		this.api = api;
-		this.url = url;
+		this.url = url + ".json";
 		this.requestType = requestType;
-		this.methodType = methodType == POST ? POST : GET;
-		this.data = data;
+		this.methodType = methodType >= 0 && methodType <= 3 ? methodType : GET;
+		
+		this.data = new HashMap();
+		this.data.put( "token", api_key );
+
+		if ( data != null ) {
+			java.util.Iterator iter = data.entrySet().iterator();
+			while ( iter.hasNext() ) {
+				Map.Entry<String, String> pairs = (Map.Entry<String, String>)iter.next();
+				this.data.put( pairs.getKey(), pairs.getValue() );
+			}
+		}
+
 		this.callBack = callBack;
 
-		if ( DEBUG ) System.out.println( (methodType == POST ? "POST" : "GET") + " " + url + ".json" );
+		if ( DEBUG ) System.out.println( methodTypes[this.methodType] + " " + this.url );
 	}
 
 	public void run ()
@@ -53,6 +70,7 @@ public class ApiRequest implements Runnable
 		// construct the data object for the request
 
 		NameValuePair[] requestData = null;
+
 		if ( data != null && data.size() > 0 )
 		{
 			requestData = new NameValuePair[data.size()];
@@ -75,12 +93,41 @@ public class ApiRequest implements Runnable
 				getMethod.setQueryString( requestData );
 			method = getMethod;
 		}
-		else
+		else if ( methodType == POST )
 		{
 			PostMethod postMethod = new PostMethod( url );
 			if ( requestData != null )
 				postMethod.setRequestBody( requestData );
 			method = postMethod;
+		}
+		else if ( methodType == PUT )
+		{
+			PutMethod putMethod = new PutMethod( url );
+			if ( requestData != null )
+			{
+				GetMethod gm = new GetMethod("");
+				gm.setQueryString( requestData );
+				
+				try {
+					putMethod.setRequestEntity( 
+						new StringRequestEntity(
+							gm.getQueryString(), "application/x-www-form-urlencoded", "utf-8"
+						)
+					);
+				} catch ( Exception e ) {
+					e.printStackTrace();
+				}
+
+				//System.out.println( gm.getQueryString() );
+			}
+			method = putMethod;
+		}
+		else if ( methodType == DELETE )
+		{
+			DeleteMethod deleteMethod = new DeleteMethod( url );
+			if ( requestData != null )
+				deleteMethod.setQueryString( requestData );
+			method = deleteMethod;
 		}
 
 		// set the header to receive JSON data
@@ -99,12 +146,30 @@ public class ApiRequest implements Runnable
 	            break;
 	        	// TODO: implement better HTTP error handling here, redirect, moved, 404, 403, ... 
 	        default:
-	            System.err.println( "Method failed: " + method.getStatusLine() );
+	            if (DEBUG) System.err.println( "Method failed: " + method.getStatusLine() );
+	            method.releaseConnection();
+	            api.handleError( method.getStatusLine().getStatusCode(), method.getStatusLine().getReasonPhrase(), this, method );
 	            return;
 	        }
 
-	        byte[] responseBody = method.getResponseBody();
-	        serverResponse = new String( responseBody );
+	        // byte[] responseBody = method.getResponseBody();
+	        // serverResponse = new String( responseBody );
+
+	        BufferedReader bufferedReader = new BufferedReader( 
+	        	new InputStreamReader( 
+	        		method.getResponseBodyAsStream() 
+	        	) 
+	        );
+			StringBuilder stringBuilder = new StringBuilder();
+			String line = null;
+
+			while ( (line = bufferedReader.readLine()) != null ) 
+			{
+				stringBuilder.append(line + "\n");
+			}
+
+			bufferedReader.close();
+			serverResponse = stringBuilder.toString();
 	    }
 	    catch ( HttpException e ) 
 	    {
@@ -145,6 +210,16 @@ public class ApiRequest implements Runnable
 	public int getType ()
 	{
 		return requestType;
+	}
+
+	public String getTypeString ()
+	{
+		return methodTypes[methodType];
+	}
+
+	public String getURL ()
+	{
+		return url;
 	}
 
 	public String toString ()

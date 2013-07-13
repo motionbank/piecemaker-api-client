@@ -11,7 +11,7 @@
 //	Version: ##version##  
 //	Build: ##build##
 
-var PieceMaker2Api = (function(){
+var PieceMakerApi = (function(){
 
 	// Helpers
 	// -------
@@ -142,7 +142,7 @@ var PieceMaker2Api = (function(){
     // }
     // ```
 
-    var _PieceMakerApi2 = function () {
+    var _PieceMakerApi = function () {
 
     	// Fields
 
@@ -187,7 +187,7 @@ var PieceMaker2Api = (function(){
 
 	// Returns a list of all users
 
-	_PieceMakerApi2.prototype.listUsers = function ( cb ) {
+	_PieceMakerApi.prototype.listUsers = function ( cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
 	        url: api.base_url + '/users',
@@ -199,7 +199,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Create a user
 
-	_PieceMakerApi2.prototype.createUser = function ( userName, userEmail, userPassword, userToken, cb ) {
+	_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userPassword, userToken, cb ) {
 		var callback = cb || noop;
 		xhrPost( this, {
 			url: api.base_url + '/user',
@@ -215,7 +215,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get one user
 
-	_PieceMakerApi2.prototype.getUser = function ( userId, cb ) {
+	_PieceMakerApi.prototype.getUser = function ( userId, cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
 	        url: api.base_url + '/user/' + userId,
@@ -227,7 +227,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Update one user
 
-	_PieceMakerApi2.prototype.updateUser = function ( userId, userName, userEmail, userPassword, userToken, cb ) {
+	_PieceMakerApi.prototype.updateUser = function ( userId, userName, userEmail, userPassword, userToken, cb ) {
 		var callback = cb || noop;
 		xhrPut( this, {
 			url: api.base_url + '/user/' + userId,
@@ -243,7 +243,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Delete one user
 
-	_PieceMakerApi2.prototype.deleteUser = function ( userId, cb ) {
+	_PieceMakerApi.prototype.deleteUser = function ( userId, cb ) {
 		var callback = cb || noop;
 		xhrDelete( this, {
 			url: api.base_url + '/user/' + userId,
@@ -261,7 +261,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get all groups
 
-	_PieceMakerApi2.prototype.listGroups = function ( cb ) {
+	_PieceMakerApi.prototype.listGroups = function ( cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
 	        url: api.base_url + '/groups',
@@ -281,7 +281,7 @@ var PieceMaker2Api = (function(){
 	// Returns:
 	// ```{ id: <int> }``` an object with the group id
 
-	_PieceMakerApi2.prototype.createGroup = function ( groupTitle, groupText, cb ) {
+	_PieceMakerApi.prototype.createGroup = function ( groupTitle, groupText, cb ) {
 		var callback = cb || noop;
 		if ( !groupTitle ) {
 			throw( "createGroup(): title can not be empty" );
@@ -300,7 +300,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get a group
 
-	_PieceMakerApi2.prototype.getGroup = function ( groupId, cb ) {
+	_PieceMakerApi.prototype.getGroup = function ( groupId, cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId,
@@ -312,7 +312,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Update a group
 
-	_PieceMakerApi2.prototype.updateGroup = function ( groupId, groupData, cb ) {
+	_PieceMakerApi.prototype.updateGroup = function ( groupId, groupData, cb ) {
 		var data = convertData( groupData );
 		var callback = cb || noop;
 		xhrPut( this, {
@@ -326,7 +326,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Delete a group
 
-	_PieceMakerApi2.prototype.deleteGroup = function ( groupId, cb ) {
+	_PieceMakerApi.prototype.deleteGroup = function ( groupId, cb ) {
 		var callback = cb || noop;
 		xhrDelete( this, {
 				url: api.base_url + '/group/'+groupId,
@@ -338,7 +338,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get all users in this group
 
-	_PieceMakerApi2.prototype.listGroupUsers = function ( groupId, cb ) {
+	_PieceMakerApi.prototype.listGroupUsers = function ( groupId, cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/users',
@@ -355,7 +355,7 @@ var PieceMaker2Api = (function(){
 	
 	// ###Get all events
 	
-	_PieceMakerApi2.prototype.listEvents = function ( groupId, cb ) {
+	_PieceMakerApi.prototype.listEvents = function ( groupId, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/events',
@@ -367,7 +367,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get all events of a certain type
 	
-	_PieceMakerApi2.prototype.listEventsOfType = function ( groupId, type, cb ) {
+	_PieceMakerApi.prototype.listEventsOfType = function ( groupId, type, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/events',
@@ -380,7 +380,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get all events that have certain fields
 	
-	_PieceMakerApi2.prototype.listEventsWithFields = function ( groupId, fieldData, cb ) {
+	_PieceMakerApi.prototype.listEventsWithFields = function ( groupId, fieldData, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/events',
@@ -393,7 +393,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get one event
 	
-	_PieceMakerApi2.prototype.getEvent = function ( groupId, eventId, cb ) {
+	_PieceMakerApi.prototype.getEvent = function ( groupId, eventId, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
@@ -405,7 +405,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Create one event
 
-	_PieceMakerApi2.prototype.createEvent = function ( groupId, eventData, cb ) {
+	_PieceMakerApi.prototype.createEvent = function ( groupId, eventData, cb ) {
 		var data = convertData( eventData );
 		var callback = cb || noop;
 		xhrPost( this, {
@@ -419,7 +419,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Update one event
 
-	_PieceMakerApi2.prototype.updateEvent = function ( groupId, eventId, eventData, cb ) {
+	_PieceMakerApi.prototype.updateEvent = function ( groupId, eventId, eventData, cb ) {
 		var data = convertData( eventData );
 		var callback = cb || noop;
 		xhrPut( this, {
@@ -433,7 +433,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Delete one event
 
-	_PieceMakerApi2.prototype.deleteEvent = function ( groupId, eventId, cb ) {
+	_PieceMakerApi.prototype.deleteEvent = function ( groupId, eventId, cb ) {
 		var callback = cb || noop;
 		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
 		xhrDelete( this, {
@@ -444,7 +444,7 @@ var PieceMaker2Api = (function(){
 	    });
 	}
 
-	/* _PieceMakerApi2.prototype.listVideosForPiece = function ( pieceId, cb ) {
+	/* _PieceMakerApi.prototype.listVideosForPiece = function ( pieceId, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/api/piece/'+pieceId+'/videos',
@@ -454,7 +454,7 @@ var PieceMaker2Api = (function(){
 	    });
 	} */
 
-	/* _PieceMakerApi2.prototype.listEventsForVideo = function ( videoId, cb ) {
+	/* _PieceMakerApi.prototype.listEventsForVideo = function ( videoId, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/api/video/'+videoId+'/events',
@@ -464,7 +464,7 @@ var PieceMaker2Api = (function(){
 	    });
 	} */
 
-	/* _PieceMakerApi2.prototype.listEventsBetween = function ( from, to, cb ) {
+	/* _PieceMakerApi.prototype.listEventsBetween = function ( from, to, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
 			url: api.base_url + '/api/events/between/'+
@@ -476,7 +476,7 @@ var PieceMaker2Api = (function(){
 		});
 	} */
 
-	/* _PieceMakerApi2.prototype.getEvent = function ( eventId, cb ) {
+	/* _PieceMakerApi.prototype.getEvent = function ( eventId, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/event/'+eventId,
@@ -486,7 +486,7 @@ var PieceMaker2Api = (function(){
 	    });
 	} */
 
-	/* _PieceMakerApi2.prototype.createEvent = function ( data, cb ) {
+	/* _PieceMakerApi.prototype.createEvent = function ( data, cb ) {
 		var callback = cb || noop;
 		xhrPost( this, {
 	        url: api.base_url + '/event',
@@ -497,7 +497,7 @@ var PieceMaker2Api = (function(){
 	    });
 	} */
 
-	/* _PieceMakerApi2.prototype.updateEvent = function ( eventId, data, cb ) {
+	/* _PieceMakerApi.prototype.updateEvent = function ( eventId, data, cb ) {
 		var callback = cb || noop;
 		xhrPut( this, {
 	        url: api.base_url + '/event/'+eventId,
@@ -508,7 +508,7 @@ var PieceMaker2Api = (function(){
 	    });
 	}*/
 
-	/* _PieceMakerApi2.prototype.deleteEvent = function ( eventId, cb ) {
+	/* _PieceMakerApi.prototype.deleteEvent = function ( eventId, cb ) {
 		var callback = cb || noop;
 		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
 		xhrDelete( this, {
@@ -519,7 +519,7 @@ var PieceMaker2Api = (function(){
 	    });
 	} */
 
-	/* _PieceMakerApi2.prototype.findEvents = function ( opts, cb ) {
+	/* _PieceMakerApi.prototype.findEvents = function ( opts, cb ) {
 		var callback = cb || noop;
 		xhrPost( this, {
 	        url: api.base_url + '/api/events/find',
@@ -535,7 +535,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Get the system (server) time
 
-	_PieceMakerApi2.prototype.getSystemTime = function ( cb ) {
+	_PieceMakerApi.prototype.getSystemTime = function ( cb ) {
 		var ts1 = (new Date()).getTime();
 		var callback = cb || noop;
 		xhrGet( this, {
@@ -555,7 +555,7 @@ var PieceMaker2Api = (function(){
 
 	// ###Create a callback to be used for the API calls
 
-	_PieceMakerApi2.prototype.createCallback = function () {
+	_PieceMakerApi.prototype.createCallback = function () {
 		if ( arguments.length == 1 ) {
 
 			return api.context[arguments[0]];
@@ -594,5 +594,5 @@ var PieceMaker2Api = (function(){
 			throw( "createCallback(): wrong number of arguments" );
 	}
 
-    return _PieceMakerApi2;
+    return _PieceMakerApi;
 })();
