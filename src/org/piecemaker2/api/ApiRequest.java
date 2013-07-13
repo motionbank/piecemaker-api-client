@@ -19,6 +19,8 @@ import org.apache.commons.httpclient.methods.*;
 
 public class ApiRequest implements Runnable
 {
+	public static boolean DEBUG = false;
+
 	public final static int GET    = 0;
 	public final static int POST   = 1;
 	public final static int PUT    = 2;
@@ -27,8 +29,6 @@ public class ApiRequest implements Runnable
 	private final String methodTypes[] = {
 		"GET", "POST", "PUT", "DELETE"
 	};
-
-	public static boolean DEBUG = false;
 
 	PieceMakerApi api;
 	String url;
@@ -40,6 +40,9 @@ public class ApiRequest implements Runnable
 	HttpMethodBase method = null;
 	String serverResponse;
 
+	/**
+	 *	Constructor ApiRequest
+	 */
 	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, String url, int methodType, HashMap<String,String> data, ApiCallback callBack )
 	{
 		this.api = api;
@@ -63,6 +66,9 @@ public class ApiRequest implements Runnable
 		if ( DEBUG ) System.out.println( methodTypes[this.methodType] + " " + this.url );
 	}
 
+	/**
+	 *	@see java.lang.Runnable#run()
+	 */
 	public void run ()
 	{
 		HttpClient client = new HttpClient();
@@ -197,31 +203,49 @@ public class ApiRequest implements Runnable
 	    }
 	}
 
+	/**
+	 *	getter getCallback()
+	 */
 	public ApiCallback getCallback ()
 	{
 		return callBack;
 	}
 
+	/**
+	 *	getter getCallback()
+	 */
 	public String getResponse ()
 	{
 		return serverResponse;
 	}
 
+	/**
+	 *	getter getCallback()
+	 */
 	public int getType ()
 	{
 		return requestType;
 	}
 
+	/**
+	 *	getter getCallback()
+	 */
 	public String getTypeString ()
 	{
 		return methodTypes[methodType];
 	}
 
+	/**
+	 *	getter getCallback()
+	 */
 	public String getURL ()
 	{
 		return url;
 	}
 
+	/**
+	 *	@see java.lang.Object#toString()
+	 */
 	public String toString ()
 	{
 		return String.format( "<ApiRequest #%s %s>", hashCode(), callBack.toString() );

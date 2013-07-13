@@ -4,6 +4,9 @@ package org.piecemaker2.models;
  *	Class Group
  *
  * <p>A minimal, open container around the data of a group (of events)</p>
+ *
+ *	@version ##version## - ##build##
+ *	@author florian@motionbank.org
  */
 
 import java.util.ArrayList;

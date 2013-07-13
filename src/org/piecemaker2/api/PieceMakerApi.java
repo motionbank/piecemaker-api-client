@@ -448,6 +448,7 @@ public class PieceMakerApi
 	    try {
 
 	        // FIXME: handle errors more gently
+
 	        // if ( jsonResponse.has("status") && jsonResponse.getString("status").equals("error") )
 	        // {
 	        // 	System.err.println( jsonResponse.getString("status") + "\n" + jsonResponse.getString("message") );
@@ -517,85 +518,6 @@ public class PieceMakerApi
 			{
 				request.getCallback().call( userFromJson( new JSONObject( responseBody ) ) );
 			}
-
-			// else if ( request.getType() == VIDEOS )
-			// {
-			// 	Videos videos = new Videos();
-
-			// 	videos.total = jsonResponse.getInt("total");
-			// 	if ( videos.total > 0 )
-			// 	{
-			// 		JSONArray jsonVideos = jsonResponse.getJSONArray("videos");
-			// 		videos.videos = new Video[ jsonVideos.length() ];
-			// 		for ( int i = 0, k = jsonVideos.length(); i < k; i++ ) {
-			// 			JSONObject v = jsonVideos.getJSONObject(i);
-			// 			Video video = new Video();
-
-			// 			// { "recorded_at_float":1319117217000,
-			// 			// "happened_at":1.319117217E9,
-			// 			// "happened_at_float":1319117217000,
-			// 			// "s3_url":"http://motionbank-deborah.s3.amazonaws.com/piecemaker/D04_T05_Juliette_AJA.mp4",
-			// 			// "vid_type":"rehearsal","fn_s3":".mp4","fn_local":".mp4",
-			// 			// "group_id":null,"recorded_at":"2011/10/20 13:26:57 +0000",
-			// 			// "rec_date_verified":false,"meta_data":null,"old_title":null,
-			// 			// "id":280,"video_recordings":[],
-			// 			// "title":"D04_T05_Juliette_AJA","duration":2534,
-			// 			// "updated_at":"2012/09/12 11:27:13 +0200","piece_id":3,
-			// 			// "created_at":"2012/04/18 10:55:33 +0200","fn_arch":null,"rating":0}
-			// 			video.setId( v.getInt("id") );
-			// 			video.setTitle( v.getString("title") );
-			// 			video.setUpdatedAt( new Date( v.getString("updated_at") ) );
-			// 			//video.setUpdatedBy( v.getString("modified_by") );
-			// 			//video.setCreatedAt( new Date( v.getString("created_at") ) );
-						
-			// 			Date happened_at = new Date();
-			// 			happened_at.setTime( v.getLong("happened_at_float") );
-			// 			video.setHappenedAt( happened_at );
-
-			// 			video.setVideoUrl( v.getString("s3_url") );
-			// 			video.setDuration( v.getInt("duration") );
-			// 			//video.setPieceId( v.getInt("piece_id") );
-
-			// 			videos.videos[i] = video;
-			// 		}
-			// 	}
-
-			// 	request.getCallback().call( videos );
-			// }
-			// else if ( request.getType() == VIDEO )
-			// {
-			// 	JSONObject v = jsonResponse.getJSONObject("video");
-
-			// 	Video video = new Video();
-
-			// 	// { "recorded_at_float":1319117217000,
-			// 	// "happened_at":1.319117217E9,
-			// 	// "happened_at_float":1319117217000,
-			// 	// "s3_url":"http://motionbank-deborah.s3.amazonaws.com/piecemaker/D04_T05_Juliette_AJA.mp4",
-			// 	// "vid_type":"rehearsal","fn_s3":".mp4","fn_local":".mp4",
-			// 	// "group_id":null,"recorded_at":"2011/10/20 13:26:57 +0000",
-			// 	// "rec_date_verified":false,"meta_data":null,"old_title":null,
-			// 	// "id":280,"video_recordings":[],
-			// 	// "title":"D04_T05_Juliette_AJA","duration":2534,
-			// 	// "updated_at":"2012/09/12 11:27:13 +0200","piece_id":3,
-			// 	// "created_at":"2012/04/18 10:55:33 +0200","fn_arch":null,"rating":0}
-			// 	video.setId( v.getInt("id") );
-			// 	video.setTitle( v.getString("title") );
-			// 	video.setUpdatedAt( new Date( v.getString("updated_at") ) );
-			// 	//video.setUpdatedBy( v.getString("modified_by") );
-			// 	//video.setCreatedAt( new Date( v.getString("created_at") ) );
-				
-			// 	Date happened_at = new Date();
-			// 	happened_at.setTime(v.getLong("happened_at_float"));
-			// 	video.setHappenedAt( happened_at );
-
-			// 	video.setVideoUrl( v.getString("s3_url") );
-			// 	video.setDuration( v.getInt("duration") );
-			// 	//video.setPieceId( v.getInt("piece_id") );
-
-
-			// 	request.getCallback().call( video );
-			// }
 
 			else
 			{

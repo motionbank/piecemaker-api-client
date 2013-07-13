@@ -66,9 +66,10 @@ var PieceMakerApi = (function(){
     	}
 
     	var ts = (new Date()).getTime();
+    	var callUrl = url + '.json';
 
         jQuery.ajax({
-                url: url + '.json',
+                url: callUrl,
                 type: type,
                 dataType: 'json',
                 data: data,
@@ -89,7 +90,7 @@ var PieceMakerApi = (function(){
                 	success.apply( context, arguments );
                 },
                 error: function (err) {
-                    xhrError(err);
+                    xhrError( context, callUrl, type, err );
                 }
                 /* , xhrFields: { withCredentials: true } */
 				/* , headers: { 'Cookie' : document.cookie } */
@@ -112,13 +113,24 @@ var PieceMakerApi = (function(){
 	    xhrRequest( pm, opts.url, 'delete', null, opts.success );
 	}
 	
-	var xhrError = function ( resp ) {
+	var xhrError = function ( context, url, type, err ) {
+
+		var statusCode = -1, statusMessage = "";
+
+		if ( err ) {
+			statusCode = err.status;
+			statusMessage = err.statusText;
+			if ( err.responseText ) {
+				statusMessage += " " + err.responseText;
+			}
+		}
+
 		if ( api.context 
 			 && 'piecemakerError' in api.context 
 			 && typeof api.context['piecemakerError'] == 'function' )
-			api.context['piecemakerError']( resp );
+			api.context['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
 		else
-			throw( resp );
+			throw( err );
 	}
 
 	// Library global variables
