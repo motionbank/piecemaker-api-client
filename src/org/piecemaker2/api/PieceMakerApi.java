@@ -169,7 +169,10 @@ public class PieceMakerApi
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
 		userData.put( "api_access_key", userToken );
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, callback ) ).start();
+		ApiCallback intermittenCallback = createCallback( new Object(){ void call( User newUser, PieceMakerApi api, ApiCallback callback ) {
+			new Thread( new ApiRequest( api, api_key, USER, base_url + "/user/" + newUser.id, ApiRequest.GET, null, callback ) ).start();
+		}}, "call", this, callback );
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, intermittenCallback ) ).start();
 	}
 
 	/** 
@@ -189,8 +192,11 @@ public class PieceMakerApi
 		userData.put( "name", userName );
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
-		userData.put( "api_access_key", userToken );
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, callback ) ).start();
+		userData.put( "api_access_key", userToken );		
+		ApiCallback intermittenCallback = createCallback( new Object(){ void call( Object _, PieceMakerApi api, int userId, ApiCallback callback ) {
+			new Thread( new ApiRequest( api, api_key, USER, base_url + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
+		}}, "call", this, userId, callback );
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, intermittenCallback ) ).start();
 	}
 
 	/** 
@@ -253,7 +259,10 @@ public class PieceMakerApi
 		HashMap groupData = new HashMap();
 		groupData.put( "title", groupTitle );
 		groupData.put( "text", groupText );
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group", ApiRequest.POST, groupData, callback ) ).start();
+		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( Group group, PieceMakerApi api, ApiCallback callback ) {
+			new Thread( new ApiRequest( api, api_key, GROUP, base_url + "/group/" + group.id, ApiRequest.GET, null, callback ) ).start();
+		}}, "call", this, callback );
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group", ApiRequest.POST, groupData, intermittenCallback ) ).start();
 	}
 
 	/**
@@ -268,7 +277,10 @@ public class PieceMakerApi
 	 */
 	public void updateGroup ( int groupId, HashMap groupData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, callback ) ).start();
+		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( Group group, PieceMakerApi api, int groupId, ApiCallback callback ) {
+			new Thread( new ApiRequest( api, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
+		}}, "call", this, groupId, callback );
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, intermittenCallback ) ).start();
 	}
 
 	/**
@@ -355,7 +367,10 @@ public class PieceMakerApi
 	 */
 	public void createEvent ( int groupId, HashMap eventData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
+		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( Event event, PieceMakerApi api, int groupId, ApiCallback callback ) {
+			new Thread( new ApiRequest( api, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + event.id, ApiRequest.GET, null, callback ) ).start();
+		}}, "call", this, groupId, callback );
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event", ApiRequest.POST, eventData, intermittenCallback ) ).start();
 	}
 
 	/**
@@ -364,8 +379,15 @@ public class PieceMakerApi
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void updateEvent ( int groupId, int eventId, HashMap eventData, ApiCallback callback )
-	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.PUT, eventData, callback ) ).start();
+	{		
+		ApiCallback intermittenCallback = createCallback(
+			new Object(){ 
+				void call ( PieceMakerApi api, int groupId, int eventId, ApiCallback callback ) {
+					new Thread( new ApiRequest( api, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
+			}}, 
+			"call", 
+			this, groupId, eventId, callback );
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.PUT, eventData, intermittenCallback ) ).start();
 	}
 
 	/**

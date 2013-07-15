@@ -12,14 +12,15 @@ import org.piecemaker2.api.*;
 
 PieceMakerApi api;
 Group group;
+int eventsLen = 50;
 
 void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMaker2Api( this, "http://localhost:3001", "9bBa7k4Q4C" );
+    api = new PieceMakerApi( this, "http://localhost:3001", "9bBa7k4Q4C" );
     
-    api.createGroup( "test group", "", api.createCallback( "groupCreated" ) );
+    api.createGroup( "Another test group", "", api.createCallback( "groupCreated" ) );
 }
 
 void draw ()
@@ -30,49 +31,66 @@ void groupCreated ( Group g )
 {
     group = g;
     
+    createEvent();
+}
+
+int eventsCreated = 0;
+void createEvent ()
+{
     HashMap<String, String> eventData = new HashMap<String, String>();
     
     eventData.put( "utc_timestamp", new Date().getTime() );
     eventData.put( "duration", 1000 );
-    
-    eventData.put( "title", "Where does this end up?" );
+    eventData.put( "title", "Test event" );
     eventData.put( "type", "test-type" );
+    
+    eventData.put( "creatednum", eventsCreated );
     
     api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
 }
 
 void eventCreated ( Event event )
 {
-    api.getEvent( group.id, event.id, api.createCallback( "eventLoaded" ) ); 
-}
-
-void eventLoaded ( Event event )
-{    
-    api.listEventsOfType( group.id, "test-type", api.createCallback( "eventsFound" ) );
-}
-
-int eventsToDelete = 0;
-void eventsFound ( Events events )
-{
-    console.log( events );
+    println( "Event number " + event.fields["creatednum"] +  " created" );
     
-    for ( Event e : events )
+    eventsCreated++;
+    
+    if ( eventsCreated == eventsLen )
     {
-        eventsToDelete++;
-        api.deleteEvent( group.id, e.id, api.createCallback( "eventDeleted" ) );
+        api.listEventsOfType( group.id, "test-type", api.createCallback( "eventsFound" ) );
+    } else {
+        createEvent();
     }
+}
+
+Event[] eventsToDelete;
+void eventsFound ( Event[] events )
+{
+    println( "Found: " + events.length + " matching events" );
+    eventsToDelete = events;
+    deleteEvent();
+}
+
+void deleteEvent ()
+{
+    Event e = eventsToDelete[0];
+    eventsToDelete = subset( eventsToDelete, 1);
+    
+    api.deleteEvent( group.id, e.id, api.createCallback( "eventDeleted", e ) );
 }
 
 void eventDeleted ( Event event )
 {
-    eventsToDelete--;
+    println( "Event number " + event.fields["creatednum"] + " deleted" );
     
-    if ( eventsToDelete == 0 )
+    if ( eventsToDelete.length == 0 )
         api.deleteGroup( group.id, api.createCallback( "groupDeleted" ) );
+    else
+        deleteEvent();
 }
 
 void groupDeleted ()
 {
-    console.log( "All done!" );
+    println( "Events and group deleted" );
 }
 

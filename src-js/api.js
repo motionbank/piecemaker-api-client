@@ -26,6 +26,7 @@ var PieceMakerApi = (function(){
     	if ( !data ) return data;
     	if ( typeof data !== 'object' ) return data;
     	if ( 'entrySet' in data && typeof data.entrySet === 'function' ) {
+    		var allowed_long_keys = ['utc_timestamp'];
     		var set = data.entrySet();
     		if ( !set ) return data;
     		var obj = {};
@@ -36,6 +37,11 @@ var PieceMakerApi = (function(){
 				if ( val && typeof val === 'object' && 
 					 'entrySet' in val && 
 					 typeof val.entrySet === 'function' ) val = convertData(val);
+				var key = entry.getKey();
+				/* issue 48 */
+				if ( !key || (allowed_long_keys.indexOf(key.toLowerCase()) === -1 && key.length > 10) ) {
+					throw( "Field key is not valid: " + key );
+				}
 				obj[entry.getKey()] = val;
 			}
 			return obj;
@@ -225,21 +231,35 @@ var PieceMakerApi = (function(){
 
 	// ###Create a user
 
+	// Creates a new user and returns it
+
 	_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userPassword, userToken, cb ) {
 		var callback = cb || noop;
-		xhrPost( this, {
-			url: api.base_url + '/user',
+		var self = this;
+		xhrPost( self, {
+			url: self.base_url + '/user',
 			data: {
 				name: userName, email: userEmail,
 				password: userPassword, api_access_key: userToken
 			},
 			success: function ( response ) {
-				callback.call( api.context || cb, response );
+				if ( response && 'id' in response && response.id ) {
+					xhrGet( self, {
+				        url: self.base_url + '/user/' + userId,
+				        success: function ( response ) {
+							callback.call( self.context || cb, response );
+				        }
+				    });
+				} else {
+					throw( response );
+				}
 			}
 		});
 	}
 
 	// ###Get one user
+
+	// Get a user based on ID
 
 	_PieceMakerApi.prototype.getUser = function ( userId, cb ) {
 		var callback = cb || noop;
@@ -253,28 +273,42 @@ var PieceMakerApi = (function(){
 
 	// ###Update one user
 
+	// Update a user and return it
+
 	_PieceMakerApi.prototype.updateUser = function ( userId, userName, userEmail, userPassword, userToken, cb ) {
 		var callback = cb || noop;
-		xhrPut( this, {
-			url: api.base_url + '/user/' + userId,
+		var self = this;
+		xhrPut( self, {
+			url: self.base_url + '/user/' + userId,
 			data: {
 				name: userName, email: userEmail,
 				password: userPassword, api_access_key: userToken
 			},
 			success: function ( response ) {
-				callback.call( api.context || cb, response );
+				if ( response && parseInt(response) === 1 ) {
+					xhrGet( self, {
+				        url: self.base_url + '/user/' + userId,
+				        success: function ( response ) {
+							callback.call( self.context || cb, response );
+				        }
+				    });
+				} else {
+					throw( response );
+				}
 			}
 		}); 
 	}
 
 	// ###Delete one user
 
+	// Delete a user
+
 	_PieceMakerApi.prototype.deleteUser = function ( userId, cb ) {
 		var callback = cb || noop;
 		xhrDelete( this, {
 			url: api.base_url + '/user/' + userId,
 			success: function ( response ) {
-				callback.call( api.context || cb, response );
+				callback.call( api.context || cb /*, response*/ );
 			}
 		});
 	}
@@ -286,6 +320,8 @@ var PieceMakerApi = (function(){
 	// they are just a collection of events
 
 	// ###Get all groups
+
+	// Get a list of all available (to current user) groups
 
 	_PieceMakerApi.prototype.listGroups = function ( cb ) {
 		var callback = cb || noop;
@@ -305,26 +341,40 @@ var PieceMakerApi = (function(){
 	// [ ```callback``` an optional callback ]  
 
 	// Returns:
-	// ```{ id: <int> }``` an object with the group id
+	// A fully loaded group object
 
 	_PieceMakerApi.prototype.createGroup = function ( groupTitle, groupText, cb ) {
 		var callback = cb || noop;
+		var self = this;
 		if ( !groupTitle ) {
 			throw( "createGroup(): title can not be empty" );
 		}
-		xhrPost( this, {
-			url: api.base_url + '/group',
+		xhrPost( self, {
+			url: self.base_url + '/group',
 			data: {
 				title: groupTitle,
 				text: groupText || ''
 			},
 		    success: function ( response ) {
-				callback.call( api.context || cb, response );
+				if ( response && 'id' in response && response.id )
+				{
+					xhrGet( self, {
+				        url: self.base_url + '/group/'+response.id,
+				        success: function ( response ) {
+							callback.call( self.context || cb, response );
+				        }
+				    });
+				} else {
+					throw( response );
+				}
 		    }
 		});
 	}
 
 	// ###Get a group
+
+	// Returns:  
+	// A fully loaded group object
 
 	_PieceMakerApi.prototype.getGroup = function ( groupId, cb ) {
 		var callback = cb || noop;
@@ -338,31 +388,50 @@ var PieceMakerApi = (function(){
 
 	// ###Update a group
 
+	// Returns:  
+	// A fully group object
+
 	_PieceMakerApi.prototype.updateGroup = function ( groupId, groupData, cb ) {
 		var data = convertData( groupData );
 		var callback = cb || noop;
-		xhrPut( this, {
-			url: api.base_url + '/group/'+groupId,
+		var self = this;
+		xhrPut( self, {
+			url: self.base_url + '/group/'+groupId,
 			data: data,
 			success: function ( response ) {
-				callback.call( api.context || cb, response );
+				if ( response && parseInt(response) === 1 )
+				{
+					xhrGet( self, {
+				        url: self.base_url + '/group/'+response.id,
+				        success: function ( response ) {
+							callback.call( self.context || cb, response );
+				        }
+				    });
+				} else {
+					throw( response );
+				}
 			}
 		});
 	}
 
 	// ###Delete a group
 
+	// Returns nothing
+
 	_PieceMakerApi.prototype.deleteGroup = function ( groupId, cb ) {
 		var callback = cb || noop;
 		xhrDelete( this, {
 				url: api.base_url + '/group/'+groupId,
 				success: function ( response ) {
-				callback.call( api.context || cb, response );
+				callback.call( api.context || cb /*, response*/ );
 			}
 		});
 	}
 
 	// ###Get all users in this group
+
+	// Returns:
+	// A list of all users in that group
 
 	_PieceMakerApi.prototype.listGroupUsers = function ( groupId, cb ) {
 		var callback = cb || noop;
@@ -438,7 +507,16 @@ var PieceMakerApi = (function(){
 	        url: api.base_url + '/group/'+groupId+'/event',
 	        data: data,
 	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
+	        	if ( response && 'id' in response && response.id ) {
+	        		xhrGet( api, {
+				        url: api.base_url + '/group/'+groupId+'/event/'+response.id,
+				        success: function ( response ) {
+				        	callback.call( api.context || cb, response );
+				        }
+				    });
+	        	} else {
+	        		throw( response );
+	        	}
 	        }
 	    });
 	}
@@ -452,7 +530,16 @@ var PieceMakerApi = (function(){
 	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
 	        data: data,
 	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
+	            if ( response && parseInt(response) === 1 ) {
+	        		xhrGet( api, {
+				        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
+				        success: function ( response ) {
+				        	callback.call( api.context || cb, response );
+				        }
+				    });
+	        	} else {
+	        		throw( response );
+	        	}
 	        }
 	    });
 	}
@@ -465,7 +552,7 @@ var PieceMakerApi = (function(){
 		xhrDelete( this, {
 	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
 	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
+	            callback.call( api.context || cb /*, response*/ );
 	        }
 	    });
 	}
@@ -605,10 +692,9 @@ var PieceMakerApi = (function(){
 				for ( var i = more; i < arguments.length; i++ ) {
 					args.push( arguments[i] );
 				}
-				//console.log( args );
 				return (function(c,m,a){
 					return function(response) {
-						a.unshift(response);
+						if (response) a.unshift(response);
 						c[m].apply( c, a );
 					}
 				})(cntx, meth, args);

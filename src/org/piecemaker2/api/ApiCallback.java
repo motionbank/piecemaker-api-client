@@ -53,6 +53,15 @@ public class ApiCallback
 					break;
 				}
 			}
+			if ( meth == null ) {
+				meths = target.getClass().getDeclaredMethods();
+				for ( Method meth : meths ) {
+					if ( meth.getName().equals(method) ) {
+						this.meth = meth;
+						break;
+					}
+				}
+			}
 			obj = target;
 		}
 	}
@@ -84,10 +93,25 @@ public class ApiCallback
 			tmp = null;
 		}
 
+		if ( false == meth.isAccessible() )
+		{
+			try {
+				meth.setAccessible( true );
+			} catch ( SecurityException se ) {
+				/* ignore, will fail in the next step if this crashed */
+			}
+		}
+
 		try {
 			meth.invoke(obj, args);
 		} catch ( Exception e ) {
 			e.printStackTrace();
+			System.err.println(String.format(
+				"ApiCallback.call():\n\t-> %s\n\t() %s\n\t.. %s",
+				obj.toString(),
+				meth.toString(),
+				args.toString()
+			));
 		} 
 	}
 
