@@ -49,6 +49,8 @@ public class PieceMakerApi
 	public final static int EVENT 	= 3;
 	public final static int EVENTS 	= 4;
 
+	public final static int SYSTEM 	= 5;
+
 	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
 
 	// -----------------------------------------
@@ -143,6 +145,18 @@ public class PieceMakerApi
 	public void listUsers ( ApiCallback callback )
 	{
 		new Thread( new ApiRequest( this, api_key, USERS, base_url + "/users", ApiRequest.GET, null, callback ) ).start();
+	}
+
+	/**
+	 *	Get own user data
+	 *
+	 *	@param callback The callback to run when the user data becomes available
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void whoAmI ( ApiCallback callback ) 
+	{
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/me", ApiRequest.GET, null, callback ) ).start();
 	}
 
 	/** 
@@ -369,7 +383,25 @@ public class PieceMakerApi
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void findEvents ( HashMap opts, ApiCallback callback ) {}
+	//public void findEvents ( HashMap opts, ApiCallback callback ) {}
+
+	// ----------------------------------------
+	//	SYSTEM
+	// ----------------------------------------
+
+	/**
+	 *	Get the server / system time.
+	 *
+	 *	<p>Remember that the HTTP communication will add to this.</p>
+	 *
+	 *	@param callback The callback to run when the data becomes available
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void getSystemTime ( ApiCallback callback ) 
+	{
+		new Thread( new ApiRequest( this, api_key, SYSTEM, base_url + "/system/utc_timestamp", ApiRequest.GET, null, callback ) ).start();
+	}
 
 	// ----------------------------------------
 	//	CALLBACK
@@ -441,6 +473,7 @@ public class PieceMakerApi
     		}
     	} catch ( JSONException jsonEx ) {
     		System.err.println( "Piecemaker API: Response body is not JSON!" );
+    		// FIXME: should never happen 
     		request.getCallback().call( /* no args? this is a wild guess! */ );
     		return;
     	}
@@ -517,6 +550,12 @@ public class PieceMakerApi
 			else if ( request.getType() == USER )
 			{
 				request.getCallback().call( userFromJson( new JSONObject( responseBody ) ) );
+			}
+
+			else if ( request.getType() == SYSTEM )
+			{
+				//FIXME: parse system time as long?
+				request.getCallback().call( new java.util.Date( Long.parseLong( responseBody ) ) );
 			}
 
 			else

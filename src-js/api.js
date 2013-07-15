@@ -209,6 +209,20 @@ var PieceMakerApi = (function(){
 	    });
 	}
 
+	// ###Get self
+
+	// Returns the user object for the user to given API key
+
+	_PieceMakerApi.prototype.whoAmI = function ( cb ) {
+		var callback = cb || noop;
+	    xhrGet( this, {
+	        url: api.base_url + '/user/me',
+	        success: function ( response ) {
+				callback.call( api.context || cb, response );
+	        }
+	    });
+	}
+
 	// ###Create a user
 
 	_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userPassword, userToken, cb ) {
@@ -556,7 +570,7 @@ var PieceMakerApi = (function(){
 				var ts2 = (new Date()).getTime();
 	            callback.call( api.context || cb, {
 	            	systemTime: new Date(parseFloat(response)*1000).getTime(),
-	            	callDuration: ts2-ts1
+	            	queryTime: ts2-ts1
 	            });
 	        }
 	    });
