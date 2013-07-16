@@ -691,7 +691,7 @@ var PieceMakerApi = (function(){
 				var args = [];
 				for ( var i = more; i < arguments.length; i++ ) {
 					args.push( arguments[i] );
-				}
+				}	
 				return (function(c,m,a){
 					return function(response) {
 						if (response) a.unshift(response);

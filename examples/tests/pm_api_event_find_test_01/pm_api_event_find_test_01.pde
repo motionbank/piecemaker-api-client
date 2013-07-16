@@ -9,10 +9,13 @@
  */
 
 import org.piecemaker2.api.*;
+import org.piecemaker2.models.*;
+
+import java.util.*;
 
 PieceMakerApi api;
 Group group;
-int eventsLen = 50;
+int eventsLen = 30;
 
 void setup ()
 {
@@ -39,17 +42,17 @@ void createEvent ()
 {
     HashMap<String, String> eventData = new HashMap<String, String>();
     
-    eventData.put( "utc_timestamp", new Date().getTime() );
-    eventData.put( "duration", 1000 );
+    eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
+    eventData.put( "duration", 1000 + "" );
     eventData.put( "title", "Test event" );
     eventData.put( "type", "test-type" );
     
-    eventData.put( "creatednum", eventsCreated );
+    eventData.put( "creatednum", eventsCreated + "" );
     
     api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
 }
 
-void eventCreated ( Event event )
+void eventCreated ( org.piecemaker2.models.Event event )
 {
     println( "Event number " + event.fields["creatednum"] +  " created" );
     
@@ -63,8 +66,8 @@ void eventCreated ( Event event )
     }
 }
 
-Event[] eventsToDelete;
-void eventsFound ( Event[] events )
+org.piecemaker2.models.Event[] eventsToDelete;
+void eventsFound ( org.piecemaker2.models.Event[] events )
 {
     println( "Found: " + events.length + " matching events" );
     eventsToDelete = events;
@@ -73,13 +76,13 @@ void eventsFound ( Event[] events )
 
 void deleteEvent ()
 {
-    Event e = eventsToDelete[0];
-    eventsToDelete = subset( eventsToDelete, 1);
+    org.piecemaker2.models.Event e = eventsToDelete[0];
+    eventsToDelete = (org.piecemaker2.models.Event[])subset( eventsToDelete, 1);
     
     api.deleteEvent( group.id, e.id, api.createCallback( "eventDeleted", e ) );
 }
 
-void eventDeleted ( Event event )
+void eventDeleted ( org.piecemaker2.models.Event event )
 {
     println( "Event number " + event.fields["creatednum"] + " deleted" );
     

@@ -193,9 +193,14 @@ public class PieceMakerApi
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
 		userData.put( "api_access_key", userToken );		
-		ApiCallback intermittenCallback = createCallback( new Object(){ void call( Object _, PieceMakerApi api, int userId, ApiCallback callback ) {
-			new Thread( new ApiRequest( api, api_key, USER, base_url + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
-		}}, "call", this, userId, callback );
+		ApiCallback intermittenCallback = createCallback( 
+			new Object(){ 
+				void call( PieceMakerApi api, int userId, ApiCallback callback ) {
+					new Thread( new ApiRequest( api, api_key, USER, base_url + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
+				}
+			}, 
+			"call", 
+			this, userId, callback );
 		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, intermittenCallback ) ).start();
 	}
 
@@ -277,7 +282,7 @@ public class PieceMakerApi
 	 */
 	public void updateGroup ( int groupId, HashMap groupData, ApiCallback callback )
 	{
-		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( Group group, PieceMakerApi api, int groupId, ApiCallback callback ) {
+		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( PieceMakerApi api, int groupId, ApiCallback callback ) {
 			new Thread( new ApiRequest( api, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
 		}}, "call", this, groupId, callback );
 		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, intermittenCallback ) ).start();

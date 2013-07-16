@@ -36,20 +36,10 @@ void usersLoaded ( User[] users )
 
 void userCreated ( User u )
 {
-    api.getUser( u.id, api.createCallback( "userLoaded" ) );
-}
-
-void userLoaded ( User u )
-{
-    api.updateUser( u.id, "Mr. Horse 2", "mr@horses-2.org", "crazy shit password again", "cca7a6sd8a7s6da8sd67", api.createCallback( "userUpdated", u ) );
+    api.updateUser( u.id, "Mr. Horse 2", "mr@horses-2.org", "crazy shit password again", "cca7a6sd8a7s6da8sd67", api.createCallback( "userUpdated" ) );
 }
 
 void userUpdated ( User u )
-{
-    api.getUser( u.id, api.createCallback( "userLoadedAgain" ) );
-}
-
-void userLoadedAgain ( User u )
 {
     api.deleteUser( u.id, api.createCallback( "userDeleted" ) );
 }

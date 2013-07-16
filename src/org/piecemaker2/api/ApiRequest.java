@@ -16,6 +16,7 @@ import java.io.*;
 
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
+import org.apache.commons.httpclient.params.*;
 
 public class ApiRequest implements Runnable
 {
@@ -135,6 +136,14 @@ public class ApiRequest implements Runnable
 				deleteMethod.setQueryString( requestData );
 			method = deleteMethod;
 		}
+
+		// set some default options
+
+		HttpMethodParams params = method.getParams();
+
+		params.setSoTimeout( 1000 * 3 );
+
+		method.setParams( params );
 
 		// set the header to receive JSON data
 

@@ -34,6 +34,8 @@ void groupCreated ( Group g )
 {
     group = g;
     
+    println( "Group '" + group.title + "' created" );
+    
     HashMap<String, String> eventData = new HashMap<String, String>();
     
     eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
@@ -45,33 +47,28 @@ void groupCreated ( Group g )
     api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
 }
 
-void eventCreated ( org.piecemaker2.models.Event newEvent )
+void eventCreated ( org.piecemaker2.models.Event event )
 {
-    event = newEvent;
-    api.getEvent( group.id, event.id, api.createCallback( "eventLoaded" ) ); 
+    api.deleteGroup( group.id, api.createCallback( "groupDeleted", event ) );
 }
 
-void eventLoaded ( org.piecemaker2.models.Event event )
-{
-    api.deleteGroup( group.id, api.createCallback( "groupDeleted" ) );
-}
-
-void groupDeleted ()
+void groupDeleted ( org.piecemaker2.models.Event event )
 {
     println( "Group deleted" );
     
+    // THESE SHOULD BOTH FAIL NOW:
     api.getGroup( group.id, api.createCallback( "groupLoaded" ) );
     api.getEvent( group.id, event.id, api.createCallback( "eventLoadedAgain" ) );
 }
 
 void eventLoadedAgain ()
 {
-    println( "Event loaded?" );
+    println( "Should never be called! (1)" );
 }
 
 void groupLoaded ()
 {
-    println( "Should fail" );
+    println( "Should never be called! (2)" );
 }
 
 void piecemakerError ( int status, String errMsg, String request )
