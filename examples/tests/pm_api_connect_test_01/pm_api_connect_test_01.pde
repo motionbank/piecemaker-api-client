@@ -16,10 +16,13 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this,
-                              "http://localhost:3001",
-                             "9bBa7k4Q4C" );
+    api = new PieceMakerApi( this, "http://localhost:9292" );
     
+    api.login( "super-admin@example.com", "super-admin", api.createCallback( "loggedIn" ) );
+}
+
+void loggedIn ( String api_key )
+{
     api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
@@ -56,4 +59,5 @@ void groupEventsLoaded ( org.piecemaker2.models.Event[] groupEvents, Group group
 void groupDeleted ()
 {
     println( "... and deleted" );
+    println( "Passed!" );
 }

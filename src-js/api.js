@@ -61,14 +61,8 @@ var PieceMakerApi = (function(){
     	// This token is passed into the constructor below and gets automatically 
     	// added to each call here if it is not already present.
 
-    	if ( api.api_key ) {
-    		if ( data && !('token' in data) ) {
-    			data['token'] = api.api_key
-    		} else if ( !data ) {
-    			data = { 
-    				token: api.api_key 
-    			}
-    		}
+    	if ( !api.api_key && !url.match(/\/user\/login$/) ) {
+    		throw( "PieceMakerApi: need an API_KEY, please login first to obtain one" );
     	}
 
     	var ts = (new Date()).getTime();
@@ -79,13 +73,11 @@ var PieceMakerApi = (function(){
                 type: type,
                 dataType: 'json',
                 data: data,
-				/* before: function ( xhr ) {
-					xhr.withCredentials = true;
-					xhr.setRequestHeader( 'Cookie', document.cookie );
-					if ( isLoggedIn ) {
-						xhr.setRequestHeader( 'Authorization',  'Basic '+user.login+':'+user.password );
-					}
-				}, */
+				// before: function ( xhr ) {
+				// 	if ( !url.match(/\/user\/login$/) ) {
+				// 		xhr.setRequestHeader( 'X-Access-Key', api.api_key );
+				// 	}
+				// },
 				context: context,
                 success: function () {
                 	if ( arguments && arguments[0] && 
@@ -97,9 +89,12 @@ var PieceMakerApi = (function(){
                 },
                 error: function (err) {
                     xhrError( context, callUrl, type, err );
-                }
+                },
                 /* , xhrFields: { withCredentials: true } */
 				/* , headers: { 'Cookie' : document.cookie } */
+				headers: {
+					'X-Access-Key': api.api_key
+				}
             });
     };
 
@@ -154,8 +149,7 @@ var PieceMakerApi = (function(){
     // Expects either 3 arguments or an object with:
     // ```
     // {  
-    //   context: <object>,  
-    //   api_key: <string>,  
+    //   context: <object>,
     //   base_url: <string>  
     // }
     // ```
@@ -174,7 +168,7 @@ var PieceMakerApi = (function(){
 		
 		if ( arguments.length == 1 && typeof params == 'object' ) {
 	        this.context 	= params.context || {};
-			this.api_key	= params.api_key || false;
+			//this.api_key	= params.api_key || false;
 			this.base_url 	= params.base_url || 'http://localhost:3000';
 		} else {
 			if ( arguments.length >= 1 && typeof arguments[0] == 'object' ) {
@@ -183,14 +177,16 @@ var PieceMakerApi = (function(){
 			if ( arguments.length >= 2 && typeof arguments[1] == 'string' ) {
 				this.base_url = arguments[1];
 			}
-			if ( arguments.length >= 3 && typeof arguments[2] == 'string' ) {
-				this.api_key = arguments[2];
-			}
+			// if ( arguments.length >= 3 && typeof arguments[2] == 'string' ) {
+			// 	this.api_key = arguments[2];
+			// }
 		}
+
+		this.base_url += '/api/v1';
 
 		// Since piecemaker 2 we require the API key to be added
 
-		if ( !this.api_key ) throw( "PieceMaker2API: need an API_KEY for this to work" );
+		//if ( !this.api_key ) throw( "PieceMaker2API: need an API_KEY for this to work" );
 
 		api = this; // ... store for internal use only
 	}
@@ -201,16 +197,73 @@ var PieceMakerApi = (function(){
 	// Users
 	// ------
 
+	// ###Log a user in
+
+	// Returns:
+	// ```
+	// {
+	//   "api_access_key": "XXXXXXX"
+	// }
+	// ```
+
+	_PieceMakerApi.prototype.login = function ( userEmail, userPassword, cb ) {
+		var callback = cb || noop;
+		if ( !userEmail || !userPassword ) {
+			throw( "PieceMakerApi: need name and password to log user in" );
+		}
+		var self = this;
+	    xhrPost( this, {
+	        url: self.base_url + '/user/login',
+	        data: {
+	        	email: userEmail,
+	        	password: userPassword
+	        },
+	        success: function ( response ) {
+	        	if ( response && 'api_access_key' in response && response['api_access_key'] ) {
+	        		self.api_key = response['api_access_key'];
+	        	}
+				callback.call( self.context || cb, response );
+	        }
+	    });
+	}
+
+	// ###Log a user out
+
+	// Returns:
+	// ```
+	// {
+	//   "api_access_key": null
+	// }
+	// ```
+
+	_PieceMakerApi.prototype.logout = function ( cb ) {
+		var callback = cb || noop;
+		if ( !userEmail || !userPassword ) {
+			throw( "PieceMakerApi: need name and password to log user in" );
+		}
+		var self = this;
+	    xhrPost( this, {
+	        url: self.base_url + '/user/logout',
+	        success: function ( response ) {
+	        	if ( response && 'api_access_key' in response && response['api_access_key'] ) {
+	        		self.api_key = response['api_access_key'];
+	        	}
+				callback.call( self.context || cb, response );
+	        }
+	    });
+	}
+
 	// ###Get all users
 
 	// Returns a list of all users
 
 	_PieceMakerApi.prototype.listUsers = function ( cb ) {
 		var callback = cb || noop;
+		var self = this;
 	    xhrGet( this, {
-	        url: api.base_url + '/users',
+	        url: self.base_url + '/users',
 	        success: function ( response ) {
-				callback.call( api.context || cb, response );
+				callback.call( self.context || cb, response );
 	        }
 	    });
 	}
@@ -221,10 +274,11 @@ var PieceMakerApi = (function(){
 
 	_PieceMakerApi.prototype.whoAmI = function ( cb ) {
 		var callback = cb || noop;
+		var self = this;
 	    xhrGet( this, {
-	        url: api.base_url + '/user/me',
+	        url: self.base_url + '/user/me',
 	        success: function ( response ) {
-				callback.call( api.context || cb, response );
+				callback.call( self.context || cb, response );
 	        }
 	    });
 	}

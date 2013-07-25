@@ -20,7 +20,7 @@ import org.apache.commons.httpclient.params.*;
 
 public class ApiRequest implements Runnable
 {
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 
 	public final static int GET    = 0;
 	public final static int POST   = 1;
@@ -32,6 +32,7 @@ public class ApiRequest implements Runnable
 	};
 
 	PieceMakerApi api;
+	String api_key;
 	String url;
 	int methodType;
 	int requestType;
@@ -47,12 +48,13 @@ public class ApiRequest implements Runnable
 	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, String url, int methodType, HashMap<String,String> data, ApiCallback callBack )
 	{
 		this.api = api;
+		this.api_key = api_key;
 		this.url = url + ".json";
 		this.requestType = requestType;
 		this.methodType = methodType >= 0 && methodType <= 3 ? methodType : GET;
 		
 		this.data = new HashMap();
-		this.data.put( "token", api_key );
+		//this.data.put( "token", api_key );
 
 		if ( data != null ) {
 			java.util.Iterator iter = data.entrySet().iterator();
@@ -149,19 +151,23 @@ public class ApiRequest implements Runnable
 
 		method.addRequestHeader( new Header( "Accept", "application/json, text/javascript" ) );
 
+		// finally add the api_key
+
+		if ( api_key != null ) {
+			method.addRequestHeader( new Header( "X-Access-Key", api_key ) );
+		}
+
 		// request it ...
 
 		try 
 	    {
 	        int statusCode = client.executeMethod(method);
 
-	        switch ( statusCode ) 
+	        if ( statusCode < 300 ) 
 	        {
-	        case HttpStatus.SC_OK:
-	            break;
-	        	// TODO: implement better HTTP error handling here, redirect, moved, 404, 403, ... 
-	        default:
-	            if (DEBUG) System.err.println( "Method failed: " + method.getStatusLine() );
+		        	// TODO: implement better HTTP error handling here, redirect, moved, 404, 403, ... 
+	        } else {
+	            System.err.println( "Method failed: " + method.getStatusLine() );
 	            method.releaseConnection();
 	            api.handleError( method.getStatusLine().getStatusCode(), method.getStatusLine().getReasonPhrase(), this, method );
 	            return;
@@ -242,6 +248,14 @@ public class ApiRequest implements Runnable
 	public String getTypeString ()
 	{
 		return methodTypes[methodType];
+	}
+
+	/**
+	 *	getter getMethod()
+	 */
+	public int getMethod ()
+	{
+		return methodType;
 	}
 
 	/**

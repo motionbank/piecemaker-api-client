@@ -51,6 +51,8 @@ public class PieceMakerApi
 
 	public final static int SYSTEM 	= 5;
 
+	public final static int API_KEY = 6;
+
 	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
 
 	// -----------------------------------------
@@ -67,39 +69,33 @@ public class PieceMakerApi
 	//	Constructor
 	// -----------------------------------------
 
-	public PieceMakerApi ( String api_key )
-	{
-		setApiKey( api_key );
+	// public PieceMakerApi ( String api_key )
+	// {
+	// 	setApiKey( api_key );
 
-		ensureApiKey();
-		printVersion();
-	}
+	// 	ensureApiKey();
+	// 	printVersion();
+	// }
 
-	public PieceMakerApi ( Object context, String api_key ) 
+	public PieceMakerApi ( Object context ) 
 	{
-		setApiKey( api_key );
 		setContext( context );
 
-		ensureApiKey();
 		printVersion();
 	}
 
-	public PieceMakerApi ( String base_url, String api_key ) 
+	public PieceMakerApi ( String base_url ) 
 	{
-		setApiKey( api_key );
 		setBaseUrl( base_url );
 
-		ensureApiKey();
 		printVersion();
 	}
 
-	public PieceMakerApi ( Object context, String base_url, String api_key ) 
+	public PieceMakerApi ( Object context, String base_url ) 
 	{
-		setApiKey( api_key );
 		setContext( context );
 		setBaseUrl( base_url );
 
-		ensureApiKey();
 		printVersion();
 	}
 
@@ -111,10 +107,6 @@ public class PieceMakerApi
 		String base_url = (String)params.get( "base_url" );
 		setBaseUrl( base_url );
 
-		String api_key = (String)params.get( "api_key" );
-		setApiKey( api_key );
-
-		ensureApiKey();
 		printVersion();
 	}
 
@@ -132,6 +124,39 @@ public class PieceMakerApi
 	// -----------------------------------------
 	//	Public, API methods
 	// -----------------------------------------
+
+	/**
+	 *	login()
+	 *
+	 *	Log a user in to obtain an API key
+	 *
+	 *	@param userEmail The users email as contained in the database
+	 *	@param userPassword The users password as contained in the database
+	 *	@param callback A callback to be run once user is logged in
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void login ( String userEmail, String userPassword, ApiCallback callback )
+	{
+		HashMap loginData = new HashMap();
+		loginData.put( "email",    userEmail );
+		loginData.put( "password", userPassword );
+
+		new Thread(
+			new ApiRequest(
+				this, null, API_KEY, base_url + "/user/login", ApiRequest.POST, loginData, callback
+			)
+		).start();
+	}
+
+	public void logout ( ApiCallback callback )
+	{
+		new Thread(
+			new ApiRequest(
+				this, api_key, API_KEY, base_url + "/user/logout", ApiRequest.POST, null, callback
+			)
+		).start();
+	}
 
 	/**
 	 *	listUsers()
@@ -487,7 +512,7 @@ public class PieceMakerApi
 
 		JSONObject jsonResponse = null;
     	String responseBody = request.getResponse();
-    	//System.out.println( responseBody );
+    	System.out.println( responseBody );
 
     	// FIXME: this is an API design bug? always return JSON if that was requested?
     	try {
@@ -534,7 +559,10 @@ public class PieceMakerApi
 
 			else if ( request.getType() == GROUP )
 			{
-				request.getCallback().call( groupFromJson( new JSONObject( responseBody ) ) );
+				if ( request.getMethod() == ApiRequest.DELETE )
+					request.getCallback().call();
+				else
+					request.getCallback().call( groupFromJson( new JSONObject( responseBody ) ) );
 			}
 
 			else if ( request.getType() == EVENTS )
@@ -583,6 +611,18 @@ public class PieceMakerApi
 			{
 				//FIXME: parse system time as long?
 				request.getCallback().call( new java.util.Date( Long.parseLong( responseBody ) ) );
+			}
+
+			else if ( request.getType() == API_KEY )
+			{
+				JSONObject jsonKey = new JSONObject( responseBody );
+				String api_key_new = jsonKey.getString("api_access_key");
+
+				if ( api_key_new != null ) {
+					setApiKey( api_key_new );
+				}
+
+				request.getCallback().call( api_key_new );
 			}
 
 			else
@@ -733,11 +773,19 @@ public class PieceMakerApi
 
 	private void setBaseUrl ( String base_url )
 	{
-		System.out.println( base_url );
-		if ( base_url != null && base_url.length() > 0 ) {
-			boolean validUrl = (new org.apache.commons.validator.UrlValidator(new String[]{"http","https"})).isValid( base_url );
-			if ( validUrl || base_url.indexOf("localhost") != -1 || base_url.indexOf(".local") != -1 )
-				this.base_url = base_url;
+		//System.out.println( base_url );
+		String base_url_full = base_url + "/api/v1";
+		if ( base_url_full != null && base_url_full.length() > 0 ) 
+		{
+			boolean validUrl = (new org.apache.commons.validator.UrlValidator(
+									new String[]{ "http", "https" }
+							   )).isValid( base_url_full );
+			if ( validUrl || 
+				 base_url_full.indexOf("localhost") != -1 || 
+				 base_url_full.indexOf(".local") != -1 )
+			{
+				this.base_url = base_url_full;	
+			}
 		}
 	}
 
