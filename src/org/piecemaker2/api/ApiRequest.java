@@ -18,9 +18,11 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.params.*;
 
+import org.json.*;
+
 public class ApiRequest implements Runnable
 {
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 
 	public final static int GET    = 0;
 	public final static int POST   = 1;
@@ -45,7 +47,7 @@ public class ApiRequest implements Runnable
 	/**
 	 *	Constructor ApiRequest
 	 */
-	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, String url, int methodType, HashMap<String,String> data, ApiCallback callBack )
+	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, String url, int methodType, HashMap<String,Object> data, ApiCallback callBack )
 	{
 		this.api = api;
 		this.api_key = api_key;
@@ -59,14 +61,41 @@ public class ApiRequest implements Runnable
 		if ( data != null ) {
 			java.util.Iterator iter = data.entrySet().iterator();
 			while ( iter.hasNext() ) {
-				Map.Entry<String, String> pairs = (Map.Entry<String, String>)iter.next();
-				this.data.put( pairs.getKey(), pairs.getValue() );
+				Map.Entry<String, Object> pairs = (Map.Entry<String, Object>)iter.next();
+				String value = null;
+				if ( pairs.getValue().getClass() == HashMap.class ) {
+					value = hashMapToString( (HashMap)pairs.getValue() );
+				} else {
+					value = pairs.getValue().toString();
+				}
+				this.data.put( pairs.getKey(), value );
 			}
 		}
 
 		this.callBack = callBack;
 
 		if ( DEBUG ) System.out.println( methodTypes[this.methodType] + " " + this.url );
+	}
+
+	private String hashMapToString ( HashMap map )
+	{
+		JSONObject mapObj = new JSONObject();
+
+		java.util.Iterator iter = map.entrySet().iterator();
+
+		while ( iter.hasNext() )
+		{
+			Map.Entry<Object, Object> pairs = (Map.Entry<Object, Object>)iter.next();
+			String key 		= pairs.getKey().toString();
+			String value 	= pairs.getValue().toString();
+			try {
+				mapObj.put( key, value );
+			} catch ( Exception e ) {
+				e.printStackTrace();
+			}
+		}
+
+		return mapObj.toString();
 	}
 
 	/**

@@ -49,6 +49,35 @@ var PieceMakerApi = (function(){
     	return data;
     }
 
+    // temporary fix for:
+    // https://github.com/motionbank/piecemaker2/issues/54
+
+    var fixEventResponse = function ( resp ) {
+    	var eventObj = resp['event'];
+    	eventObj['fields'] = {};
+    	for ( var i = 0, fields = resp['fields']; i < fields.length; i++ ) {
+    		eventObj['fields'][fields[i]['id']] = fields[i]['value'];
+    	}
+    	return eventObj;
+    }
+
+    var expandEventToObject = function ( event ) {
+    	event.fields.get = (function(e){
+    		return function ( k ) {
+    			return e.fields[k];
+    		}
+    	})(event);
+    	return event;
+    }
+
+    var jsDateToTs = function ( date_time ) {
+    	if ( date_time instanceof Date ) {
+    		return date_time.getTime() / 1000.0;
+    	} else {
+    		return date_time; // assume it's ok
+    	}
+    }
+
     // XHR requests
     // ------------
 
@@ -82,6 +111,7 @@ var PieceMakerApi = (function(){
                 success: function () {
                 	if ( arguments && arguments[0] && 
                 		 typeof arguments[0] === 'object' && 
+                		 !(arguments[0] instanceof Array) && 
                 		 !('queryTime' in arguments[0]) ) {
                 		arguments[0]['queryTime'] = ((new Date()).getTime()) - ts;
                 	}
@@ -199,12 +229,7 @@ var PieceMakerApi = (function(){
 
 	// ###Log a user in
 
-	// Returns:
-	// ```
-	// {
-	//   "api_access_key": "XXXXXXX"
-	// }
-	// ```
+	// Returns api key as string
 
 	_PieceMakerApi.prototype.login = function ( userEmail, userPassword, cb ) {
 		var callback = cb || noop;
@@ -219,22 +244,17 @@ var PieceMakerApi = (function(){
 	        	password: userPassword
 	        },
 	        success: function ( response ) {
+	        	var api_key_new = null;
 	        	if ( response && 'api_access_key' in response && response['api_access_key'] ) {
 	        		self.api_key = response['api_access_key'];
+	        		api_key_new = self.api_key;
 	        	}
-				callback.call( self.context || cb, response );
+				callback.call( self.context || cb, api_key_new );
 	        }
 	    });
 	}
 
 	// ###Log a user out
-
-	// Returns:
-	// ```
-	// {
-	//   "api_access_key": null
-	// }
-	// ```
 
 	_PieceMakerApi.prototype.logout = function ( cb ) {
 		var callback = cb || noop;
@@ -248,7 +268,7 @@ var PieceMakerApi = (function(){
 	        	if ( response && 'api_access_key' in response && response['api_access_key'] ) {
 	        		self.api_key = response['api_access_key'];
 	        	}
-				callback.call( self.context || cb, response );
+				callback.call( self.context || cb, null );
 	        }
 	    });
 	}
@@ -297,16 +317,7 @@ var PieceMakerApi = (function(){
 				password: userPassword, api_access_key: userToken
 			},
 			success: function ( response ) {
-				if ( response && 'id' in response && response.id ) {
-					xhrGet( self, {
-				        url: self.base_url + '/user/' + userId,
-				        success: function ( response ) {
-							callback.call( self.context || cb, response );
-				        }
-				    });
-				} else {
-					throw( response );
-				}
+				callback.call( self.context || cb, response );
 			}
 		});
 	}
@@ -339,16 +350,7 @@ var PieceMakerApi = (function(){
 				password: userPassword, api_access_key: userToken
 			},
 			success: function ( response ) {
-				if ( response && parseInt(response) === 1 ) {
-					xhrGet( self, {
-				        url: self.base_url + '/user/' + userId,
-				        success: function ( response ) {
-							callback.call( self.context || cb, response );
-				        }
-				    });
-				} else {
-					throw( response );
-				}
+				callback.call( self.context || cb, response );
 			}
 		}); 
 	}
@@ -410,17 +412,7 @@ var PieceMakerApi = (function(){
 				text: groupText || ''
 			},
 		    success: function ( response ) {
-				if ( response && 'id' in response && response.id )
-				{
-					xhrGet( self, {
-				        url: self.base_url + '/group/'+response.id,
-				        success: function ( response ) {
-							callback.call( self.context || cb, response );
-				        }
-				    });
-				} else {
-					throw( response );
-				}
+				callback.call( self.context || cb, response );
 		    }
 		});
 	}
@@ -453,17 +445,7 @@ var PieceMakerApi = (function(){
 			url: self.base_url + '/group/'+groupId,
 			data: data,
 			success: function ( response ) {
-				if ( response && parseInt(response) === 1 )
-				{
-					xhrGet( self, {
-				        url: self.base_url + '/group/'+response.id,
-				        success: function ( response ) {
-							callback.call( self.context || cb, response );
-				        }
-				    });
-				} else {
-					throw( response );
-				}
+				callback.call( self.context || cb, response );
 			}
 		});
 	}
@@ -520,20 +502,36 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/events',
-	        data: { type: type },
+	        data: { "field":JSON.stringify({type:type}) },
 	        success: function ( response ) {
 				callback.call( api.context || cb, response );
 	        }
 	    });
 	}
 
-	// ###Get all events that have certain fields
+	// ###Get all events that have a certain field (id and value must match)
 	
-	_PieceMakerApi.prototype.listEventsWithFields = function ( groupId, fieldData, cb ) {
+	_PieceMakerApi.prototype.listEventsWithField = function ( groupId, fieldData, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/events',
 	        data: fieldData,
+	        success: function ( response ) {
+	        	callback.call( api.context || cb, response );
+	        }
+	    });
+	}
+
+	// ###Get all events that happened within given timeframe
+	
+	_PieceMakerApi.prototype.listEventsBetween = function ( groupId, from, to, cb ) {
+		var callback = cb || noop;
+		xhrGet( api, {
+	        url: api.base_url + '/group/'+groupId+'/events',
+	        data: {
+	        	from: jsDateToTs(from),
+	        	to:   jsDateToTs(to)
+	        },
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, response );
 	        }
@@ -547,7 +545,7 @@ var PieceMakerApi = (function(){
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
 	        success: function ( response ) {
-	        	callback.call( api.context || cb, response );
+	        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 	        }
 	    });
 	}
@@ -556,21 +554,15 @@ var PieceMakerApi = (function(){
 
 	_PieceMakerApi.prototype.createEvent = function ( groupId, eventData, cb ) {
 		var data = convertData( eventData );
+		if ( 'fields' in data ) {
+			data['fields'] = JSON.stringify( data['fields'] );
+		}
 		var callback = cb || noop;
 		xhrPost( this, {
 	        url: api.base_url + '/group/'+groupId+'/event',
 	        data: data,
 	        success: function ( response ) {
-	        	if ( response && 'id' in response && response.id ) {
-	        		xhrGet( api, {
-				        url: api.base_url + '/group/'+groupId+'/event/'+response.id,
-				        success: function ( response ) {
-				        	callback.call( api.context || cb, response );
-				        }
-				    });
-	        	} else {
-	        		throw( response );
-	        	}
+	        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 	        }
 	    });
 	}
@@ -579,21 +571,16 @@ var PieceMakerApi = (function(){
 
 	_PieceMakerApi.prototype.updateEvent = function ( groupId, eventId, eventData, cb ) {
 		var data = convertData( eventData );
+		if ( 'fields' in data ) {
+			data['fields'] = JSON.stringify( data['fields'] );
+		}
+		data['event_group_id'] = groupId;
 		var callback = cb || noop;
 		xhrPut( this, {
-	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
+	        url: api.base_url + '/event/' + eventId,
 	        data: data,
 	        success: function ( response ) {
-	            if ( response && parseInt(response) === 1 ) {
-	        		xhrGet( api, {
-				        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
-				        success: function ( response ) {
-				        	callback.call( api.context || cb, response );
-				        }
-				    });
-	        	} else {
-	        		throw( response );
-	        	}
+	            callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 	        }
 	    });
 	}
@@ -604,9 +591,9 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
 		xhrDelete( this, {
-	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
+	        url: api.base_url + '/event/' + eventId,
 	        success: function ( response ) {
-	            callback.call( api.context || cb /*, response*/ );
+	            callback.call( api.context || cb , expandEventToObject( fixEventResponse( response ) ) );
 	        }
 	    });
 	}

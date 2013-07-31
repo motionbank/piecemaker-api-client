@@ -59,5 +59,10 @@ void groupEventsLoaded ( org.piecemaker2.models.Event[] groupEvents, Group group
 void groupDeleted ()
 {
     println( "... and deleted" );
+    api.logout( api.createCallback( "loggedOut" ) );
+}
+
+void loggedOut ()
+{
     println( "Passed!" );
 }

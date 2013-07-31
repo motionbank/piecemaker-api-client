@@ -20,8 +20,13 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:3001", "9bBa7k4Q4C" );
+    api = new PieceMakerApi( this, "http://localhost:9292" );
     
+    api.login( "super-admin@example.com", "super-admin", api.createCallback( "loggedIn" ) );
+}
+
+void loggedIn ( String api_key )
+{    
     api.createGroup( "Test group to hold events, will be deleted later on", "", api.createCallback( "groupCreated" ) );
 }
 
@@ -35,40 +40,46 @@ void groupCreated ( Group g )
     
     group = g;
     
-    HashMap<String, String> eventData = new HashMap<String, String>();
+    HashMap<String, Object> eventData = new HashMap<String, Object>();
     
     eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
     eventData.put( "duration", (1000) + "" );
     
-    eventData.put( "title", "Where does this end up?" );
-    eventData.put( "type", "test type" );
+    HashMap<String, Object> eventFields = new HashMap<String, Object>();
+    eventData.put( "fields", eventFields );
+    
+    eventFields.put( "title", "Emperors new cloths" );
+    eventFields.put( "super-type", "type-0-negative" );
     
     api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
 }
 
 void eventCreated ( org.piecemaker2.models.Event event )
 {
-    println( "Event #" + event.id + " '" + event.fields["title"] + "' created" );
+    println( "Event #" + event.id + " '" + event.fields.get("title") + "' created" );
     
-    HashMap<String, String> eventData = new HashMap<String, String>();
+    HashMap<String, Object> eventData = new HashMap<String, Object>();
     
     eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
     eventData.put( "duration", (2000) + "" );
     
-    eventData.put( "title", "Oh my goodness" );
-    eventData.put( "super-type", "a-super-fancy-type" );
+    HashMap<String, Object> eventFields = new HashMap<String, Object>();
+    eventData.put( "fields", eventFields );
+    
+    eventFields.put( "title", "Oh my goodness" );
+    eventFields.put( "super-type", "a-super-fancy-type" );
     
     api.updateEvent( group.id, event.id, eventData, api.createCallback( "eventUpdated" ) );
 }
 
-void eventUpdated ( org.piecemaker2.models.Event event )
+void eventUpdated ( org.piecemaker2.models.Event event )    
 {
     println( "Event #" + event.id + " '" + event.fields.get("title") + "' updated" );
     
     api.deleteEvent( group.id, event.id, api.createCallback( "eventDeleted" ) );
 }
 
-void eventDeleted ()
+void eventDeleted ( org.piecemaker2.models.Event event )
 {
     println( "Event deleted" );
     
@@ -78,5 +89,10 @@ void eventDeleted ()
 void groupDeleted ()
 {
     println( "Group deleted" );
+}
+
+void piecemakerError ( int code, String message )
+{
+    println( message );
 }
 

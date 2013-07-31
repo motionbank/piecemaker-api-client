@@ -19,11 +19,14 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:3001", "9bBa7k4Q4C" );
+    api = new PieceMakerApi( this, "http://localhost:9292" );
 
+    api.login( "super-admin@example.com", "super-admin", api.createCallback( "loggedIn" ) );
+}
+
+void loggedIn ( String api_key )
+{    
     api.whoAmI( api.createCallback( "selfLoaded" ) );
-    
-    api.getSystemTime( api.createCallback( "systemTimeReceived" ) );
 }
 
 void draw ()
@@ -32,12 +35,14 @@ void draw ()
 
 void selfLoaded ( User u )
 {
-    println( u );
+    println( "You are: " + u.email );
+    
+    api.getSystemTime( api.createCallback( "systemTimeReceived" ) );
 }
 
-void systemTimeReceived (  )
+void systemTimeReceived ( long time )
 {
-    println( "Called" );
+    println( "System time: " + time );
 }
 
 void piecemakerError ( int status, String errMsg, String request )

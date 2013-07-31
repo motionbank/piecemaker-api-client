@@ -38,20 +38,22 @@ public class PieceMakerApi
 	//	Static variables
 	// -----------------------------------------
 
-	public final static int IGNORE 	= 100;
-	
-	public final static int USER 	= 0;
-	public final static int USERS 	= 5;
-	
-	public final static int GROUP 	= 1;
-	public final static int GROUPS 	= 2;
-	
-	public final static int EVENT 	= 3;
-	public final static int EVENTS 	= 4;
+	private static int v = 0;
 
-	public final static int SYSTEM 	= 5;
+	public final static int IGNORE 	= v;
+	
+	public final static int USER 	= (++v);
+	public final static int USERS 	= (++v);
+	
+	public final static int GROUP 	= (++v);
+	public final static int GROUPS 	= (++v);
+	
+	public final static int EVENT 	= (++v);
+	public final static int EVENTS 	= (++v);
 
-	public final static int API_KEY = 6;
+	public final static int SYSTEM 	= (++v);
+
+	public final static int API_KEY = (++v);
 
 	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
 
@@ -194,10 +196,8 @@ public class PieceMakerApi
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
 		userData.put( "api_access_key", userToken );
-		ApiCallback intermittenCallback = createCallback( new Object(){ void call( User newUser, PieceMakerApi api, ApiCallback callback ) {
-			new Thread( new ApiRequest( api, api_key, USER, base_url + "/user/" + newUser.id, ApiRequest.GET, null, callback ) ).start();
-		}}, "call", this, callback );
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, intermittenCallback ) ).start();
+
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, callback ) ).start();
 	}
 
 	/** 
@@ -218,15 +218,8 @@ public class PieceMakerApi
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
 		userData.put( "api_access_key", userToken );		
-		ApiCallback intermittenCallback = createCallback( 
-			new Object(){ 
-				void call( PieceMakerApi api, int userId, ApiCallback callback ) {
-					new Thread( new ApiRequest( api, api_key, USER, base_url + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
-				}
-			}, 
-			"call", 
-			this, userId, callback );
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, intermittenCallback ) ).start();
+		
+		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, callback ) ).start();
 	}
 
 	/** 
@@ -289,10 +282,8 @@ public class PieceMakerApi
 		HashMap groupData = new HashMap();
 		groupData.put( "title", groupTitle );
 		groupData.put( "text", groupText );
-		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( Group group, PieceMakerApi api, ApiCallback callback ) {
-			new Thread( new ApiRequest( api, api_key, GROUP, base_url + "/group/" + group.id, ApiRequest.GET, null, callback ) ).start();
-		}}, "call", this, callback );
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group", ApiRequest.POST, groupData, intermittenCallback ) ).start();
+
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group", ApiRequest.POST, groupData, callback ) ).start();
 	}
 
 	/**
@@ -307,10 +298,7 @@ public class PieceMakerApi
 	 */
 	public void updateGroup ( int groupId, HashMap groupData, ApiCallback callback )
 	{
-		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( PieceMakerApi api, int groupId, ApiCallback callback ) {
-			new Thread( new ApiRequest( api, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
-		}}, "call", this, groupId, callback );
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, intermittenCallback ) ).start();
+		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, callback ) ).start();
 	}
 
 	/**
@@ -353,8 +341,8 @@ public class PieceMakerApi
 	 */
 	public void listEventsOfType ( int groupId, String eventType, ApiCallback callback )
 	{
-		HashMap<String, String> data = new HashMap();
-		data.put( "type", eventType );
+		HashMap<String, Object> data = new HashMap();
+		data.put( "field","{\"type\":\""+eventType+"\"}" );
 		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, data, callback ) ).start();
 	}
 
@@ -363,19 +351,22 @@ public class PieceMakerApi
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void listEventsWithFields ( int groupId, HashMap fieldsData, ApiCallback callback )
+	public void listEventsWithField ( int groupId, HashMap fieldData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fieldsData, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fieldData, callback ) ).start();
 	}
 
 	/**
-	 *	Load all events that fall into from - to
+	 *	Load all events that fall into from - to timeframe
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void loadEventsBetween ( Date from, Date to, ApiCallback callback ) throws Exception
+	public void listEventsBetween ( int groupId, Date from, Date to, ApiCallback callback )
 	{
-		throw new Exception( "Currently not implemented" );
+		HashMap fromTo = new HashMap();
+		fromTo.put( "from", from.getTime() / 1000.0 );
+		fromTo.put( "to",   to.getTime() / 1000.0 );
+		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fromTo, callback ) ).start();
 	}
 
 	/**
@@ -397,10 +388,7 @@ public class PieceMakerApi
 	 */
 	public void createEvent ( int groupId, HashMap eventData, ApiCallback callback )
 	{
-		ApiCallback intermittenCallback = createCallback( new Object(){ void call ( Event event, PieceMakerApi api, int groupId, ApiCallback callback ) {
-			new Thread( new ApiRequest( api, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + event.id, ApiRequest.GET, null, callback ) ).start();
-		}}, "call", this, groupId, callback );
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event", ApiRequest.POST, eventData, intermittenCallback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
 	}
 
 	/**
@@ -410,14 +398,9 @@ public class PieceMakerApi
 	 */
 	public void updateEvent ( int groupId, int eventId, HashMap eventData, ApiCallback callback )
 	{		
-		ApiCallback intermittenCallback = createCallback(
-			new Object(){ 
-				void call ( PieceMakerApi api, int groupId, int eventId, ApiCallback callback ) {
-					new Thread( new ApiRequest( api, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
-			}}, 
-			"call", 
-			this, groupId, eventId, callback );
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.PUT, eventData, intermittenCallback ) ).start();
+		eventData.put( "event_group_id", groupId );
+
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/event/" + eventId, ApiRequest.PUT, eventData, callback ) ).start();
 	}
 
 	/**
@@ -427,7 +410,7 @@ public class PieceMakerApi
 	 */
 	public void deleteEvent ( int groupId, int eventId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.DELETE, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/event/" + eventId, ApiRequest.DELETE, null, callback ) ).start();
 	}
 
 	/**
@@ -512,23 +495,24 @@ public class PieceMakerApi
 
 		JSONObject jsonResponse = null;
     	String responseBody = request.getResponse();
-    	System.out.println( responseBody );
+    	
+    	//System.out.println( responseBody );
 
     	// FIXME: this is an API design bug? always return JSON if that was requested?
-    	try {
-    		if ( request.getType() == USERS || request.getType() == GROUPS || request.getType() == EVENTS ) {
-    			JSONArray jsonTest = new JSONArray( responseBody );
-    		}
-    		else
-    		{
-    			JSONObject jsonTest = new JSONObject( responseBody );
-    		}
-    	} catch ( JSONException jsonEx ) {
-    		System.err.println( "Piecemaker API: Response body is not JSON!" );
-    		// FIXME: should never happen 
-    		request.getCallback().call( /* no args? this is a wild guess! */ );
-    		return;
-    	}
+    	// try {
+    	// 	if ( request.getType() == USERS || request.getType() == GROUPS || request.getType() == EVENTS ) {
+    	// 		JSONArray jsonTest = new JSONArray( responseBody );
+    	// 	}
+    	// 	else
+    	// 	{
+    	// 		JSONObject jsonTest = new JSONObject( responseBody );
+    	// 	}
+    	// } catch ( JSONException jsonEx ) {
+    	// 	System.err.println( "Piecemaker API: Response body is not JSON!" );
+    	// 	// FIXME: should never happen 
+    	// 	request.getCallback().call( /* no args? this is a wild guess! */ );
+    	// 	return;
+    	// }
 
 	    try {
 
@@ -573,7 +557,7 @@ public class PieceMakerApi
 
 				for ( int i = 0, k = jsonEvents.length(); i < k; i++ )
 				{
-					Event event = eventFromJson( jsonEvents.getJSONObject( i ) );
+					Event event = eventFromJsonTmpFixBug54( jsonEvents.getJSONObject( i ) );
 
 					events[i] = event;
 				}
@@ -583,7 +567,9 @@ public class PieceMakerApi
 
 			else if ( request.getType() == EVENT )
 			{
-				request.getCallback().call( eventFromJson( new JSONObject( responseBody ) ) );
+				Event e = eventFromJsonTmpFixBug54( new JSONObject( responseBody ) );
+
+				request.getCallback().call( e );
 			}
 
 			else if ( request.getType() == USERS )
@@ -609,8 +595,15 @@ public class PieceMakerApi
 
 			else if ( request.getType() == SYSTEM )
 			{
-				//FIXME: parse system time as long?
-				request.getCallback().call( new java.util.Date( Long.parseLong( responseBody ) ) );
+				request.getCallback().call(
+					new java.util.Date( 
+						(long)(
+							new JSONObject(
+								responseBody
+							).getDouble("utc_timestamp") * 1000.0 
+						)
+					)
+				);
 			}
 
 			else if ( request.getType() == API_KEY )
@@ -622,7 +615,10 @@ public class PieceMakerApi
 					setApiKey( api_key_new );
 				}
 
-				request.getCallback().call( api_key_new );
+				if ( api_key_new == null )
+					request.getCallback().call();
+				else
+					request.getCallback().call( api_key_new );
 			}
 
 			else
@@ -681,6 +677,53 @@ public class PieceMakerApi
 		return group;
 	}
 
+	private Event eventFromJsonTmpFixBug54 ( JSONObject eArr )
+	{
+		Event event = null;
+
+		JSONObject eventData = null;
+		JSONArray eventFields = null;
+
+		try 
+		{
+			eventData 	= eArr.getJSONObject("event");
+			eventFields = eArr.getJSONArray("fields");
+
+			event = new Event();
+			event.id = eventData.getInt( "id" );
+		}
+		catch ( Exception excp )
+		{
+			excp.printStackTrace();
+			return null;
+		}
+
+		try {
+			event.utc_timestamp = new java.util.Date( (long)(eventData.getDouble( "utc_timestamp" ) * 1000.0) );
+			event.duration 		= eventData.getLong( "duration" );
+
+			event.fields 		= new HashMap<String, String>();
+
+			for ( int i = 0; i < eventFields.length(); i++ ) 
+			{
+				try {
+					JSONObject eventField = eventFields.getJSONObject(i);
+					String key = eventField.getString( "id" );
+					String val = eventField.getString( "value" );
+					event.fields.put( key, val );
+				} catch ( Exception e ) {
+					e.printStackTrace();
+				}
+			}
+		}
+		catch ( Exception excp )
+		{
+			/* ignore for now */
+		}
+
+		return event;
+	}
+
 	/**
 	 *	eventFromJson()
 	 *
@@ -696,7 +739,7 @@ public class PieceMakerApi
 		try 
 		{
 			event = new Event();
-			event.id 			= e.getInt( "id" );
+			event.id = e.getInt( "id" );
 		}
 		catch ( Exception excp )
 		{
@@ -705,7 +748,7 @@ public class PieceMakerApi
 		}
 
 		try {
-			event.utc_timestamp = new java.util.Date( e.getLong( "utc_timestamp" ) );
+			event.utc_timestamp = new java.util.Date( (long)(e.getDouble( "utc_timestamp" ) * 1000.0) );
 			event.duration 		= e.getLong( "duration" );
 
 			event.fields 		= new HashMap<String, String>();
@@ -726,8 +769,6 @@ public class PieceMakerApi
 
 		return event;
 	}
-
-
 
 	/**
 	 *	userFromJson()
