@@ -52,6 +52,17 @@ var PieceMakerApi = (function(){
     // temporary fix for:
     // https://github.com/motionbank/piecemaker2/issues/54
 
+    var fixEventsResponseToArr = function ( resp ) {
+    	if ( resp instanceof Array ) {
+    		var arr = [];
+    		for ( var i = 0; i < resp.length; i++ ) {
+    			arr.push( expandEventToObject( fixEventResponse( resp[i] ) ) );
+    		}
+    		return arr;
+    	}
+    	return resp;
+    }
+
     var fixEventResponse = function ( resp ) {
     	var eventObj = resp['event'];
     	eventObj['fields'] = {};
@@ -67,6 +78,7 @@ var PieceMakerApi = (function(){
     			return e.fields[k];
     		}
     	})(event);
+    	event.utc_timestamp = new Date( event.utc_timestamp * 1000.0 );
     	return event;
     }
 
@@ -491,7 +503,7 @@ var PieceMakerApi = (function(){
 		xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/events',
 	        success: function ( response ) {
-				callback.call( api.context || cb, response );
+				callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
 	    });
 	}
@@ -504,20 +516,22 @@ var PieceMakerApi = (function(){
 	        url: api.base_url + '/group/'+groupId+'/events',
 	        data: { "field":JSON.stringify({type:type}) },
 	        success: function ( response ) {
-				callback.call( api.context || cb, response );
+				callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
 	    });
 	}
 
 	// ###Get all events that have a certain field (id and value must match)
 	
-	_PieceMakerApi.prototype.listEventsWithField = function ( groupId, fieldData, cb ) {
+	_PieceMakerApi.prototype.listEventsWithField = function ( groupId, id, value, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/events',
-	        data: fieldData,
+	        data: {
+	        	field: "{\""+id+"\":\""+value+"\"}"
+	        },
 	        success: function ( response ) {
-	        	callback.call( api.context || cb, response );
+	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
 	    });
 	}
@@ -533,7 +547,7 @@ var PieceMakerApi = (function(){
 	        	to:   jsDateToTs(to)
 	        },
 	        success: function ( response ) {
-	        	callback.call( api.context || cb, response );
+	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
 	    });
 	}
@@ -690,16 +704,11 @@ var PieceMakerApi = (function(){
 	// ###Get the system (server) time
 
 	_PieceMakerApi.prototype.getSystemTime = function ( cb ) {
-		var ts1 = (new Date()).getTime();
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/system/utc_timestamp',
 	        success: function ( response ) {
-				var ts2 = (new Date()).getTime();
-	            callback.call( api.context || cb, {
-	            	systemTime: new Date(parseFloat(response)*1000).getTime(),
-	            	queryTime: ts2-ts1
-	            });
+	            callback.call( api.context || cb, new Date( response.utc_timestamp * 1000 ));
 	        }
 	    });
 	}

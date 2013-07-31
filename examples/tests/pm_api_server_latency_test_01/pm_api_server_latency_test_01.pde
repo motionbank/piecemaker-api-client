@@ -7,6 +7,8 @@
 import org.piecemaker2.api.*;
 import org.piecemaker2.models.*;
 
+import java.util.*;
+
 PieceMakerApi api;
 
 int maxRuns = 2000, runs = 0;
@@ -29,11 +31,11 @@ void draw ()
 
 void loggedIn ( String api_key )
 {
-    startTs = new java.util.Date().getTime();
+    startTs = new Date().getTime();
     api.getSystemTime( api.createCallback("serverTimeReceived") );
 }
 
-void serverTimeReceived ( java.util.Date time )
+void serverTimeReceived ( Date time )
 {
     avgTs += (time.getTime() - startTs) / 2;
     
@@ -41,13 +43,13 @@ void serverTimeReceived ( java.util.Date time )
     if ( runs == maxRuns )
     {
         double latency = (avgTs / (double)runs);
-        java.util.Date serverTime = new java.util.Date( (long)(time.getTime() + latency) );
+        Date serverTime = new Date( (long)(time.getTime() + latency) );
         println( "Server latency: " + latency + " ms" );
         println( "Server time: " + serverTime );
     }
     else
     {
-        startTs = new java.util.Date().getTime();
+        startTs = new Date().getTime();
         api.getSystemTime( api.createCallback("serverTimeReceived") );
     }
 }

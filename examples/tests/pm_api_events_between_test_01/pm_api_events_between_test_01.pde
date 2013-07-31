@@ -7,6 +7,8 @@
 import org.piecemaker2.api.*;
 import org.piecemaker2.models.*;
 
+import java.util.*;
+
 PieceMakerApi api;
 
 int maxRuns = 2000, runs = 0;
@@ -52,7 +54,7 @@ void videosLoaded ( org.piecemaker2.models.Event[] videos, Group g )
         {
             api.listEventsBetween( g.id, 
                                    v.utc_timestamp, 
-                                   new java.util.Date((long)(v.utc_timestamp.getTime() + (v.duration * 1000.0))),
+                                   new Date((long)(v.utc_timestamp.getTime() + (v.duration * 1000.0))),
                                    api.createCallback("videoEventsLoaded", v, g) );
         }
     }

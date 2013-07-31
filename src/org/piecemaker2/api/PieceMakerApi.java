@@ -351,8 +351,10 @@ public class PieceMakerApi
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void listEventsWithField ( int groupId, HashMap fieldData, ApiCallback callback )
+	public void listEventsWithField ( int groupId, String id, String value, ApiCallback callback )
 	{
+		HashMap fieldData = new HashMap();
+		fieldData.put( "field", "{\""+id+"\":\""+value+"\"}" );
 		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fieldData, callback ) ).start();
 	}
 

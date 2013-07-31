@@ -23,86 +23,38 @@ void setup ()
     
     api = new PieceMakerApi( this, "http://localhost:9292" );
     
-    api.login( "super-admin@example.com", "super-admin", api.createCallback( "loggedIn" ) );
-}
-
-void loggedIn ( String api_key )
-{    
-    api.createGroup( "Another test group", "", api.createCallback( "groupCreated" ) );
+    api.login( "administrator@fake-email.motionbank.org", 
+               "Administrator", 
+               api.createCallback( "loggedIn" ) );
 }
 
 void draw ()
 {
 }
 
-void groupCreated ( Group g )
+void loggedIn ( String api_key )
 {
-    group = g;
-    
-    createEvent();
+    api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
-int eventsCreated = 0;
-void createEvent ()
+void groupsLoaded ( Group[] groups )
 {
-    HashMap<String, Object> eventData = new HashMap<String, Object>();
-    
-    eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
-    eventData.put( "duration", 1000 + "" );
-    
-    HashMap<String, Object> eventFields = new HashMap<String, Object>();
-    
-    eventFields.put( "title", "Test event" );
-    eventFields.put( "type", "test-type-xyz" );
-    eventFields.put( "creatednum", eventsCreated + "" );
-    
-    eventData.put( "fields", eventFields );
-    
-    api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
-}
-
-void eventCreated ( org.piecemaker2.models.Event event )
-{
-    println( "Event number " + event.id +  " created" );
-    
-    eventsCreated++;
-    
-    if ( eventsCreated == eventsLen )
+    for ( Group g : groups )
     {
-        api.listEventsOfType( group.id, "test-type-xyz", api.createCallback( "eventsFound" ) );
-    } else {
-        createEvent();
+        if ( g.title.indexOf( "jbmf" ) != -1 )
+        {
+            api.listEventsWithField( g.id, "fn_local", ".mp4", api.createCallback( "eventsLoaded", g ) );
+            return;
+        }
     }
 }
 
-org.piecemaker2.models.Event[] eventsToDelete;
-void eventsFound ( org.piecemaker2.models.Event[] events )
+void eventsLoaded ( org.piecemaker2.models.Event[] events, Group g )
 {
-    println( "Found: " + events.length + " matching events" );
-    eventsToDelete = events;
-    deleteEvent();
+    for ( org.piecemaker2.models.Event e : events )
+    {
+        println( e.fields.get("title") + " " + e.fields.get("fn_local") );
+    }
 }
 
-void deleteEvent ()
-{
-    org.piecemaker2.models.Event e = eventsToDelete[0];
-    eventsToDelete = (org.piecemaker2.models.Event[])subset( eventsToDelete, 1 );
-    
-    api.deleteEvent( group.id, e.id, api.createCallback( "eventDeleted" ) );
-}
-
-void eventDeleted ( org.piecemaker2.models.Event event )
-{
-    println( "Event number " + event.id + " deleted" );
-    
-    if ( eventsToDelete.length == 0 )
-        api.deleteGroup( group.id, api.createCallback( "groupDeleted" ) );
-    else
-        deleteEvent();
-}
-
-void groupDeleted ()
-{
-    println( "Events and group deleted" );
-}
 
