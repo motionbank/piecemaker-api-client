@@ -43,7 +43,6 @@
 			<include name="commons-logging-1.1.jar" />
 			<include name="commons-validator-1.4.0.jar" />
 			<include name="json.jar" />
-			<include name="snakeyaml.jar" />
 		</fileset>
 	</path>
 	

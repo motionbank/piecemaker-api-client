@@ -114,8 +114,9 @@ public class PieceMakerApi
 
 	static String getVersion ()
 	{
-		return "Piecemaker client library - ##version## - ##build## \n"+
-			   "https://github.com/motionbank/piecemaker-api-client";
+		return "Piecemaker 2 client library\n"+
+			   "  version ##version## - build ##build##\n"+
+			   "  https://github.com/motionbank/piecemaker-api-client\n";
 	}
 
 	static void printVersion ()
