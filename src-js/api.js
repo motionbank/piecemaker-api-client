@@ -514,21 +514,35 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/events',
-	        data: { "field":JSON.stringify({type:type}) },
+	        data: {
+	        	field: {
+	        		type: type
+	        	}
+	        },
 	        success: function ( response ) {
 				callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
 	    });
 	}
 
-	// ###Get all events that have a certain field (id and value must match)
+	// ###Get all events that have certain fields (id and value must match)
 	
-	_PieceMakerApi.prototype.listEventsWithField = function ( groupId, id, value, cb ) {
+	_PieceMakerApi.prototype.listEventsWithFields = function ( /* groupId, id1, val1, id2, val2, …, cb */ ) {
+		var groupId = arguments[0];
+		var fields = {};
+		if ( arguments.length > 3 ) {
+			for ( var i = 1; i < arguments.length-1; i+=2 ) {
+				fields[arguments[i]] = arguments[i+1];
+			}
+		} else {
+			throw( 'Wrong parameter count' );
+		}
+		var cb = arguments[arguments.length-1];
 		var callback = cb || noop;
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/events',
 	        data: {
-	        	field: "{\""+id+"\":\""+value+"\"}"
+	        	field: fields
 	        },
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );

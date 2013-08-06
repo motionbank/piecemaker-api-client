@@ -337,24 +337,38 @@ public class PieceMakerApi
 	/**
 	 *	Load all events of certain type for a piece
 	 *
+	 *	@param groupId the ID of the group to search events in
+	 *	@param eventType the type of the events to look for
+	 *	@param callback to call once results are available
+	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void listEventsOfType ( int groupId, String eventType, ApiCallback callback )
 	{
-		HashMap<String, Object> data = new HashMap();
-		data.put( "field","{\"type\":\""+eventType+"\"}" );
-		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, data, callback ) ).start();
+		listEventsWithFields( groupId, "type", eventType, callback );
 	}
 
 	/**
 	 *	listEventsWithFields()
 	 *
+	 *	@param args first arg is expected to be the (int) group id, then none or more pairs of (String) id, (String) value for the fields to look for, then a (ApiCallback) callback
+	 *
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void listEventsWithField ( int groupId, String id, String value, ApiCallback callback )
+	public void listEventsWithFields ( Object ... args )
 	{
+		int groupId = (Integer)(args[0]);
+		ApiCallback callback = (ApiCallback)(args[args.length-1]);
+
 		HashMap fieldData = new HashMap();
-		fieldData.put( "field", "{\""+id+"\":\""+value+"\"}" );
+		if ( args.length > 3 ) {
+			for ( int i = 1; i < args.length-1; i+=2 ) {
+				fieldData.put(
+					"field["+((String)args[i])+"]",
+					(String)args[i+1]
+				);
+			}
+		}
 		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fieldData, callback ) ).start();
 	}
 

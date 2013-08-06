@@ -34,6 +34,7 @@ void draw ()
 
 void loggedIn ( String api_key )
 {
+    println( api_key );
     api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
@@ -43,7 +44,8 @@ void groupsLoaded ( Group[] groups )
     {
         if ( g.title.indexOf( "jbmf" ) != -1 )
         {
-            api.listEventsWithField( g.id, "fn_local", ".mp4", api.createCallback( "eventsLoaded", g ) );
+            println( "group: " + g.id );
+            api.listEventsWithFields( g.id, "fn_local", ".mp4", api.createCallback( "eventsLoaded", g ) );
             return;
         }
     }
