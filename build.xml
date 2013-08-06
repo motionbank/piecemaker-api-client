@@ -55,12 +55,6 @@
 	
 	<taskdef name="jscomp" classname="com.google.javascript.jscomp.ant.CompileTask"
 	           			   classpath="../_resources/closure-compiler/compiler.jar" />
-
-<!-- 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
-		<classpath>
-			<pathelement location="../_resources/ant-contrib-1.0b3.jar"/>
-		</classpath>
-	</taskdef> -->
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 		HELP
