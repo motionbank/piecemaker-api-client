@@ -571,7 +571,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.getEvent = function ( groupId, eventId, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
-	        url: api.base_url + '/group/'+groupId+'/event/'+eventId,
+	        url: api.base_url + '/event/'+eventId,
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 	        }
@@ -582,9 +582,6 @@ var PieceMakerApi = (function(){
 
 	_PieceMakerApi.prototype.createEvent = function ( groupId, eventData, cb ) {
 		var data = convertData( eventData );
-		if ( 'fields' in data ) {
-			data['fields'] = JSON.stringify( data['fields'] );
-		}
 		var callback = cb || noop;
 		xhrPost( this, {
 	        url: api.base_url + '/group/'+groupId+'/event',
@@ -599,9 +596,6 @@ var PieceMakerApi = (function(){
 
 	_PieceMakerApi.prototype.updateEvent = function ( groupId, eventId, eventData, cb ) {
 		var data = convertData( eventData );
-		if ( 'fields' in data ) {
-			data['fields'] = JSON.stringify( data['fields'] );
-		}
 		data['event_group_id'] = groupId;
 		var callback = cb || noop;
 		xhrPut( this, {
