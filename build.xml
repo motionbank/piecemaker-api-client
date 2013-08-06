@@ -1,4 +1,4 @@
-<project name="PieceMakerLib" default="install" basedir="./">
+<project name="PieceMakerLib" default="install" basedir="./" >
 
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 	
@@ -13,6 +13,8 @@
 	<property name="absolute.path" location="${basedir}"/>
 
 	<property name="src" 		value="src" 			/>
+	<property name="src-versioned"
+								value="src-versioned"	/>
 	<property name="build" 		value="build" 			/>
 	<property name="bin" 		value="bin" 			/>
 	<property name="dist" 		value="dist" 			/>
@@ -52,7 +54,13 @@
 	</path>
 	
 	<taskdef name="jscomp" classname="com.google.javascript.jscomp.ant.CompileTask"
-	           			   classpath="../_resources/closure-compiler/compiler.jar"/>
+	           			   classpath="../_resources/closure-compiler/compiler.jar" />
+
+<!-- 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="../_resources/ant-contrib-1.0b3.jar"/>
+		</classpath>
+	</taskdef> -->
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 		HELP
@@ -71,17 +79,32 @@ See readme for time being please.
 		<mkdir dir="${build}" />
 		<delete dir="${bin}" />
 		<mkdir dir="${bin}" />
+
+		<copy todir="${src-versioned}">
+			<fileset dir="${src}" includes="**/*.java" />
+		</copy>
 		
-		<javac srcdir="${src}" destdir="${bin}" source="${java.target.version}">
+		<javac srcdir="${src-versioned}" destdir="${bin}" source="${java.target.version}">
 			<classpath>
 				<path refid="library-classpath"/>
 			</classpath>
 		</javac>
 		
 		<buildnumber file="res/build_number"/>
+
+		<replaceregexp flags="g" byline="true"
+  					   match="##build##" replace="${build.number}">
+  			<fileset dir="${src-versioned}" includes="**/*.java" />
+  		</replaceregexp>
+		<replaceregexp flags="g"
+  					   match="##version##" replace="${version}">
+  			<fileset dir="${src-versioned}" includes="**/*.java" />
+  		</replaceregexp>
+
+		<delete dir="${src-versioned}" />
 		
 	</target>
-	
+
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 		PACK
 	+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + -->
@@ -129,7 +152,7 @@ See readme for time being please.
 
 		<copy todir="${dist}/${lib.name}/${docs}/js">
 			<fileset dir="res/docco-template" />
-		</copy>
+		</copy>	
 		<!-- <mkdir dir="${dist}/${lib.name}/${docs}/js" /> -->
 		<exec executable="/usr/local/bin/docco">
 			<env key="PATH" path="${env.PATH}:/usr/local/bin"/>
@@ -151,6 +174,12 @@ See readme for time being please.
 			<fileset file="res/js-header.js" />
 			<fileset file="${bin}/${lib.name}-compiled.js" />
 		</concat>
+
+		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
+  					   match="##build##" replace="${build.number}" />
+		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
+  					   match="##version##" replace="${version}" />
+
 	</target>
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
