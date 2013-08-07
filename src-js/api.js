@@ -86,7 +86,11 @@ var PieceMakerApi = (function(){
     	if ( date_time instanceof Date ) {
     		return date_time.getTime() / 1000.0;
     	} else {
-    		return date_time; // assume it's ok
+    		if ( date_time > 9999999999 ) {
+    			return date_time / 1000.0; // assume it's a JS timestamp in ms
+    		} else {
+    			return date_time; // assume it's ok
+    		}
     	}
     }
 
