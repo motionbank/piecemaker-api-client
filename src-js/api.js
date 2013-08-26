@@ -45,6 +45,9 @@ var PieceMakerApi = (function(){
 				obj[entry.getKey()] = val;
 			}
 			return obj;
+    	} else {
+    		if ( 'utc_timestamp' in data ) data.utc_timestamp = jsDateToTs(data.utc_timestamp);
+    		if ( 'created_at' in data ) data.created_at = jsDateToTs(data.created_at);
     	}
     	return data;
     }
@@ -323,14 +326,14 @@ var PieceMakerApi = (function(){
 
 	// Creates a new user and returns it
 
-	_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userPassword, userToken, cb ) {
+	_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userIsAdmin, cb ) {
 		var callback = cb || noop;
 		var self = this;
 		xhrPost( self, {
 			url: self.base_url + '/user',
 			data: {
 				name: userName, email: userEmail,
-				password: userPassword, api_access_key: userToken
+				is_super_admin: userIsAdmin
 			},
 			success: function ( response ) {
 				callback.call( self.context || cb, response );
@@ -519,9 +522,7 @@ var PieceMakerApi = (function(){
 		xhrGet( this, {
 	        url: api.base_url + '/group/'+groupId+'/events',
 	        data: {
-	        	field: {
-	        		type: type
-	        	}
+	        	type: type
 	        },
 	        success: function ( response ) {
 				callback.call( api.context || cb, fixEventsResponseToArr( response ) );
@@ -537,6 +538,10 @@ var PieceMakerApi = (function(){
 		if ( arguments.length > 3 ) {
 			for ( var i = 1; i < arguments.length-1; i+=2 ) {
 				fields[arguments[i]] = arguments[i+1];
+			}
+		} else if ( typeof arguments[1] === 'object' ) {
+			for ( var k in arguments[1] ) {
+				if ( arguments[1].hasOwnProperty(k) ) fields[k] = arguments[1][k];
 			}
 		} else {
 			throw( 'Wrong parameter count' );

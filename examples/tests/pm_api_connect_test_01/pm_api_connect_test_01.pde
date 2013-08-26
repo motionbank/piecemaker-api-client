@@ -18,12 +18,13 @@ void setup ()
     
     api = new PieceMakerApi( this, "http://localhost:9292" );
     
-    api.login( "super-admin@example.com", "super-admin", api.createCallback( "loggedIn" ) );
+    api.login( "yta@fake-motionbank.org", "you-tube-annotator1375886831", api.createCallback( "loggedIn" ) );
 }
 
 void loggedIn ( String api_key )
 {
-    api.listGroups( api.createCallback( "groupsLoaded" ) );
+    println( "Logged in!" );
+    //api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
 void draw ()
