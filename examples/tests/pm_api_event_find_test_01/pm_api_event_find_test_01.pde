@@ -34,29 +34,34 @@ void draw ()
 
 void loggedIn ( String api_key )
 {
-    println( api_key );
     api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
 void groupsLoaded ( Group[] groups )
 {
-    for ( Group g : groups )
+    if ( groups.length > 0 )
     {
-        if ( g.title.indexOf( "jbmf" ) != -1 )
-        {
-            println( "group: " + g.id );
-            api.listEventsWithFields( g.id, "fn_local", ".mp4", api.createCallback( "eventsLoaded", g ) );
-            return;
-        }
+        api.listEventsWithFields( groups[0].id, "type", "video", api.createCallback( "eventsLoaded", groups[0] ) );
     }
+//    for ( Group g : groups )
+//    {
+//        if ( g.title.indexOf( "jbmf" ) != -1 )
+//        {
+//            println( "group: " + g.id );
+//            api.listEventsWithFields( g.id, "fn_local", ".mp4", api.createCallback( "eventsLoaded", g ) );
+//            return;
+//        }
+//    }
 }
 
 void eventsLoaded ( org.piecemaker2.models.Event[] events, Group g )
 {
     for ( org.piecemaker2.models.Event e : events )
     {
-        println( e.fields.get("title") + " " + e.fields.get("fn_local") );
+        println( e.type + " " + e.fields.get("type") );
     }
+    
+    println( "Done" );
 }
 
 

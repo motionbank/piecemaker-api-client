@@ -18,13 +18,15 @@ void setup ()
     
     api = new PieceMakerApi( this, "http://localhost:9292" );
     
-    api.login( "yta@fake-motionbank.org", "you-tube-annotator1375886831", api.createCallback( "loggedIn" ) );
+    api.login( "administrator@fake-email.motionbank.org", 
+               "Administrator", 
+               api.createCallback( "loggedIn" ) );
 }
 
 void loggedIn ( String api_key )
 {
     println( "Logged in!" );
-    //api.listGroups( api.createCallback( "groupsLoaded" ) );
+    api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
 void draw ()
@@ -35,11 +37,11 @@ void groupsLoaded ( Group[] groups )
 {
     println( groups );
     
-    if ( groups.length > 0 )
-    {
-        groupLoaded( groups[0] );
-    }
-    else
+//    if ( groups.length > 0 )
+//    {
+//        groupLoaded( groups[0] );
+//    }
+//    else
     {
         api.createGroup( "Fancy title", "Fancy text", api.createCallback( "groupLoaded" ) );
     }

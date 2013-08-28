@@ -46,12 +46,10 @@ void groupCreated ( Group g )
     
     eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
     eventData.put( "duration", (1000) + "" );
+    eventData.put( "type", "test-type-1" );
     
-    HashMap<String, Object> eventFields = new HashMap<String, Object>();
-    eventData.put( "fields", eventFields );
-    
-    eventFields.put( "title", "Emperors new cloths" );
-    eventFields.put( "super-type", "type-0-negative" );
+    eventData.put( "fields[title]", "Emperors new cloths" );
+    eventData.put( "fields[super-type]", "type-0-negative" );
     
     api.createEvent( group.id, eventData, api.createCallback( "eventCreated" ) );
 }
@@ -64,12 +62,10 @@ void eventCreated ( org.piecemaker2.models.Event event )
     
     eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
     eventData.put( "duration", (2000) + "" );
+    eventData.put( "type", "test-type-2" );
     
-    HashMap<String, Object> eventFields = new HashMap<String, Object>();
-    eventData.put( "fields", eventFields );
-    
-    eventFields.put( "title", "Oh my goodness" );
-    eventFields.put( "super-type", "a-super-fancy-type" );
+    eventData.put( "fields[title]", "Oh my goodness" );
+    eventData.put( "fields[super-type]", "a-super-fancy-type" );
     
     api.updateEvent( group.id, event.id, eventData, api.createCallback( "eventUpdated" ) );
 }

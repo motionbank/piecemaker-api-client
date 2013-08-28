@@ -197,6 +197,8 @@ public class PieceMakerApi
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
 		userData.put( "api_access_key", userToken );
+		userData.put( "is_super_admin", "false" );
+		userData.put( "is_disabled", "false" );
 
 		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, callback ) ).start();
 	}
@@ -218,7 +220,9 @@ public class PieceMakerApi
 		userData.put( "name", userName );
 		userData.put( "email", userEmail );
 		userData.put( "password", userPassword );
-		userData.put( "api_access_key", userToken );		
+		userData.put( "api_access_key", userToken );
+		userData.put( "is_super_admin", "false" );
+		userData.put( "is_disabled", "false" );		
 		
 		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, callback ) ).start();
 	}
@@ -346,7 +350,9 @@ public class PieceMakerApi
 	 */
 	public void listEventsOfType ( int groupId, String eventType, ApiCallback callback )
 	{
-		listEventsWithFields( groupId, "type", eventType, callback );
+		HashMap reqData = new HashMap();
+		reqData.put( "type", eventType );
+		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, reqData, callback ) ).start();
 	}
 
 	/**
@@ -416,6 +422,8 @@ public class PieceMakerApi
 	public void updateEvent ( int groupId, int eventId, HashMap eventData, ApiCallback callback )
 	{		
 		eventData.put( "event_group_id", groupId );
+
+		System.out.println( eventData.toString() );
 
 		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/event/" + eventId, ApiRequest.PUT, eventData, callback ) ).start();
 	}
@@ -718,6 +726,7 @@ public class PieceMakerApi
 		try {
 			event.utc_timestamp = new java.util.Date( (long)(eventData.getDouble( "utc_timestamp" ) * 1000.0) );
 			event.duration 		= eventData.getLong( "duration" );
+			event.type 			= eventData.getString( "type" );
 
 			event.fields 		= new HashMap<String, String>();
 
@@ -741,51 +750,52 @@ public class PieceMakerApi
 		return event;
 	}
 
-	/**
-	 *	eventFromJson()
-	 *
-	 *	Create an Event from JSON data
-	 *
-	 *	@param json The JSON data in form of a JSONObject
-	 *  @return Event The newly created Event object 
-	 */
-	private Event eventFromJson ( JSONObject e )
-	{
-		Event event = null;
+	// /**
+	//  *	eventFromJson()
+	//  *
+	//  *	Create an Event from JSON data
+	//  *
+	//  *	@param json The JSON data in form of a JSONObject
+	//  *  @return Event The newly created Event object 
+	//  */
+	// private Event eventFromJson ( JSONObject e )
+	// {
+	// 	Event event = null;
 
-		try 
-		{
-			event = new Event();
-			event.id = e.getInt( "id" );
-		}
-		catch ( Exception excp )
-		{
-			excp.printStackTrace();
-			return null;
-		}
+	// 	try 
+	// 	{
+	// 		event = new Event();
+	// 		event.id = e.getInt( "id" );
+	// 	}
+	// 	catch ( Exception excp )
+	// 	{
+	// 		excp.printStackTrace();
+	// 		return null;
+	// 	}
 
-		try {
-			event.utc_timestamp = new java.util.Date( (long)(e.getDouble( "utc_timestamp" ) * 1000.0) );
-			event.duration 		= e.getLong( "duration" );
+	// 	try {
+	// 		event.utc_timestamp = new java.util.Date( (long)(e.getDouble( "utc_timestamp" ) * 1000.0) );
+	// 		event.duration 		= e.getLong( "duration" );
+	// 		event.type 			= e.getString( "type" );
 
-			event.fields 		= new HashMap<String, String>();
+	// 		event.fields 		= new HashMap<String, String>();
 
-			JSONObject jsonEventFields = e.getJSONObject( "fields" );
-			java.util.Iterator<String> iter = jsonEventFields.keys();
+	// 		JSONObject jsonEventFields = e.getJSONObject( "fields" );
+	// 		java.util.Iterator<String> iter = jsonEventFields.keys();
 
-			while ( iter.hasNext() ) {
-				String key = iter.next();
-				String val = jsonEventFields.getString( key );
-				event.fields.put( key, val );
-			}
-		}
-		catch ( Exception excp )
-		{
-			/* ignore for now */
-		}
+	// 		while ( iter.hasNext() ) {
+	// 			String key = iter.next();
+	// 			String val = jsonEventFields.getString( key );
+	// 			event.fields.put( key, val );
+	// 		}
+	// 	}
+	// 	catch ( Exception excp )
+	// 	{
+	// 		/* ignore for now */
+	// 	}
 
-		return event;
-	}
+	// 	return event;
+	// }
 
 	/**
 	 *	userFromJson()
@@ -870,77 +880,4 @@ public class PieceMakerApi
 			}
 		}
 	}
-
-	// ----------------------------------------
-	//	PUBLIC DEPRECATED API
-	// ----------------------------------------
-
-	/**
-	 *	Load all videos for a piece
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@see #listEventsOfType( int groupId, String eventType, ApiCallback callback )
-	 *	@deprecated This method has been replaced by listEventsOfType( int groupId, String eventType, ApiCallback callback )
-	 */
-	public void loadVideosForPiece ( int pieceId, ApiCallback callback ) {}
-
-	/**
-	 *	Load all events (that fall in from + duration) for a video by ID
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@deprecated This method has not yet been ported to Piecemaker 2.0
-	 */
-	public void loadEventsForVideo ( int videoId, ApiCallback callback ) {}
-
-	/**
-	 *	Load one video by ID
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@see #getEvent( int groupId, int eventId, ApiCallback callback )
-	 *	@deprecated This method has been replaced by getEvent( int groupId, int eventId, ApiCallback callback )
-	 */
-	public void loadVideo ( int videoId, ApiCallback callback ) {}
-
-	/**
-	 *	Create a video
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@see #createEvent( int groupId, HashMap eventData, ApiCallback callback )
-	 *	@deprecated This method has been replaced by createEvent( int groupId, HashMap eventData, ApiCallback callback )
-	 */
-	public void createVideo ( HashMap data, ApiCallback callback ) {}
-
-	/**
-	 *	Update a video by ID
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@see #updateEvent( int groupId, int eventId, HashMap eventData, ApiCallback callback )
-	 *	@deprecated This method has been replaced by updateEvent( int groupId, int eventId, HashMap eventData, ApiCallback callback )
-	 */
-	public void updateVideo ( int videoId, HashMap data, ApiCallback callback ) {}
-
-	/**
-	 *	Delete a video by ID
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@see #deleteEvent( int groupId, int eventId, ApiCallback callback )
-	 *	@deprecated This method has been replaced by deleteEvent( int groupId, int eventId, ApiCallback callback )
-	 */
-	public void deleteVideo ( int videoId, ApiCallback callback ) {}
-
-	/**
-	 *	Load all events by type for a video by ID
-	 *
-	 *	Videos are now just events of type "video"
-	 *
-	 *	@see #listEventsOfType( int groupId, String eventType, ApiCallback callback )
-	 *	@deprecated This method has been replaced by listEventsOfType( int groupId, String eventType, ApiCallback callback )
-	 */
-	public void loadEventsByTypeForVideo ( int videoId, String type, ApiCallback callback ) {}
 }

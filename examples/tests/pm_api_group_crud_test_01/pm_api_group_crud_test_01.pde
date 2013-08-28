@@ -23,7 +23,9 @@ void setup ()
     
     api = new PieceMakerApi( this, "http://localhost:9292" );
     
-    api.login( "super-admin@example.com", "super-admin", api.createCallback( "loggedIn" ) );
+    api.login( "administrator@fake-email.motionbank.org", 
+               "Administrator", 
+               api.createCallback( "loggedIn" ) );
 }
 
 void loggedIn ( String api_key )

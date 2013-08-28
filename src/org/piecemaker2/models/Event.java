@@ -20,5 +20,6 @@ public class Event
 	public int id;
 	public Date utc_timestamp;
 	public long duration;
+	public String type;
 	public HashMap fields;
 }

@@ -26,7 +26,7 @@ var PieceMakerApi = (function(){
     	if ( !data ) return data;
     	if ( typeof data !== 'object' ) return data;
     	if ( 'entrySet' in data && typeof data.entrySet === 'function' ) {
-    		var allowed_long_keys = ['utc_timestamp'];
+    		var allowed_long_keys = ['utc_timestamp', 'duration', 'type'];
     		var set = data.entrySet();
     		if ( !set ) return data;
     		var obj = {};
@@ -38,8 +38,7 @@ var PieceMakerApi = (function(){
 					 'entrySet' in val && 
 					 typeof val.entrySet === 'function' ) val = convertData(val);
 				var key = entry.getKey();
-				/* issue 48 */
-				if ( !key || (allowed_long_keys.indexOf(key.toLowerCase()) === -1 && key.length > 10) ) {
+				if ( !key ) {
 					throw( "Field key is not valid: " + key );
 				}
 				obj[entry.getKey()] = val;
@@ -47,7 +46,7 @@ var PieceMakerApi = (function(){
 			return obj;
     	} else {
     		if ( 'utc_timestamp' in data ) data.utc_timestamp = jsDateToTs(data.utc_timestamp);
-    		if ( 'created_at' in data ) data.created_at = jsDateToTs(data.created_at);
+    		if ( 'created_at' in data )    data.created_at 	  = jsDateToTs(data.created_at);
     	}
     	return data;
     }
