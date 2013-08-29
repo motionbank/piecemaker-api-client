@@ -276,9 +276,6 @@ var PieceMakerApi = (function(){
 
 	_PieceMakerApi.prototype.logout = function ( cb ) {
 		var callback = cb || noop;
-		if ( !userEmail || !userPassword ) {
-			throw( "PieceMakerApi: need name and password to log user in" );
-		}
 		var self = this;
 	    xhrPost( this, {
 	        url: self.base_url + '/user/logout',
