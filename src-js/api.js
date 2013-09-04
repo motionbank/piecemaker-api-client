@@ -638,92 +638,6 @@ var PieceMakerApi = (function(){
 	    });
 	}
 
-	/* _PieceMakerApi.prototype.listVideosForPiece = function ( pieceId, cb ) {
-		var callback = cb || noop;
-		xhrGet( this, {
-	        url: api.base_url + '/api/piece/'+pieceId+'/videos',
-	        success: function ( response ) {
-				callback.call( api.context || cb, response );
-	        }
-	    });
-	} */
-
-	/* _PieceMakerApi.prototype.listEventsForVideo = function ( videoId, cb ) {
-		var callback = cb || noop;
-		xhrGet( this, {
-	        url: api.base_url + '/api/video/'+videoId+'/events',
-	        success: function ( response ) {
-				callback.call( api.context || cb, response );
-	        }
-	    });
-	} */
-
-	/* _PieceMakerApi.prototype.listEventsBetween = function ( from, to, cb ) {
-		var callback = cb || noop;
-		xhrGet( this, {
-			url: api.base_url + '/api/events/between/'+
-					parseInt(from.getTime() / 1000) + '/' + 
-					parseInt(Math.ceil(to.getTime() / 1000)),
-			success: function ( response ) {
-				callback.call( api.context || cb, response );
-	        }
-		});
-	} */
-
-	/* _PieceMakerApi.prototype.getEvent = function ( eventId, cb ) {
-		var callback = cb || noop;
-		xhrGet( this, {
-	        url: api.base_url + '/event/'+eventId,
-	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
-	        }
-	    });
-	} */
-
-	/* _PieceMakerApi.prototype.createEvent = function ( data, cb ) {
-		var callback = cb || noop;
-		xhrPost( this, {
-	        url: api.base_url + '/event',
-	        data: data,
-	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
-	        }
-	    });
-	} */
-
-	/* _PieceMakerApi.prototype.updateEvent = function ( eventId, data, cb ) {
-		var callback = cb || noop;
-		xhrPut( this, {
-	        url: api.base_url + '/event/'+eventId,
-	        data: data,
-	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
-	        }
-	    });
-	}*/
-
-	/* _PieceMakerApi.prototype.deleteEvent = function ( eventId, cb ) {
-		var callback = cb || noop;
-		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
-		xhrDelete( this, {
-	        url: api.base_url + '/event/'+eventId,
-	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
-	        }
-	    });
-	} */
-
-	/* _PieceMakerApi.prototype.findEvents = function ( opts, cb ) {
-		var callback = cb || noop;
-		xhrPost( this, {
-	        url: api.base_url + '/api/events/find',
-	        data: opts,
-	        success: function ( response ) {
-	            callback.call( api.context || cb, response );
-	        }
-	    });
-	} */
-
 	// System related calls
 	// ---------------------
 
@@ -785,6 +699,12 @@ var PieceMakerApi = (function(){
     return _PieceMakerApi;
 })();
 
+// support common-js
 if ( module && (typeof module === 'object') && ('exports' in module) ) {
 	module.exports = PieceMakerApi;
-} 
+}
+
+// some like it ||not
+if ( window && !('PieceMakerApi' in window) ) {
+	window.PieceMakerApi = PieceMakerApi;
+}

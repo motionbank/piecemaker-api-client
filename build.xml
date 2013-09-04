@@ -170,6 +170,7 @@ See readme for time being please.
 
 		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
   					   match="##build##" replace="${build.number}" />
+
 		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
   					   match="##version##" replace="${version}" />
 
@@ -177,6 +178,10 @@ See readme for time being please.
 		<copy todir=".">
 			<fileset file="res/package.json" />
 		</copy>
+
+		<replaceregexp file="package.json" flags="g"
+  					   match="##name##" replace="${lib.name}" />
+
 		<replaceregexp file="package.json" flags="g"
   					   match="##version##" replace="${version}" />
 
@@ -196,8 +201,13 @@ See readme for time being please.
 
 		<zip destfile="releases/${lib.name}-${version}.zip"
 	  	     basedir="${dist}"
-	  	     excludes="**/_DS.Store"
-		/>
+	  	     excludes="**/_DS.Store" />
+
+		<!-- to be able to use this directly via bower and such -->
+
+		<copy tofile="releases/${lib.name}-current.js">
+			<fileset file="${dist}/${lib.name}/library/${lib.name}.js" />
+		</copy>
 		
 	</target>
 	
