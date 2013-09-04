@@ -1,5 +1,5 @@
 {
-  "name"          : "piecemaker-2-api-client",
+  "name"          : "piecemaker-api-client",
   "description"   : "A client for JavaScript / Java / Processing to access the Piecemaker-2 API",
   "url"           : "https://github.com/motionbank/piecemaker-api-client",
   "keywords"      : ["html5", "client", "API"],
@@ -12,6 +12,6 @@
   },
   "devDependencies": {
   },
-  "main"          : "releases/piecemaker2-api-client-current.js",
+  "main"          : "releases/piecemaker-api-client-current.js",
   "version"       : "##version##"
 }
