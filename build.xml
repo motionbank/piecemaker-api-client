@@ -185,6 +185,11 @@ See readme for time being please.
 		<replaceregexp file="package.json" flags="g"
   					   match="##version##" replace="${version}" />
 
+		<!-- bower.json -->
+		<copy tofile="bower.json">
+			<fileset file="package.json" />
+		</copy>
+
 	</target>
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
