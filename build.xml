@@ -22,7 +22,7 @@
 	<property name="lib.name" 	value="PieceMaker2Lib" 	/>
 	<property name="author"		value="Florian Jenett" 	/>
 	<property name="client"		value="Motion Bank" 	/>
-	<property name="version" 	value="0.0.8" 			/>
+	<property name="version" 	value="0.0.9" 			/>
 	<property name="java.target.version" 
 								value="1.5" 			/>
 	
@@ -175,6 +175,7 @@ See readme for time being please.
   					   match="##version##" replace="${version}" />
 
 		<!-- package.json -->
+		<delete file="package.json" />
 		<copy todir=".">
 			<fileset file="res/package.json" />
 		</copy>
@@ -186,6 +187,7 @@ See readme for time being please.
   					   match="##version##" replace="${version}" />
 
 		<!-- bower.json -->
+		<delete file="bower.json" />
 		<copy tofile="bower.json">
 			<fileset file="package.json" />
 		</copy>
