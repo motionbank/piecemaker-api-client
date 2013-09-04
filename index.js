@@ -1,1 +1,1 @@
-module.exports = require('dist/PieceMaker2Lib/library/PieceMaker2Lib');
+module.exports = require('releases/piecemaker2-api-client-current');

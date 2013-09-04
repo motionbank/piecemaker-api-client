@@ -205,7 +205,7 @@ See readme for time being please.
 
 		<!-- to be able to use this directly via bower and such -->
 
-		<copy tofile="releases/${lib.name}-current.js">
+		<copy tofile="releases/piecemaker2-api-client-current.js">
 			<fileset file="${dist}/${lib.name}/library/${lib.name}.js" />
 		</copy>
 		

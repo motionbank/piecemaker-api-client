@@ -15,6 +15,6 @@
   "scripts": {
     "test" : "echo 'not yet done'"
   },
-  "main"          : "releases/##name##-current.js",
+  "main"          : "releases/piecemaker2-api-client-current.js",
   "version"       : "##version##"
 }
