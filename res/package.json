@@ -12,9 +12,6 @@
   },
   "devDependencies": {
   },
-  "scripts": {
-    "test" : "echo 'not yet done'"
-  },
   "main"          : "releases/piecemaker2-api-client-current.js",
   "version"       : "##version##"
 }
