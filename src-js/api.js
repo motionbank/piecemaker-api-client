@@ -192,21 +192,27 @@ var PieceMakerApi = (function(){
 
     // The actual implementation of the client class starts here
 
-    // ###PieceMakerApi()
+    // ###PieceMakerApi( context, host [, api_key] )
+    // or
+    // ###PieceMakerApi( options )
 
-    // Expects either 3 arguments or an object with:
+    // Expects these arguments or an options object with:
     // ```
     // {  
     //   context: <object>,
-    //   base_url: <string>  
+    //   host: <string>,
+    //	 api_key: <string> // optional
     // }
     // ```
+    //
+    // If the api_key is not present you must use login() before being
+    // able to issue and calls to the API. 
 
-    var _PieceMakerApi = function () {
+    var _PieceMakerApi = function ( argContext, argHost, argApiKey ) {
 
     	// Fields
 
-		this.base_url 	= undefined;
+		this.host 	= undefined;
     	this.api_key	= undefined;
     	this.context 	= undefined;
 
@@ -216,21 +222,21 @@ var PieceMakerApi = (function(){
 		
 		if ( arguments.length == 1 && typeof params == 'object' ) {
 	        this.context 	= params.context || {};
-			//this.api_key	= params.api_key || false;
-			this.base_url 	= params.base_url || 'http://localhost:3000';
+			this.api_key	= params.api_key || false;
+			this.host 	= params.host || 'http://localhost:3000';
 		} else {
-			if ( arguments.length >= 1 && typeof arguments[0] == 'object' ) {
-				this.context = arguments[0];
+			if ( argContext && typeof argContext == 'object' ) {
+				this.context = argContext;
 			}
-			if ( arguments.length >= 2 && typeof arguments[1] == 'string' ) {
-				this.base_url = arguments[1];
+			if ( argHost && typeof argHost == 'string' ) {
+				this.host = argHost;
 			}
-			// if ( arguments.length >= 3 && typeof arguments[2] == 'string' ) {
-			// 	this.api_key = arguments[2];
-			// }
+			if ( argApiKey && typeof argApiKey == 'string' ) {
+				this.api_key = argApiKey;
+			}
 		}
 
-		this.base_url += '/api/v1';
+		this.host += '/api/v1';
 
 		// Since piecemaker 2 we require the API key to be added
 
@@ -256,7 +262,7 @@ var PieceMakerApi = (function(){
 		}
 		var self = this;
 	    xhrPost( this, {
-	        url: self.base_url + '/user/login',
+	        url: self.host + '/user/login',
 	        data: {
 	        	email: userEmail,
 	        	password: userPassword
@@ -278,7 +284,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		var self = this;
 	    xhrPost( this, {
-	        url: self.base_url + '/user/logout',
+	        url: self.host + '/user/logout',
 	        success: function ( response ) {
 	        	if ( response && 'api_access_key' in response && response['api_access_key'] ) {
 	        		self.api_key = response['api_access_key'];
@@ -296,7 +302,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		var self = this;
 	    xhrGet( this, {
-	        url: self.base_url + '/users',
+	        url: self.host + '/users',
 	        success: function ( response ) {
 				callback.call( self.context || cb, response );
 	        }
@@ -311,7 +317,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		var self = this;
 	    xhrGet( this, {
-	        url: self.base_url + '/user/me',
+	        url: self.host + '/user/me',
 	        success: function ( response ) {
 				callback.call( self.context || cb, response );
 	        }
@@ -326,7 +332,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		var self = this;
 		xhrPost( self, {
-			url: self.base_url + '/user',
+			url: self.host + '/user',
 			data: {
 				name: userName, email: userEmail,
 				is_super_admin: userIsAdmin
@@ -344,7 +350,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.getUser = function ( userId, cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
-	        url: api.base_url + '/user/' + userId,
+	        url: api.host + '/user/' + userId,
 	        success: function ( response ) {
 				callback.call( api.context || cb, response );
 	        }
@@ -359,7 +365,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		var self = this;
 		xhrPut( self, {
-			url: self.base_url + '/user/' + userId,
+			url: self.host + '/user/' + userId,
 			data: {
 				name: userName, email: userEmail,
 				password: userPassword, api_access_key: userToken
@@ -377,7 +383,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.deleteUser = function ( userId, cb ) {
 		var callback = cb || noop;
 		xhrDelete( this, {
-			url: api.base_url + '/user/' + userId,
+			url: api.host + '/user/' + userId,
 			success: function ( response ) {
 				callback.call( api.context || cb /*, response*/ );
 			}
@@ -397,7 +403,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.listGroups = function ( cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
-	        url: api.base_url + '/groups',
+	        url: api.host + '/groups',
 	        success: function ( response ) {
 				callback.call( api.context || cb, response );
 	        }
@@ -421,7 +427,7 @@ var PieceMakerApi = (function(){
 			throw( "createGroup(): title can not be empty" );
 		}
 		xhrPost( self, {
-			url: self.base_url + '/group',
+			url: self.host + '/group',
 			data: {
 				title: groupTitle,
 				text: groupText || ''
@@ -440,7 +446,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.getGroup = function ( groupId, cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
-	        url: api.base_url + '/group/'+groupId,
+	        url: api.host + '/group/'+groupId,
 	        success: function ( response ) {
 				callback.call( api.context || cb, response );
 	        }
@@ -457,7 +463,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		var self = this;
 		xhrPut( self, {
-			url: self.base_url + '/group/'+groupId,
+			url: self.host + '/group/'+groupId,
 			data: data,
 			success: function ( response ) {
 				callback.call( self.context || cb, response );
@@ -472,7 +478,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.deleteGroup = function ( groupId, cb ) {
 		var callback = cb || noop;
 		xhrDelete( this, {
-				url: api.base_url + '/group/'+groupId,
+				url: api.host + '/group/'+groupId,
 				success: function ( response ) {
 				callback.call( api.context || cb /*, response*/ );
 			}
@@ -487,7 +493,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.listGroupUsers = function ( groupId, cb ) {
 		var callback = cb || noop;
 	    xhrGet( this, {
-	        url: api.base_url + '/group/'+groupId+'/users',
+	        url: api.host + '/group/'+groupId+'/users',
 	        success: function ( response ) {
 				callback.call( api.context || cb, response );
 	        }
@@ -504,7 +510,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.listEvents = function ( groupId, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
-	        url: api.base_url + '/group/'+groupId+'/events',
+	        url: api.host + '/group/'+groupId+'/events',
 	        success: function ( response ) {
 				callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
@@ -516,7 +522,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.listEventsOfType = function ( groupId, type, cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
-	        url: api.base_url + '/group/'+groupId+'/events',
+	        url: api.host + '/group/'+groupId+'/events',
 	        data: {
 	        	type: type
 	        },
@@ -545,7 +551,7 @@ var PieceMakerApi = (function(){
 		var cb = arguments[arguments.length-1];
 		var callback = cb || noop;
 		xhrGet( api, {
-	        url: api.base_url + '/group/'+groupId+'/events',
+	        url: api.host + '/group/'+groupId+'/events',
 	        data: {
 	        	fields: fields
 	        },
@@ -560,7 +566,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.listEventsBetween = function ( groupId, from, to, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
-	        url: api.base_url + '/group/'+groupId+'/events',
+	        url: api.host + '/group/'+groupId+'/events',
 	        data: {
 	        	from: jsDateToTs(from),
 	        	to:   jsDateToTs(to)
@@ -576,7 +582,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.findEvents = function ( groupId, eventData, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
-	        url: api.base_url + '/group/'+groupId+'/events',
+	        url: api.host + '/group/'+groupId+'/events',
 	        data: eventData,
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
@@ -589,7 +595,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.getEvent = function ( groupId, eventId, cb ) {
 		var callback = cb || noop;
 		xhrGet( api, {
-	        url: api.base_url + '/event/'+eventId,
+	        url: api.host + '/event/'+eventId,
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 	        }
@@ -602,7 +608,7 @@ var PieceMakerApi = (function(){
 		var data = convertData( eventData );
 		var callback = cb || noop;
 		xhrPost( this, {
-	        url: api.base_url + '/group/'+groupId+'/event',
+	        url: api.host + '/group/'+groupId+'/event',
 	        data: data,
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
@@ -617,7 +623,7 @@ var PieceMakerApi = (function(){
 		data['event_group_id'] = groupId;
 		var callback = cb || noop;
 		xhrPut( this, {
-	        url: api.base_url + '/event/' + eventId,
+	        url: api.host + '/event/' + eventId,
 	        data: data,
 	        success: function ( response ) {
 	            callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
@@ -631,7 +637,7 @@ var PieceMakerApi = (function(){
 		var callback = cb || noop;
 		if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
 		xhrDelete( this, {
-	        url: api.base_url + '/event/' + eventId,
+	        url: api.host + '/event/' + eventId,
 	        success: function ( response ) {
 	            callback.call( api.context || cb , expandEventToObject( fixEventResponse( response ) ) );
 	        }
@@ -646,7 +652,7 @@ var PieceMakerApi = (function(){
 	_PieceMakerApi.prototype.getSystemTime = function ( cb ) {
 		var callback = cb || noop;
 		xhrGet( this, {
-	        url: api.base_url + '/system/utc_timestamp',
+	        url: api.host + '/system/utc_timestamp',
 	        success: function ( response ) {
 	            callback.call( api.context || cb, new Date( response.utc_timestamp * 1000 ));
 	        }
