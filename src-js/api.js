@@ -547,7 +547,7 @@ var PieceMakerApi = (function(){
 		xhrGet( api, {
 	        url: api.base_url + '/group/'+groupId+'/events',
 	        data: {
-	        	field: fields
+	        	fields: fields
 	        },
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
@@ -565,6 +565,19 @@ var PieceMakerApi = (function(){
 	        	from: jsDateToTs(from),
 	        	to:   jsDateToTs(to)
 	        },
+	        success: function ( response ) {
+	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
+	        }
+	    });
+	}
+
+	// ###Get all events that match
+	
+	_PieceMakerApi.prototype.findEvents = function ( groupId, eventData, cb ) {
+		var callback = cb || noop;
+		xhrGet( api, {
+	        url: api.base_url + '/group/'+groupId+'/events',
+	        data: eventData,
 	        success: function ( response ) {
 	        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
 	        }
@@ -771,3 +784,7 @@ var PieceMakerApi = (function(){
 
     return _PieceMakerApi;
 })();
+
+if ( module && (typeof module === 'object') && ('exports' in module) ) {
+	module.exports = PieceMakerApi;
+} 

@@ -173,6 +173,13 @@ See readme for time being please.
 		<replaceregexp file="${dist}/${lib.name}/library/${lib.name}.js" flags="g"
   					   match="##version##" replace="${version}" />
 
+		<!-- package.json -->
+		<copy todir=".">
+			<fileset file="res/package.json" />
+		</copy>
+		<replaceregexp file="package.json" flags="g"
+  					   match="##version##" replace="${version}" />
+
 	</target>
 	
 	<!--- + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
