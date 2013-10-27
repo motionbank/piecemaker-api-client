@@ -1,0 +1,28 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Piecemaker 2 API test</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script type="text/javascript" src="../../src-js/api.js"></script>
+	<script type="text/javascript">
+		$(function(){
+
+			var pm = new PieceMakerApi({
+				host : 'http://infinite-sands-4012.herokuapp.com',
+				api_key : '0310XFCmtPNXLcx3',
+				context : {
+					piecemakerError : function ( e ) {
+						throw( e );
+					}
+				}
+			});
+
+			pm.listGroups(function(groups){
+				console.log( groups );
+			});
+			
+		});
+	</script>
+</head>
+<body></body>
+</html>

@@ -1,9 +1,9 @@
 {
   "name"          : "piecemaker-api-client",
-  "description"   : "A client for JavaScript / Java / Processing to access the Piecemaker-2 API",
+  "description"   : "A client for JavaScript (+ Node.js) / Java (+ Processing) to access the Piecemaker-2 API developed for Motion Bank",
   "url"           : "https://github.com/motionbank/piecemaker-api-client",
-  "keywords"      : ["html5", "client", "API"],
-  "author"        : "Florian Jenett <mail@florianjenett.de>",
+  "keywords"      : ["video", "data", "html5", "client", "API", "annotation"],
+  "author"        : "Florian Jenett <florian@motionbank.org>",
   "repository": {
     "type": "git",
     "url": "https://github.com/motionbank/piecemaker-api-client"
