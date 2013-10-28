@@ -169,8 +169,8 @@
 			var statusCode = -1, statusMessage = "";
 
 			if ( err ) {
-				statusCode = err.status;
-				statusMessage = err.statusText;
+				statusCode = err.status || err.statusCode;
+				statusMessage = err.statusText || err.message || 'No error message';
 				if ( err.responseText ) {
 					statusMessage += " " + err.responseText;
 				}
@@ -180,8 +180,12 @@
 				 && 'piecemakerError' in api.context 
 				 && typeof api.context['piecemakerError'] == 'function' )
 				api.context['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
-			else
+			else {
+				if ( typeof console !== 'undefined' && console.log ) {
+					console.log( statusCode, statusMessage, type );
+				}
 				throw( err );
+			}
 		}
 
 		// Library global variables
@@ -732,7 +736,7 @@
 		 
 				var req_options = {
 				    host 	: url_parsed.hostname,
-				    port 	: opts.port || 80,
+				    port 	: url_parsed.port || 80,
 				    path 	: url_parsed.path,
 				    method  : opts.type,
 				    headers : headers
