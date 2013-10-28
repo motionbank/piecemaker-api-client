@@ -13,3 +13,7 @@ var pm = new PieceMakerApi({
 pm.listGroups(function(groups){
 	console.log( groups );
 });
+
+// pm.listEventsOfType(2,'video',function(events){
+// 	console.log( events.length );
+// });

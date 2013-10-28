@@ -8,11 +8,13 @@
 		$(function(){
 
 			var pm = new PieceMakerApi({
-				host : 'http://infinite-sands-4012.herokuapp.com',
-				api_key : '0310XFCmtPNXLcx3',
+				// host : 'http://infinite-sands-4012.herokuapp.com',
+				// api_key : '0310XFCmtPNXLcx3',
+				host : 'http://localhost:9292',
+				api_key : '0310XY0gx5PI70FB',
 				context : {
-					piecemakerError : function ( e ) {
-						throw( e );
+					piecemakerError : function () {
+						console.log( arguments );
 					}
 				}
 			});
@@ -20,6 +22,10 @@
 			pm.listGroups(function(groups){
 				console.log( groups );
 			});
+
+			// pm.listEventsOfType(2,'video',function(events){
+			// 	console.log( events.length );
+			// });
 			
 		});
 	</script>

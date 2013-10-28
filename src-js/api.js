@@ -722,6 +722,7 @@
 		if ( typeof global !== 'undefined' ) { // check if environment could be Node
 
 			var url = require('url'), 
+				qstr = require('querystring'),
 				http = require('http');
 			
 			// a shim to mimic jQuery.ajax for node.js
@@ -732,12 +733,19 @@
 
 				var headers = opts.headers || {};
 				headers['Content-Type'] = 'application/json';
-		    	headers['Content-Length'] = Buffer.byteLength(data, 'utf8');
+				
+				var query = null;
+
+				if ( opts.type !== 'get' ) {
+		    		headers['Content-Length'] = Buffer.byteLength( data, 'utf-8' );
+		 		} else {
+		 			query = qstr.stringify( opts.data || {} );
+		 		}
 		 
 				var req_options = {
 				    host 	: url_parsed.hostname,
 				    port 	: url_parsed.port || 80,
-				    path 	: url_parsed.path,
+				    path 	: url_parsed.path + ((opts.type === 'get' && query) ? '?' + query : ''),
 				    method  : opts.type,
 				    headers : headers
 				};
@@ -762,7 +770,10 @@
 				    if ( opts.error ) opts.error.apply(null,[e]);
 				});
 		 
-				request.write( data );
+		 		if ( opts.type !== 'get' ) {
+					request.write( data );
+		 		}
+
 				request.end();
 			}
 		}
