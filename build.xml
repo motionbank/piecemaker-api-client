@@ -22,7 +22,7 @@
 	<property name="lib.name" 	value="PieceMaker2Lib" 	/>
 	<property name="author"		value="Florian Jenett" 	/>
 	<property name="client"		value="Motion Bank" 	/>
-	<property name="version" 	value="0.0.11" 			/>
+	<property name="version" 	value="0.0.12" 			/>
 	<property name="java.target.version" 
 								value="1.5" 			/>
 	
