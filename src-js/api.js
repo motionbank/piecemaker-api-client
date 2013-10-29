@@ -739,7 +739,18 @@
 				if ( opts.type !== 'get' ) {
 		    		headers['Content-Length'] = Buffer.byteLength( data, 'utf-8' );
 		 		} else {
-		 			query = qstr.stringify( opts.data || {} );
+		 			var opts_data = opts.data || {};
+		 			for ( var k in opts_data ) {
+		 				if ( opts_data.hasOwnProperty(k) && typeof opts_data[k] === 'object' ) {
+		 					var subObj = opts_data[k];
+		 					for ( var kk in subObj ) {
+		 						opts_data[k+'['+kk+']'] = subObj[kk];
+		 					}
+		 					delete opts_data[k];
+		 				}
+		 			}
+		 			query = qstr.stringify( opts_data );
+		 			console.log( query );
 		 		}
 		 
 				var req_options = {
