@@ -104,13 +104,13 @@
 		/* cross origin resource sharing
 		   http://www.html5rocks.com/en/tutorials/cors/ */
 		
-	    var xhrRequest = function ( context, url, type, data, success ) {
+	    var xhrRequest = function ( pm, url, type, data, success ) {
 
 	    	// Almost all calls to the API need to be done including a per-user API token.
 	    	// This token is passed into the constructor below and gets automatically 
 	    	// added to each call here if it is not already present.
 
-	    	if ( !api.api_key && !url.match(/\/user\/login$/) ) {
+	    	if ( !pm.api_key && !url.match(/\/user\/login$/) ) {
 	    		throw( "PieceMakerApi: need an API_KEY, please login first to obtain one" );
 	    	}
 
@@ -127,7 +127,7 @@
 					// 		xhr.setRequestHeader( 'X-Access-Key', api.api_key );
 					// 	}
 					// },
-					context: context,
+					context: pm,
 	                success: function () {
 	                	if ( arguments && arguments[0] && 
 	                		 typeof arguments[0] === 'object' && 
@@ -135,15 +135,15 @@
 	                		 !('queryTime' in arguments[0]) ) {
 	                		arguments[0]['queryTime'] = ((new Date()).getTime()) - ts;
 	                	}
-	                	success.apply( context, arguments );
+	                	success.apply( pm, arguments );
 	                },
 	                error: function (err) {
-	                    xhrError( context, callUrl, type, err );
+	                    xhrError( pm, callUrl, type, err );
 	                },
 	                /* , xhrFields: { withCredentials: true } */
 					/* , headers: { 'Cookie' : document.cookie } */
 					headers: {
-						'X-Access-Key': api.api_key
+						'X-Access-Key': pm.api_key
 					}
 	            });
 	    };
@@ -164,7 +164,7 @@
 		    xhrRequest( pm, opts.url, 'delete', null, opts.success );
 		}
 		
-		var xhrError = function ( context, url, type, err ) {
+		var xhrError = function ( pm, url, type, err ) {
 
 			var statusCode = -1, statusMessage = "";
 
@@ -176,10 +176,8 @@
 				}
 			}
 
-			if ( api.context 
-				 && 'piecemakerError' in api.context 
-				 && typeof api.context['piecemakerError'] == 'function' )
-				api.context['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
+			if ( pm && 'piecemakerError' in pm && typeof pm['piecemakerError'] == 'function' )
+				pm['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
 			else {
 				if ( typeof console !== 'undefined' && console.log ) {
 					console.log( statusCode, statusMessage, type );
@@ -187,11 +185,6 @@
 				throw( err );
 			}
 		}
-
-		// Library global variables
-		// ------------------------
-	    
-	    var api; // FIXME: in this scope it will be replaced by the next constructor call!
 
 	    // Class PieceMakerApi2
 	    // ---------------------
@@ -247,8 +240,6 @@
 			// Since piecemaker 2 we require the API key to be added
 
 			//if ( !this.api_key ) throw( "PieceMaker2API: need an API_KEY for this to work" );
-
-			api = this; // ... store for internal use only
 		}
 
 		/* just as a personal reference: discussing the routes
@@ -262,7 +253,7 @@
 		// Returns api key as string
 
 		_PieceMakerApi.prototype.login = function ( userEmail, userPassword, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, api = this;
 			if ( !userEmail || !userPassword ) {
 				throw( "PieceMakerApi: need name and password to log user in" );
 			}
@@ -287,7 +278,7 @@
 		// ###Log a user out
 
 		_PieceMakerApi.prototype.logout = function ( cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, api = this;
 			var self = this;
 		    xhrPost( this, {
 		        url: self.host + '/user/logout',
@@ -305,7 +296,7 @@
 		// Returns a list of all users
 
 		_PieceMakerApi.prototype.listUsers = function ( cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, api = this;
 			var self = this;
 		    xhrGet( this, {
 		        url: self.host + '/users',
@@ -320,7 +311,7 @@
 		// Returns the user object for the user to given API key
 
 		_PieceMakerApi.prototype.whoAmI = function ( cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, api = this;
 			var self = this;
 		    xhrGet( this, {
 		        url: self.host + '/user/me',
@@ -335,7 +326,7 @@
 		// Creates a new user and returns it
 
 		_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userIsAdmin, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, api = this;
 			var self = this;
 			xhrPost( self, {
 				url: self.host + '/user',
@@ -354,11 +345,11 @@
 		// Get a user based on ID
 
 		_PieceMakerApi.prototype.getUser = function ( userId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 		    xhrGet( this, {
-		        url: api.host + '/user/' + userId,
+		        url: self.host + '/user/' + userId,
 		        success: function ( response ) {
-					callback.call( api.context || cb, response );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -387,11 +378,11 @@
 		// Delete a user
 
 		_PieceMakerApi.prototype.deleteUser = function ( userId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrDelete( this, {
-				url: api.host + '/user/' + userId,
+				url: self.host + '/user/' + userId,
 				success: function ( response ) {
-					callback.call( api.context || cb /*, response*/ );
+					callback.call( self.context || cb /*, response*/ );
 				}
 			});
 		}
@@ -407,11 +398,11 @@
 		// Get a list of all available (to current user) groups
 
 		_PieceMakerApi.prototype.listGroups = function ( cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 		    xhrGet( this, {
-		        url: api.host + '/groups',
+		        url: self.host + '/groups',
 		        success: function ( response ) {
-					callback.call( api.context || cb, response );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -450,11 +441,11 @@
 		// A fully loaded group object
 
 		_PieceMakerApi.prototype.getGroup = function ( groupId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 		    xhrGet( this, {
-		        url: api.host + '/group/'+groupId,
+		        url: self.host + '/group/'+groupId,
 		        success: function ( response ) {
-					callback.call( api.context || cb, response );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -482,11 +473,11 @@
 		// Returns nothing
 
 		_PieceMakerApi.prototype.deleteGroup = function ( groupId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrDelete( this, {
-					url: api.host + '/group/'+groupId,
+					url: self.host + '/group/'+groupId,
 					success: function ( response ) {
-					callback.call( api.context || cb /*, response*/ );
+					callback.call( self.context || cb /*, response*/ );
 				}
 			});
 		}
@@ -497,11 +488,11 @@
 		// A list of all users in that group
 
 		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 		    xhrGet( this, {
-		        url: api.host + '/group/'+groupId+'/users',
+		        url: self.host + '/group/'+groupId+'/users',
 		        success: function ( response ) {
-					callback.call( api.context || cb, response );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -514,11 +505,11 @@
 		// ###Get all events
 		
 		_PieceMakerApi.prototype.listEvents = function ( groupId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrGet( this, {
-		        url: api.host + '/group/'+groupId+'/events',
+		        url: self.host + '/group/'+groupId+'/events',
 		        success: function ( response ) {
-					callback.call( api.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
 		    });
 		}
@@ -526,14 +517,14 @@
 		// ###Get all events of a certain type
 		
 		_PieceMakerApi.prototype.listEventsOfType = function ( groupId, type, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrGet( this, {
-		        url: api.host + '/group/'+groupId+'/events',
+		        url: self.host + '/group/'+groupId+'/events',
 		        data: {
 		        	type: type
 		        },
 		        success: function ( response ) {
-					callback.call( api.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
 		    });
 		}
@@ -555,14 +546,14 @@
 				throw( 'Wrong parameter count' );
 			}
 			var cb = arguments[arguments.length-1];
-			var callback = cb || noop;
-			xhrGet( api, {
-		        url: api.host + '/group/'+groupId+'/events',
+			var callback = cb || noop, self = this;
+			xhrGet( self, {
+		        url: self.host + '/group/'+groupId+'/events',
 		        data: {
 		        	fields: fields
 		        },
 		        success: function ( response ) {
-		        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
 		    });
 		}
@@ -570,15 +561,15 @@
 		// ###Get all events that happened within given timeframe
 		
 		_PieceMakerApi.prototype.listEventsBetween = function ( groupId, from, to, cb ) {
-			var callback = cb || noop;
-			xhrGet( api, {
-		        url: api.host + '/group/'+groupId+'/events',
+			var callback = cb || noop, self = this;
+			xhrGet( self, {
+		        url: self.host + '/group/'+groupId+'/events',
 		        data: {
 		        	from: jsDateToTs(from),
 		        	to:   jsDateToTs(to)
 		        },
 		        success: function ( response ) {
-		        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
 		    });
 		}
@@ -586,12 +577,12 @@
 		// ###Get all events that match
 		
 		_PieceMakerApi.prototype.findEvents = function ( groupId, eventData, cb ) {
-			var callback = cb || noop;
-			xhrGet( api, {
-		        url: api.host + '/group/'+groupId+'/events',
+			var callback = cb || noop, self = this;
+			xhrGet( self, {
+		        url: self.host + '/group/'+groupId+'/events',
 		        data: eventData,
 		        success: function ( response ) {
-		        	callback.call( api.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
 		    });
 		}
@@ -599,11 +590,11 @@
 		// ###Get one event
 		
 		_PieceMakerApi.prototype.getEvent = function ( groupId, eventId, cb ) {
-			var callback = cb || noop;
-			xhrGet( api, {
-		        url: api.host + '/event/'+eventId,
+			var callback = cb || noop, self = this;
+			xhrGet( self, {
+		        url: self.host + '/event/'+eventId,
 		        success: function ( response ) {
-		        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 		        }
 		    });
 		}
@@ -612,12 +603,12 @@
 
 		_PieceMakerApi.prototype.createEvent = function ( groupId, eventData, cb ) {
 			var data = convertData( eventData );
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrPost( this, {
-		        url: api.host + '/group/'+groupId+'/event',
+		        url: self.host + '/group/'+groupId+'/event',
 		        data: data,
 		        success: function ( response ) {
-		        	callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 		        }
 		    });
 		}
@@ -627,12 +618,12 @@
 		_PieceMakerApi.prototype.updateEvent = function ( groupId, eventId, eventData, cb ) {
 			var data = convertData( eventData );
 			data['event_group_id'] = groupId;
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrPut( this, {
-		        url: api.host + '/event/' + eventId,
+		        url: self.host + '/event/' + eventId,
 		        data: data,
 		        success: function ( response ) {
-		            callback.call( api.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		            callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
 		        }
 		    });
 		}
@@ -640,12 +631,12 @@
 		// ###Delete one event
 
 		_PieceMakerApi.prototype.deleteEvent = function ( groupId, eventId, cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			if ( (typeof eventId === 'object') && ('id' in eventId) ) eventId = eventId.id;
 			xhrDelete( this, {
-		        url: api.host + '/event/' + eventId,
+		        url: self.host + '/event/' + eventId,
 		        success: function ( response ) {
-		            callback.call( api.context || cb , expandEventToObject( fixEventResponse( response ) ) );
+		            callback.call( self.context || cb , expandEventToObject( fixEventResponse( response ) ) );
 		        }
 		    });
 		}
@@ -656,11 +647,11 @@
 		// ###Get the system (server) time
 
 		_PieceMakerApi.prototype.getSystemTime = function ( cb ) {
-			var callback = cb || noop;
+			var callback = cb || noop, self = this;
 			xhrGet( this, {
-		        url: api.host + '/system/utc_timestamp',
+		        url: self.host + '/system/utc_timestamp',
 		        success: function ( response ) {
-		            callback.call( api.context || cb, new Date( response.utc_timestamp * 1000 ));
+		            callback.call( self.context || cb, new Date( response.utc_timestamp * 1000 ));
 		        }
 		    });
 		}
@@ -673,12 +664,12 @@
 		_PieceMakerApi.prototype.createCallback = function () {
 			if ( arguments.length == 1 ) {
 
-				return api.context[arguments[0]];
+				return self.context[arguments[0]];
 
 			} else if ( arguments.length >= 2 ) {
 				
 				var more = 1;
-				var cntx = api.context, meth = arguments[0];
+				var cntx = self.context, meth = arguments[0];
 				
 				if ( typeof arguments[0] !== 'string' ) { // then it's not a method name
 					cntx = arguments[0];
