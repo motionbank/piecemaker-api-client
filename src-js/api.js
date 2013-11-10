@@ -180,7 +180,7 @@
 				pm['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
 			else {
 				if ( typeof console !== 'undefined' && console.log ) {
-					console.log( statusCode, statusMessage, type );
+					console.log( statusCode, statusMessage, url, type, err );
 				}
 				throw( err );
 			}
@@ -741,7 +741,6 @@
 		 				}
 		 			}
 		 			query = qstr.stringify( opts_data );
-		 			console.log( query );
 		 		}
 		 
 				var req_options = {
