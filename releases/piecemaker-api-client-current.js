@@ -9,7 +9,7 @@
  *	  http://piecemaker.org
  *	  http://motionbank.org
  *
- *	Version: 0.0.16, build: 767
+ *	Version: 0.0.17, build: 768
  */
  (function(){var t=function(k){var f=function(){},o=function(a){if(!a||"object"!==typeof a)return a;if("entrySet"in a&&"function"===typeof a.entrySet){var b=a.entrySet();if(!b)return a;a={};for(b=b.iterator();b.hasNext();){var c=b.next(),d=c.getValue();d&&("object"===typeof d&&"entrySet"in d&&"function"===typeof d.entrySet)&&(d=o(d));var e=c.getKey();if(!e)throw"Field key is not valid: "+e;a[c.getKey()]=d}return a}"utc_timestamp"in a&&(a.utc_timestamp=p(a.utc_timestamp));"created_at"in a&&(a.created_at=
 p(a.created_at));return a},m=function(a){if(a instanceof Array){for(var b=[],c=0;c<a.length;c++)b.push(l(h(a[c])));return b}return a},h=function(a){var b=a.event;b.fields={};for(var c=0,a=a.fields;c<a.length;c++)b.fields[a[c].id]=a[c].value;return b},l=function(a){a.fields.get=function(b){return a.fields[b]};a.utc_timestamp=new Date(1E3*a.utc_timestamp);return a},p=function(a){return a instanceof Date?a.getTime()/1E3:9999999999<a?a/1E3:a},n=function(a,b,c,d,e){if(!a.api_key&&!b.match(/\/user\/login$/))throw"PieceMakerApi: need an API_KEY, please login first to obtain one";

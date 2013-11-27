@@ -155,6 +155,11 @@ See readme for time being please.
 		</exec>
 		<move file="${dist}/${lib.name}/${docs}/js/${lib.name}.html" 
 			  tofile="${dist}/${lib.name}/${docs}/js/index.html"/>
+
+		<mkdir dir="${docs}" />
+		<copy todir="${docs}">
+			<fileset dir="${dist}/${lib.name}/${docs}" />
+		</copy>	
 		
 		<jscomp compilationLevel="simple" warning="default" 
 		        debug="false" output="${bin}/${lib.name}-compiled.js">
