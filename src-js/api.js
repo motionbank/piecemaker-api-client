@@ -1,5 +1,7 @@
-// Piecemaker 2 API client for Processing and Java / JS 
-// ====================================================
+// Piecemaker 2 API client for Processing and plain Java, JS in the browser and node.js
+// ====================================================================================
+
+// This is the JavaScript version
 
 //  Created by fjenett 2012, 2013  
 //  https://github.com/motionbank/piecemaker-api-client

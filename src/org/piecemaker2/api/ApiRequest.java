@@ -198,7 +198,7 @@ public class ApiRequest implements Runnable
 	        } else {
 	            System.err.println( "Method failed: " + method.getStatusLine() );
 	            method.releaseConnection();
-	            api.handleError( method.getStatusLine().getStatusCode(), method.getStatusLine().getReasonPhrase(), this, method );
+	            api.handleError( method.getStatusLine().getStatusCode(), method.getStatusLine().getReasonPhrase(), this );
 	            return;
 	        }
 

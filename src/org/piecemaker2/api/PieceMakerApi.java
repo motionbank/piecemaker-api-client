@@ -53,7 +53,7 @@ public class PieceMakerApi
 
 	public final static int SYSTEM 	= (++v);
 
-	public final static int API_KEY = (++v);
+	public final static int LOGIN_OUT = (++v);
 
 	private final static String DEFAULT_ERROR_CALLBACK = "piecemakerError";
 
@@ -61,57 +61,76 @@ public class PieceMakerApi
 	//	Instance variables
 	// -----------------------------------------
 
-	private String base_url = "http://127.0.0.1";
+	private String host = "http://127.0.0.1:3000";
 	private String api_key;
 	private Object context;
 
 	private Method pmErrorCallback;
 
 	// -----------------------------------------
-	//	Constructor
+	//	Constructor(s)
 	// -----------------------------------------
 
-	// public PieceMakerApi ( String api_key )
-	// {
-	// 	setApiKey( api_key );
-
-	// 	ensureApiKey();
-	// 	printVersion();
-	// }
-
-	public PieceMakerApi ( Object context ) 
+	/**
+	 *	Contructor (default)
+	 *
+	 *	@param 	context  A context for the callbacks / -errors
+	 *	@param 	host 	 A host fully qualified like: "http://localhost:3000"
+	 *	@param  api_key  An api_key that comes with your user account for a PM2 instance
+	 */
+	public PieceMakerApi ( Object context, String host, String api_key ) 
 	{
-		setContext( context );
+		try {
+			setContext( context ); // handles bad input itself
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+
+		try {
+			setHost( host ); // handles bad input itself
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+
+		if ( api_key != null ) { // ok, to allow for users loggin in through API
+			try {
+				setApiKey( api_key ); // handles bad input itself
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+		}
 
 		printVersion();
 	}
 
-	public PieceMakerApi ( String base_url ) 
-	{
-		setBaseUrl( base_url );
-
-		printVersion();
-	}
-
-	public PieceMakerApi ( Object context, String base_url ) 
-	{
-		setContext( context );
-		setBaseUrl( base_url );
-
-		printVersion();
-	}
-
+	/**
+	 *	 Alternative constructor
+	 *
+	 *	@param  params  A HashMap containing the parameters
+	 */
 	public PieceMakerApi ( HashMap params ) 
 	{
-		Object context = params.get( "context" );
-		setContext( context );
-
-		String base_url = (String)params.get( "base_url" );
-		setBaseUrl( base_url );
-
-		printVersion();
+		this( 
+			params.get( "context" ),
+			(String)params.get( "host" ),
+			(String)params.get( "api_key" )
+		);
 	}
 
+	// -----------------------------------------
+	//	Static methods
+	// -----------------------------------------
+
+	/**
+	 *	 getVersion()
+	 *
+	 *	 Get the current version of this library
+	 *
+	 *	 @return  The version and build-number of this library
+	 */
 	static String getVersion ()
 	{
 		return "Piecemaker 2 client library\n"+
@@ -119,6 +138,11 @@ public class PieceMakerApi
 			   "  https://github.com/motionbank/piecemaker-api-client\n";
 	}
 
+	/**
+	 *	 printVersion()
+	 *
+	 *	 Print the current version to standard out
+	 */
 	static void printVersion ()
 	{
 		System.out.println( PieceMakerApi.getVersion() );
@@ -132,6 +156,8 @@ public class PieceMakerApi
 	 *	login()
 	 *
 	 *	Log a user in to obtain an API key
+	 *
+	 *  <p>No API_KEY required</p>
 	 *
 	 *	@param userEmail The users email as contained in the database
 	 *	@param userPassword The users password as contained in the database
@@ -147,16 +173,21 @@ public class PieceMakerApi
 
 		new Thread(
 			new ApiRequest(
-				this, null, API_KEY, base_url + "/user/login", ApiRequest.POST, loginData, callback
+				this, null, LOGIN_OUT, host + "/user/login", ApiRequest.POST, loginData, callback
 			)
 		).start();
 	}
 
+	/**
+	 *	logout()
+	 *
+	 *  <p>No API_KEY required</p>
+	 */
 	public void logout ( ApiCallback callback )
 	{
 		new Thread(
 			new ApiRequest(
-				this, api_key, API_KEY, base_url + "/user/logout", ApiRequest.POST, null, callback
+				this, api_key, LOGIN_OUT, host + "/user/logout", ApiRequest.POST, null, callback
 			)
 		).start();
 	}
@@ -166,17 +197,23 @@ public class PieceMakerApi
 	 *
 	 *	Get all users visible to current user
 	 *
+	 *  <p>Requires API_KEY</p>
+	 *
 	 *	@param callback A callback to be run once groups become available
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void listUsers ( ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, USERS, base_url + "/users", ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, USERS, host + "/users", ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	Get own user data
+	 *
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param callback The callback to run when the user data becomes available
 	 *
@@ -184,55 +221,73 @@ public class PieceMakerApi
 	 */
 	public void whoAmI ( ApiCallback callback ) 
 	{
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/me", ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, USER, host + "/user/me", ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/** 
 	 *	createUser()
+	 *
+	 *  <p>Requires API_KEY</p>
 	 */
 	public void createUser ( String userName, String userEmail, String userPassword, String userToken, ApiCallback callback )
 	{
-		HashMap userData = new HashMap();
-		userData.put( "name", userName );
-		userData.put( "email", userEmail );
-		userData.put( "password", userPassword );
-		userData.put( "api_access_key", userToken );
-		userData.put( "is_super_admin", "false" );
-		userData.put( "is_disabled", "false" );
+		if ( ensureApiKey() ) {
+			HashMap userData = new HashMap();
+			userData.put( "name", userName );
+			userData.put( "email", userEmail );
+			userData.put( "password", userPassword );
+			userData.put( "api_access_key", userToken );
+			userData.put( "is_super_admin", "false" );
+			userData.put( "is_disabled", "false" );
 
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user", ApiRequest.POST, userData, callback ) ).start();
+			new Thread( new ApiRequest( this, api_key, USER, host + "/user", ApiRequest.POST, userData, callback ) ).start();
+		}
 	}
 
 	/** 
 	 *	getUser()
+	 *
+	 *  <p>Requires API_KEY</p>
 	 */
 	public void getUser ( int userId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, USER, host + "/user/" + userId, ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/** 
 	 *	updateUser()
+	 *
+	 *  <p>Requires API_KEY</p>
 	 */
 	public void updateUser ( int userId, String userName, String userEmail, String userPassword, String userToken, ApiCallback callback )
 	{
-		HashMap userData = new HashMap();
-		userData.put( "name", userName );
-		userData.put( "email", userEmail );
-		userData.put( "password", userPassword );
-		userData.put( "api_access_key", userToken );
-		userData.put( "is_super_admin", "false" );
-		userData.put( "is_disabled", "false" );		
-		
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.PUT, userData, callback ) ).start();
+		if ( ensureApiKey() ) {
+			HashMap userData = new HashMap();
+			userData.put( "name", userName );
+			userData.put( "email", userEmail );
+			userData.put( "password", userPassword );
+			userData.put( "api_access_key", userToken );
+			userData.put( "is_super_admin", "false" );
+			userData.put( "is_disabled", "false" );		
+			
+			new Thread( new ApiRequest( this, api_key, USER, host + "/user/" + userId, ApiRequest.PUT, userData, callback ) ).start();
+		}
 	}
 
 	/** 
 	 *	deleteUser()
+	 *
+	 *  <p>Requires API_KEY</p>
 	 */
 	public void deleteUser ( int userId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, USER, base_url + "/user/" + userId, ApiRequest.DELETE, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, USER, host + "/user/" + userId, ApiRequest.DELETE, null, callback ) ).start();
+		}
 	}
 
 	// ----------------------------------------
@@ -244,7 +299,7 @@ public class PieceMakerApi
 	 *
 	 *	Load available (visible to user) groups
 	 *
-	 *	In Piecemaker 1: listPieces( ApiCallback callback )
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param callback A callback to be run once groups become available
 	 *
@@ -252,7 +307,9 @@ public class PieceMakerApi
 	 */
 	public void listGroups ( ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, GROUPS, base_url + "/groups", ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, GROUPS, host + "/groups", ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/**
@@ -260,7 +317,7 @@ public class PieceMakerApi
 	 *
 	 *	Load one group by ID
 	 *
-	 *	In Piecemaker 1: loadPiece ( int pieceId, ApiCallback callback )
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param groupId The ID of the group
 	 *	@param callback A callback to be run once the group is available
@@ -269,13 +326,17 @@ public class PieceMakerApi
 	 */
 	public void getGroup ( int groupId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, GROUP, host + "/group/" + groupId, ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	createGroup()
 	 *
 	 *	Create a new group (for events)
+	 *
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param groupTitle The title / name for the new group
 	 *	@param groupText The text / description of the group
@@ -284,17 +345,21 @@ public class PieceMakerApi
 	 */
 	public void createGroup ( String groupTitle, String groupText, ApiCallback callback )
 	{
-		HashMap groupData = new HashMap();
-		groupData.put( "title", groupTitle );
-		groupData.put( "text", groupText );
+		if ( ensureApiKey() ) {
+			HashMap groupData = new HashMap();
+			groupData.put( "title", groupTitle );
+			groupData.put( "text", groupText );
 
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group", ApiRequest.POST, groupData, callback ) ).start();
+			new Thread( new ApiRequest( this, api_key, GROUP, host + "/group", ApiRequest.POST, groupData, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	updateGroup()
 	 *
 	 *	Update a group (of events)
+	 *
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param groupId The ID of the group to update
 	 *	@param groupData The data for the new group as HashMap
@@ -303,7 +368,9 @@ public class PieceMakerApi
 	 */
 	public void updateGroup ( int groupId, HashMap groupData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.PUT, groupData, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, GROUP, host + "/group/" + groupId, ApiRequest.PUT, groupData, callback ) ).start();
+		}
 	}
 
 	/**
@@ -311,14 +378,20 @@ public class PieceMakerApi
 	 *
 	 *	Delete a group (of events)
 	 *
+	 *  <p>Requires API_KEY</p>
+	 *
 	 *	@param groupId The ID of the group to delete
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void deleteGroup ( int groupId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, GROUP, base_url + "/group/" + groupId, ApiRequest.DELETE, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, GROUP, host + "/group/" + groupId, ApiRequest.DELETE, null, callback ) ).start();
+		}
 	}
+
+	// TODO: missing listGroupUsers
 
 	// ----------------------------------------
 	//	EVENTS
@@ -327,7 +400,7 @@ public class PieceMakerApi
 	/**
 	 *	Load all events for a group
 	 *
-	 *	In Piecemaker 1: loadEventsForPiece( int pieceId, ApiCallback callback )
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param groupId The ID of the group
 	 *	@param callback A callback to be run once events become available
@@ -336,11 +409,15 @@ public class PieceMakerApi
 	 */
 	public void listEvents ( int groupId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, EVENTS, host + "/group/" + groupId + "/events", ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	Load all events of certain type for a piece
+	 *
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param groupId the ID of the group to search events in
 	 *	@param eventType the type of the events to look for
@@ -350,13 +427,17 @@ public class PieceMakerApi
 	 */
 	public void listEventsOfType ( int groupId, String eventType, ApiCallback callback )
 	{
-		HashMap reqData = new HashMap();
-		reqData.put( "type", eventType );
-		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, reqData, callback ) ).start();
+		if ( ensureApiKey() ) {
+			HashMap reqData = new HashMap();
+			reqData.put( "type", eventType );
+			new Thread( new ApiRequest( this, api_key, EVENTS, host + "/group/" + groupId + "/events", ApiRequest.GET, reqData, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	listEventsWithFields()
+	 *
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@param args first arg is expected to be the (int) group id, then none or more pairs of (String) id, (String) value for the fields to look for, then a (ApiCallback) callback
 	 *
@@ -364,86 +445,109 @@ public class PieceMakerApi
 	 */
 	public void listEventsWithFields ( Object ... args )
 	{
-		int groupId = (Integer)(args[0]);
-		ApiCallback callback = (ApiCallback)(args[args.length-1]);
+		if ( ensureApiKey() ) {
+			int groupId = (Integer)(args[0]);
+			ApiCallback callback = (ApiCallback)(args[args.length-1]);
 
-		HashMap fieldData = new HashMap();
-		if ( args.length > 3 ) {
-			for ( int i = 1; i < args.length-1; i+=2 ) {
-				fieldData.put(
-					"field["+((String)args[i])+"]",
-					(String)args[i+1]
-				);
+			HashMap fieldData = new HashMap();
+			if ( args.length > 3 ) {
+				for ( int i = 1; i < args.length-1; i+=2 ) {
+					fieldData.put(
+						"field["+((String)args[i])+"]",
+						(String)args[i+1]
+					);
+				}
 			}
+			new Thread( new ApiRequest( this, api_key, EVENTS, host + "/group/" + groupId + "/events", ApiRequest.GET, fieldData, callback ) ).start();
 		}
-		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fieldData, callback ) ).start();
 	}
 
 	/**
 	 *	Load all events that fall into from - to timeframe
 	 *
+	 *  <p>Requires API_KEY</p>
+	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void listEventsBetween ( int groupId, Date from, Date to, ApiCallback callback )
 	{
-		HashMap fromTo = new HashMap();
-		fromTo.put( "from", from.getTime() / 1000.0 );
-		fromTo.put( "to",   to.getTime() / 1000.0 );
-		new Thread( new ApiRequest( this, api_key, EVENTS, base_url + "/group/" + groupId + "/events", ApiRequest.GET, fromTo, callback ) ).start();
+		if ( ensureApiKey() ) {
+			HashMap fromTo = new HashMap();
+			fromTo.put( "from", from.getTime() / 1000.0 );
+			fromTo.put( "to",   to.getTime() / 1000.0 );
+		
+			new Thread( new ApiRequest( this, api_key, EVENTS, host + "/group/" + groupId + "/events", ApiRequest.GET, fromTo, callback ) ).start();
+		}
 	}
+
+	// TODO: missing findEvents
+
+	/**
+	 *	Find all events for parameters
+	 *
+	 *  <p>Requires API_KEY</p>
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	//public void findEvents ( HashMap opts, ApiCallback callback ) {}
 
 	/**
 	 *	Load one event by ID
 	 *
-	 *	In Piecemaker 1: loadEvent ( int eventId, ApiCallback callback )
+	 *  <p>Requires API_KEY</p>
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void getEvent ( int groupId, int eventId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, EVENT, host + "/group/" + groupId + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	Create one event
 	 *
+	 *  <p>Requires API_KEY</p>
+	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void createEvent ( int groupId, HashMap eventData, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, EVENT, host + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	Update one event by ID
 	 *
+	 *  <p>Requires API_KEY</p>
+	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void updateEvent ( int groupId, int eventId, HashMap eventData, ApiCallback callback )
-	{		
-		eventData.put( "event_group_id", groupId );
+	{
+		if ( ensureApiKey() ) {
+			eventData.put( "event_group_id", groupId );
 
-		System.out.println( eventData.toString() );
-
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/event/" + eventId, ApiRequest.PUT, eventData, callback ) ).start();
+			new Thread( new ApiRequest( this, api_key, EVENT, host + "/event/" + eventId, ApiRequest.PUT, eventData, callback ) ).start();
+		}
 	}
 
 	/**
 	 *	Delete one event by ID
 	 *
+	 *  <p>Requires API_KEY</p>
+	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void deleteEvent ( int groupId, int eventId, ApiCallback callback )
 	{
-		new Thread( new ApiRequest( this, api_key, EVENT, base_url + "/event/" + eventId, ApiRequest.DELETE, null, callback ) ).start();
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, EVENT, host + "/event/" + eventId, ApiRequest.DELETE, null, callback ) ).start();
+		}
 	}
-
-	/**
-	 *	Find all events for parameters
-	 *
-	 *	@see #createCallback( Object[] args )
-	 */
-	//public void findEvents ( HashMap opts, ApiCallback callback ) {}
 
 	// ----------------------------------------
 	//	SYSTEM
@@ -454,13 +558,15 @@ public class PieceMakerApi
 	 *
 	 *	<p>Remember that the HTTP communication will add to this.</p>
 	 *
+	 *  <p>Requires no API_KEY</p>
+	 *
 	 *	@param callback The callback to run when the data becomes available
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
 	public void getSystemTime ( ApiCallback callback ) 
 	{
-		new Thread( new ApiRequest( this, api_key, SYSTEM, base_url + "/system/utc_timestamp", ApiRequest.GET, null, callback ) ).start();
+		new Thread( new ApiRequest( this, api_key, SYSTEM, host + "/system/utc_timestamp", ApiRequest.GET, null, callback ) ).start();
 	}
 
 	// ----------------------------------------
@@ -631,13 +737,24 @@ public class PieceMakerApi
 				);
 			}
 
-			else if ( request.getType() == API_KEY )
+			else if ( request.getType() == LOGIN_OUT )
 			{
 				JSONObject jsonKey = new JSONObject( responseBody );
 				String api_key_new = jsonKey.getString("api_access_key");
 
+				// TODO: keep this automatically?
 				if ( api_key_new != null ) {
-					setApiKey( api_key_new );
+					try {
+						setApiKey( api_key_new );
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.err.println("///////////////");
+						System.err.println("An API_KEY returned by the API is wrong, "+
+										   "please have an admin check this");
+						System.err.println("///////////////");
+						handleError(-1, "Bad API_KEY returned by API", request );
+						return;
+					}
 				}
 
 				if ( api_key_new == null )
@@ -656,11 +773,16 @@ public class PieceMakerApi
 	    }
 	}
 
-	public void handleError ( int statusCode, String errorMessage, ApiRequest request, Object method )
+	public void handleError ( int statusCode, String errorMessage, ApiRequest request )
 	{
 		ApiCallback callback = new ApiCallback( request.getCallback().getTarget(), DEFAULT_ERROR_CALLBACK );
 		callback.setIgnoreNoMethod( true );
 		callback.call( statusCode, errorMessage, request.getTypeString() + " " + request.getURL() );
+	}
+
+	public String toString ()
+	{
+		return "<"+getClass().getName()+", version ##version##, build ##build##>";
 	}
 
 	// -----------------------------------------
@@ -832,37 +954,46 @@ public class PieceMakerApi
 		return user;
 	}
 
-	private void ensureApiKey ()
+	private boolean ensureApiKey ()
 	{
 		if ( api_key == null ) {
 			System.err.println("A Piecemaker API-key is required!");
+			return false;
 		}
+		return true;
 	}
 
-	private void setBaseUrl ( String base_url )
+	private void setHost ( String host ) throws Exception
 	{
-		//System.out.println( base_url );
-		String base_url_full = base_url + "/api/v1";
-		if ( base_url_full != null && base_url_full.length() > 0 ) 
+		//System.out.println( host );
+		String host_full = host + "/api/v1";
+		if ( host_full != null && host_full.length() > 0 ) 
 		{
 			boolean validUrl = (new org.apache.commons.validator.UrlValidator(
 									new String[]{ "http", "https" }
-							   )).isValid( base_url_full );
+							   )).isValid( host_full );
 			if ( validUrl || 
-				 base_url_full.indexOf("localhost") != -1 || 
-				 base_url_full.indexOf(".local") != -1 )
+				 host_full.indexOf("localhost") != -1 || 
+				 host_full.indexOf(".local") != -1 )
 			{
-				this.base_url = base_url_full;	
+				this.host = host_full;	
 			}
+		} else {
+			throw( new Exception("host can not be null or empty") );
 		}
 	}
 
-	private void setApiKey ( String api_key )
+	private void setApiKey ( String api_key ) throws Exception
 	{
-		if ( api_key != null /*&& api_key.length() == API_KEY_LENGTH*/ ) this.api_key = api_key;
+		if ( api_key != null && api_key.length() > 0 )
+		{
+			this.api_key = api_key;
+		} else {
+			throw( new Exception("api_key can not be null or empty") );
+		}
 	}
 
-	private void setContext ( Object context )
+	private void setContext ( Object context ) throws Exception
 	{
 		if ( context != null )
 		{
@@ -878,6 +1009,8 @@ public class PieceMakerApi
 			} catch ( Exception e ) {
 				e.printStackTrace();
 			}
+		} else {
+			throw( new Exception( "Context can not be null" ) );
 		}
 	}
 }

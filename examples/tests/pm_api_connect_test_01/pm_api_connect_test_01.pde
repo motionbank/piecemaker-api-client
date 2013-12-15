@@ -16,16 +16,18 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XqmCQ4N7JkwP" );
     
-    api.login( "administrator@fake-email.motionbank.org", 
-               "Administrator", 
+    api.login( "SuperAdmin", 
+               "SuperAdmin", 
                api.createCallback( "loggedIn" ) );
 }
 
 void loggedIn ( String api_key )
 {
     println( "Logged in!" );
+    println( api_key );
+    if ( true ) return;
     api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
