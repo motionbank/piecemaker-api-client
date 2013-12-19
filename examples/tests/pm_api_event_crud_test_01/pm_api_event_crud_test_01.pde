@@ -16,24 +16,35 @@ import org.piecemaker2.models.*;
 PieceMakerApi api;
 Group group;
 
+boolean passed = false;
+
 void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
     
-    api.login( "administrator@fake-email.motionbank.org", 
-               "Administrator", 
-               api.createCallback( "loggedIn" ) );
+//    api.login( "administrator@fake-email.motionbank.org", 
+//               "Administrator", 
+//               api.createCallback( "loggedIn" ) );
+
+    api.createGroup( 
+        "Test group", 
+        "... to hold events, will be deleted later on", 
+        api.createCallback( "groupCreated" ) );
 }
 
 void loggedIn ( String api_key )
 {    
-    api.createGroup( "Test group to hold events, will be deleted later on", "", api.createCallback( "groupCreated" ) );
+    api.createGroup( 
+        "Test group", 
+        "... to hold events, will be deleted later on", 
+        api.createCallback( "groupCreated" ) );
 }
 
 void draw ()
 {
+    if ( passed ) background( 0x009900 );
 }
 
 void groupCreated ( Group g )
@@ -87,6 +98,8 @@ void eventDeleted ( org.piecemaker2.models.Event event )
 void groupDeleted ()
 {
     println( "Group deleted" );
+    
+    passed = true;
 }
 
 void piecemakerError ( int code, String message, Object o )

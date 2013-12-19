@@ -480,8 +480,6 @@ public class PieceMakerApi
 		}
 	}
 
-	// TODO: missing findEvents
-
 	/**
 	 *	Find all events for parameters
 	 *
@@ -489,7 +487,12 @@ public class PieceMakerApi
 	 *
 	 *	@see #createCallback( Object[] args )
 	 */
-	//public void findEvents ( HashMap opts, ApiCallback callback ) {}
+	public void findEvents ( int groupId, HashMap opts, ApiCallback callback )
+	{
+		if ( ensureApiKey() ) {
+			new Thread( new ApiRequest( this, api_key, EVENTS, host + "/group/" + groupId + "/events", ApiRequest.GET, opts, callback ) ).start();
+		}
+	}
 
 	/**
 	 *	Load one event by ID
@@ -515,7 +518,11 @@ public class PieceMakerApi
 	public void createEvent ( int groupId, HashMap eventData, ApiCallback callback )
 	{
 		if ( ensureApiKey() ) {
-			new Thread( new ApiRequest( this, api_key, EVENT, host + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
+			if ( eventData != null && eventData.get("type") != null ) {
+				new Thread( new ApiRequest( this, api_key, EVENT, host + "/group/" + groupId + "/event", ApiRequest.POST, eventData, callback ) ).start();
+			} else {
+				System.err.println( "\"type\" is a required field" ); // TODO: throw error? better validation?
+			}
 		}
 	}
 

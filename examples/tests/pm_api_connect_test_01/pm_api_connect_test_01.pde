@@ -11,6 +11,7 @@ import org.piecemaker2.api.*;
 import org.piecemaker2.models.*;
 
 PieceMakerApi api;
+boolean passed = false;
 
 void setup ()
 {
@@ -27,12 +28,12 @@ void loggedIn ( String api_key )
 {
     println( "Logged in!" );
     println( api_key );
-    if ( true ) return;
     api.listGroups( api.createCallback( "groupsLoaded" ) );
 }
 
 void draw ()
 {
+    if ( passed ) background( 0x009900 );
 }
 
 void groupsLoaded ( Group[] groups )
@@ -70,4 +71,5 @@ void groupDeleted ()
 void loggedOut ()
 {
     println( "Passed!" );
+    passed = true;
 }

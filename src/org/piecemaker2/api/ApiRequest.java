@@ -47,7 +47,9 @@ public class ApiRequest implements Runnable
 	/**
 	 *	Constructor ApiRequest
 	 */
-	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, String url, int methodType, HashMap<String,Object> data, ApiCallback callBack )
+	public ApiRequest ( PieceMakerApi api, String api_key, int requestType, 
+						String url, int methodType, HashMap<String,Object> data, 
+						ApiCallback callBack )
 	{
 		this.api = api;
 		this.api_key = api_key;
@@ -70,6 +72,15 @@ public class ApiRequest implements Runnable
 				}
 				this.data.put( pairs.getKey(), value );
 			}
+		}
+
+		if ( callBack == null ) {
+			Object o = new Object(){
+				public void noop ( Object ... vargs ) {
+					// ignore
+				}
+			};
+			callBack = api.createCallback( o, "noop" );
 		}
 
 		this.callBack = callBack;
@@ -194,7 +205,7 @@ public class ApiRequest implements Runnable
 
 	        if ( statusCode < 300 ) 
 	        {
-		        	// TODO: implement better HTTP error handling here, redirect, moved, 404, 403, ... 
+	        	// TODO: implement better HTTP error handling here, redirect, moved, 404, 403, ... 
 	        } else {
 	            System.err.println( "Method failed: " + method.getStatusLine() );
 	            method.releaseConnection();
@@ -256,7 +267,7 @@ public class ApiRequest implements Runnable
 	}
 
 	/**
-	 *	getter getCallback()
+	 *	getter getResponse()
 	 */
 	public String getResponse ()
 	{
@@ -264,7 +275,7 @@ public class ApiRequest implements Runnable
 	}
 
 	/**
-	 *	getter getCallback()
+	 *	getter getType()
 	 */
 	public int getType ()
 	{
@@ -272,7 +283,7 @@ public class ApiRequest implements Runnable
 	}
 
 	/**
-	 *	getter getCallback()
+	 *	getter getTypeString()
 	 */
 	public String getTypeString ()
 	{
@@ -288,7 +299,7 @@ public class ApiRequest implements Runnable
 	}
 
 	/**
-	 *	getter getCallback()
+	 *	getter getURL()
 	 */
 	public String getURL ()
 	{
