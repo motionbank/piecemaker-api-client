@@ -18,21 +18,23 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+
+    api.listGroups( api.createCallback( "groupsLoaded" ) );
     
-    api.login( "administrator@fake-email.motionbank.org", 
-               "Administrator", 
-               api.createCallback( "loggedIn" ) );
+    // api.login( "administrator@fake-email.motionbank.org", 
+    //            "Administrator", 
+    //            api.createCallback( "loggedIn" ) );
 }
 
 void draw ()
 {
 }
 
-void loggedIn ( String api_key )
-{
-    api.listGroups( api.createCallback( "groupsLoaded" ) );
-}
+// void loggedIn ( String api_key )
+// {
+//     api.listGroups( api.createCallback( "groupsLoaded" ) );
+// }
 
 void groupsLoaded ( Group[] groups )
 {

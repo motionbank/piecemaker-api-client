@@ -19,17 +19,18 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+    api.whoAmI( api.createCallback( "selfLoaded" ) );
     
-    api.login( "administrator@fake-email.motionbank.org", 
-               "Administrator", 
-               api.createCallback( "loggedIn" ) );
+    // api.login( "administrator@fake-email.motionbank.org", 
+    //            "Administrator", 
+    //            api.createCallback( "loggedIn" ) );
 }
 
-void loggedIn ( String api_key )
-{    
-    api.whoAmI( api.createCallback( "selfLoaded" ) );
-}
+// void loggedIn ( String api_key )
+// {    
+//     api.whoAmI( api.createCallback( "selfLoaded" ) );
+// }
 
 void draw ()
 {
