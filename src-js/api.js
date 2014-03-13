@@ -395,7 +395,7 @@
 		// Groups are what Piecemaker 1 called "Piece":  
 		// they are just a collection of events
 
-		// ###Get all groups
+		// ###Get all groups for current user
 
 		// Get a list of all available (to current user) groups
 
@@ -403,6 +403,21 @@
 			var callback = cb || noop, self = this;
 		    xhrGet( this, {
 		        url: self.host + '/groups',
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Get all groups
+
+		// Get a list of all available groups,
+		// **super_admin only**
+
+		_PieceMakerApi.prototype.listAllGroups = function ( cb ) {
+			var callback = cb || noop, self = this;
+		    xhrGet( this, {
+		        url: self.host + '/groups/all',
 		        success: function ( response ) {
 					callback.call( self.context || cb, response );
 		        }
@@ -498,6 +513,56 @@
 		        }
 		    });
 		}
+
+		// ###Add a user to a group
+
+		// Expects a user role id to be given as which the user will act in group
+
+		// Returns: TODO
+
+		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, userId, userRoleId, cb ) {
+			var callback = cb || noop, self = this;
+		    xhrPost( this, {
+		        url: self.host + '/group/'+groupId+'/user/'+userId,
+		        data : {
+		        	user_role_id : userRoleId
+		        },
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Update user role in a group
+
+		// Returns: TODO
+
+		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, userId, userRoleId, cb ) {
+			var callback = cb || noop, self = this;
+		    xhrPut( this, {
+		        url: self.host + '/group/'+groupId+'/user/'+userId,
+		        data : {
+		        	user_role_id : userRoleId
+		        },
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Remove user from group
+
+		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, userId, cb ) {
+			var callback = cb || noop, self = this;
+		    xhrDelete( this, {
+		        url: self.host + '/group/'+groupId+'/user/'+userId,
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+
 
 		// Events
 		// --------
