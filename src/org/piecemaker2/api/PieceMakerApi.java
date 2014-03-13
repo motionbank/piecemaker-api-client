@@ -504,7 +504,7 @@ public class PieceMakerApi
 	public void getEvent ( int groupId, int eventId, ApiCallback callback )
 	{
 		if ( ensureApiKey() ) {
-			new Thread( new ApiRequest( this, api_key, EVENT, host + "/group/" + groupId + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
+			new Thread( new ApiRequest( this, api_key, EVENT, host + "/event/" + eventId, ApiRequest.GET, null, callback ) ).start();
 		}
 	}
 
@@ -973,9 +973,10 @@ public class PieceMakerApi
 	private void setHost ( String host ) throws Exception
 	{
 		//System.out.println( host );
-		String host_full = host + "/api/v1";
-		if ( host_full != null && host_full.length() > 0 ) 
+		if ( host != null && host.length() > 0 ) 
 		{
+			String host_full = host + "/api/v1";
+
 			boolean validUrl = (new org.apache.commons.validator.UrlValidator(
 									new String[]{ "http", "https" }
 							   )).isValid( host_full );
