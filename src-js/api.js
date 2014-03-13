@@ -648,12 +648,91 @@
 
 		// ###Get a role
 
-		_PieceMakerApi.prototype.deleteRole = function ( roleId, cb ) {
+		_PieceMakerApi.prototype.getRole = function ( roleId, cb ) {
 			var callback = cb || noop, self = this;
 		    xhrGet( this, {
 		        url: self.host + '/role/' + roleId,
 		        success: function ( response ) {
 					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// Role permissions
+		// --------
+
+		// A permission reflects a certain action in the API. 
+		// These can be grouped into roles to allow for fine grained user rights control.
+
+		// ###Get all permissions
+		
+		_PieceMakerApi.prototype.listPermissions = function ( cb ) {
+			var callback = cb || noop, self = this;
+			xhrGet( this, {
+		        url: self.host + '/permissions',
+		        success: function ( response ) {
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}
+
+		// ###Add a permission to a role
+
+		// Returns: TODO
+		
+		_PieceMakerApi.prototype.addPermissionToRole = function ( roleId, permission, right, cb ) {
+			var callback = cb || noop, self = this;
+			xhrPost( this, {
+		        url: self.host + 'role/' + roleId + '/permission',
+		        data : {
+		        	entity : permission,
+		        	permission : right
+		        },
+		        success: function ( response ) {
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}
+
+		// ###Update a role permission
+
+		// Returns: TODO
+		
+		_PieceMakerApi.prototype.updatePermissionForRole = function ( roleId, permission, right, cb ) {
+			var callback = cb || noop, self = this;
+			xhrPut( this, {
+		        url: self.host + 'role/' + roleId + '/permission/' + permission,
+		        data : {
+		        	permission : right
+		        },
+		        success: function ( response ) {
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}
+
+		// ###Remove a permission from a role
+		
+		_PieceMakerApi.prototype.removePermissionFromRole = function ( roleId, permission, cb ) {
+			var callback = cb || noop, self = this;
+			xhrDelete( this, {
+		        url: self.host + 'role/' + roleId + '/permission/' + permission,
+		        success: function ( response ) {
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}
+
+		// ###Get a role permission
+
+		// Returns: the role permission
+		
+		_PieceMakerApi.prototype.getPermissionForRole = function ( roleId, permission, cb ) {
+			var callback = cb || noop, self = this;
+			xhrGet( this, {
+		        url: self.host + 'role/' + roleId + '/permission/' + permission,
+		        success: function ( response ) {
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
 		    });
 		}
