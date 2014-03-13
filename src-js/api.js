@@ -562,7 +562,101 @@
 		    });
 		}
 
+		// Roles
+		// -------
 
+		// A role is a predefined set of permissions. Each user has a global role and 
+		// roles per group that he/she is part of.
+
+		// ###List all available roles
+
+		_PieceMakerApi.prototype.listRoles = function ( cb ) {
+			var callback = cb || noop, self = this;
+		    xhrGet( this, {
+		        url: self.host + '/roles',
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Add new role
+
+		// Returns: role created
+
+		_PieceMakerApi.prototype.createRole = function ( roleId, optionalInheritRoleId, optionalText, cb ) {
+			if ( arguments.length === 2 ) {
+				cb = optionalInheritRoleId;
+				optionalInheritRoleId = undefined;
+			} else if ( arguments.length === 3 ) {
+				cb = optionalText;
+				optionalText = undefined;
+			}
+			
+			var data = { id: roleId };
+			if ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
+			if ( optionalText ) data.text = optionalText;
+
+			var callback = cb || noop, self = this;
+		    xhrPost( this, {
+		        url: self.host + '/role',
+		        data : data,
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Update role
+
+		// Returns: role updated
+
+		_PieceMakerApi.prototype.updateRole = function ( roleId, optionalInheritRoleId, optionalText, cb ) {
+			if ( arguments.length === 2 ) {
+				cb = optionalInheritRoleId;
+				optionalInheritRoleId = undefined;
+			} else if ( arguments.length === 3 ) {
+				cb = optionalText;
+				optionalText = undefined;
+			}
+			
+			var data = {};
+			if ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
+			if ( optionalText ) data.text = optionalText;
+
+			var callback = cb || noop, self = this;
+		    xhrPut( this, {
+		        url: self.host + '/role/' + roleId,
+		        data : data,
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Delete a role
+
+		_PieceMakerApi.prototype.deleteRole = function ( roleId, cb ) {
+			var callback = cb || noop, self = this;
+		    xhrDelete( this, {
+		        url: self.host + '/role/' + roleId,
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
+
+		// ###Get a role
+
+		_PieceMakerApi.prototype.deleteRole = function ( roleId, cb ) {
+			var callback = cb || noop, self = this;
+		    xhrGet( this, {
+		        url: self.host + '/role/' + roleId,
+		        success: function ( response ) {
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}
 
 		// Events
 		// --------
