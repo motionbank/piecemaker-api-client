@@ -37,7 +37,7 @@
               <p>This is the JavaScript version</p>
 <p> Created by fjenett 2012, 2013<br> <a href="https://github.com/motionbank/piecemaker-api-client">https://github.com/motionbank/piecemaker-api-client</a></p>
 <p> See:<br><a href="http://motionbank.org/">http://motionbank.org/</a><br><a href="http://piecemaker.org/">http://piecemaker.org/</a></p>
-<p>Version: 0.0.18<br>Build: 817</p>
+<p>Version: 0.0.18<br>Build: 826</p>
 
             </div>
             
@@ -863,7 +863,7 @@ These can be grouped into roles to allow for fine grained user rights control.</
 			xhrGet( <span class="keyword">this</span>, {
 		        url: self.host + <span class="string">'/permissions'</span>,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -883,16 +883,22 @@ These can be grouped into roles to allow for fine grained user rights control.</
             </div>
             
             <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.addPermissionToRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, right, cb )</span> {</span>
+		_PieceMakerApi.prototype.addPermissionToRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, optionalRight_or_cb, cb )</span> {</span>
+			<span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
+				cb = optionalRight_or_cb;
+			}
+			<span class="keyword">if</span> ( arguments.length == <span class="number">2</span> ) {
+				optionalRight_or_cb = <span class="string">'allow'</span>;
+			}
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 			xhrPost( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission'</span>,
+		        url: self.host + <span class="string">'/role/'</span> + roleId + <span class="string">'/permission'</span>,
 		        data : {
 		        	entity : permission,
-		        	permission : right
+		        	permission : optionalRight_or_cb
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -915,12 +921,12 @@ These can be grouped into roles to allow for fine grained user rights control.</
 		_PieceMakerApi.prototype.updatePermissionForRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, right, cb )</span> {</span>
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 			xhrPut( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
+		        url: self.host + <span class="string">'/role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
 		        data : {
 		        	permission : right
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -942,9 +948,9 @@ These can be grouped into roles to allow for fine grained user rights control.</
 		_PieceMakerApi.prototype.removePermissionFromRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, cb )</span> {</span>
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 			xhrDelete( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
+		        url: self.host + <span class="string">'/role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -967,9 +973,9 @@ These can be grouped into roles to allow for fine grained user rights control.</
 		_PieceMakerApi.prototype.getPermissionFromRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, cb )</span> {</span>
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 			xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
+		        url: self.host + <span class="string">'/role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>

@@ -113,8 +113,8 @@ See readme for time being please.
 			<path refid="library-classpath" />
 		</copy>
 
-		<copy todir="${dist}/${lib.name}/examples">
-			<dirset dir="examples" />
+		<copy todir="${dist}/${lib.name}/examples  ">
+			<fileset dir="examples" />
 		</copy>
 		
 		<mkdir dir="${dist}/${lib.name}/${docs}/java" />

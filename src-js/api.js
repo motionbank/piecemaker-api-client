@@ -512,7 +512,7 @@
 			xhrGet( this, {
 		        url: self.host + '/permissions',
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -521,16 +521,22 @@
 
 		// Returns: TODO
 		
-		_PieceMakerApi.prototype.addPermissionToRole = function ( roleId, permission, right, cb ) {
+		_PieceMakerApi.prototype.addPermissionToRole = function ( roleId, permission, optionalRight_or_cb, cb ) {
+			if ( arguments.length === 3 ) {
+				cb = optionalRight_or_cb;
+			}
+			if ( arguments.length == 2 ) {
+				optionalRight_or_cb = 'allow';
+			}
 			var callback = cb || noop, self = this;
 			xhrPost( this, {
-		        url: self.host + 'role/' + roleId + '/permission',
+		        url: self.host + '/role/' + roleId + '/permission',
 		        data : {
 		        	entity : permission,
-		        	permission : right
+		        	permission : optionalRight_or_cb
 		        },
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -542,12 +548,12 @@
 		_PieceMakerApi.prototype.updatePermissionForRole = function ( roleId, permission, right, cb ) {
 			var callback = cb || noop, self = this;
 			xhrPut( this, {
-		        url: self.host + 'role/' + roleId + '/permission/' + permission,
+		        url: self.host + '/role/' + roleId + '/permission/' + permission,
 		        data : {
 		        	permission : right
 		        },
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -557,9 +563,9 @@
 		_PieceMakerApi.prototype.removePermissionFromRole = function ( roleId, permission, cb ) {
 			var callback = cb || noop, self = this;
 			xhrDelete( this, {
-		        url: self.host + 'role/' + roleId + '/permission/' + permission,
+		        url: self.host + '/role/' + roleId + '/permission/' + permission,
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -571,9 +577,9 @@
 		_PieceMakerApi.prototype.getPermissionFromRole = function ( roleId, permission, cb ) {
 			var callback = cb || noop, self = this;
 			xhrGet( this, {
-		        url: self.host + 'role/' + roleId + '/permission/' + permission,
+		        url: self.host + '/role/' + roleId + '/permission/' + permission,
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
