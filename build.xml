@@ -114,7 +114,7 @@ See readme for time being please.
 		</copy>
 
 		<copy todir="${dist}/${lib.name}/examples  ">
-			<fileset dir="examples" />
+			<fileset dir="examples/processing" />
 		</copy>
 		
 		<mkdir dir="${dist}/${lib.name}/${docs}/java" />
