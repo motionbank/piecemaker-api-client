@@ -17,177 +17,6 @@
 
 	var PieceMakerApi = (function(ajaxImpl){
 
-		// Helpers
-		// -------
-
-		// ... just an empty function to use in place of missing callbacks
-
-	    var noop = function(){};
-
-	    // Convert Processing.js HashMaps to JavaScript objects
-
-	    var convertData = function ( data ) {
-	    	if ( !data ) return data;
-	    	if ( typeof data !== 'object' ) return data;
-	    	if ( 'entrySet' in data && typeof data.entrySet === 'function' ) {
-	    		var allowed_long_keys = ['utc_timestamp', 'duration', 'type'];
-	    		var set = data.entrySet();
-	    		if ( !set ) return data;
-	    		var obj = {};
-	    		var iter = set.iterator();
-	    		while ( iter.hasNext() ) {
-					var entry = iter.next();
-					var val = entry.getValue();
-					if ( val && typeof val === 'object' && 
-						 'entrySet' in val && 
-						 typeof val.entrySet === 'function' ) val = convertData(val);
-					var key = entry.getKey();
-					if ( !key ) {
-						throw( "Field key is not valid: " + key );
-					}
-					obj[entry.getKey()] = val;
-				}
-				return obj;
-	    	} else {
-	    		if ( 'utc_timestamp' in data ) data.utc_timestamp = jsDateToTs(data.utc_timestamp);
-	    		if ( 'created_at' in data )    data.created_at 	  = jsDateToTs(data.created_at);
-	    	}
-	    	return data;
-	    }
-
-	    // temporary fix for:
-	    // https://github.com/motionbank/piecemaker2/issues/54
-
-	    var fixEventsResponseToArr = function ( resp ) {
-	    	if ( resp instanceof Array ) {
-	    		var arr = [];
-	    		for ( var i = 0; i < resp.length; i++ ) {
-	    			arr.push( expandEventToObject( fixEventResponse( resp[i] ) ) );
-	    		}
-	    		return arr;
-	    	}
-	    	return resp;
-	    }
-
-	    var fixEventResponse = function ( resp ) {
-	    	var eventObj = resp['event'];
-	    	eventObj['fields'] = {};
-	    	for ( var i = 0, fields = resp['fields']; i < fields.length; i++ ) {
-	    		eventObj['fields'][fields[i]['id']] = fields[i]['value'];
-	    	}
-	    	return eventObj;
-	    }
-
-	    var expandEventToObject = function ( event ) {
-	    	event.fields.get = (function(e){
-	    		return function ( k ) {
-	    			return e.fields[k];
-	    		}
-	    	})(event);
-	    	event.utc_timestamp = new Date( event.utc_timestamp * 1000.0 );
-	    	return event;
-	    }
-
-	    var jsDateToTs = function ( date_time ) {
-	    	if ( date_time instanceof Date ) {
-	    		return date_time.getTime() / 1000.0;
-	    	} else {
-	    		if ( date_time > 9999999999 ) {
-	    			return date_time / 1000.0; // assume it's a JS timestamp in ms
-	    		} else {
-	    			return date_time; // assume it's ok
-	    		}
-	    	}
-	    }
-
-	    // XHR requests
-	    // ------------
-
-		/* cross origin resource sharing
-		   http://www.html5rocks.com/en/tutorials/cors/ */
-		
-	    var xhrRequest = function ( pm, url, type, data, success ) {
-
-	    	// Almost all calls to the API need to be done including a per-user API token.
-	    	// This token is passed into the constructor below and gets automatically 
-	    	// added to each call here if it is not already present.
-
-	    	if ( !pm.api_key && !url.match(/\/user\/login$/) ) {
-	    		throw( "PieceMakerApi: need an API_KEY, please login first to obtain one" );
-	    	}
-
-	    	var ts = (new Date()).getTime();
-	    	var callUrl = url + '.json';
-
-	        ajaxImpl({
-	                url: callUrl,
-	                type: type,
-	                dataType: 'json',
-	                data: data || {},
-					// before: function ( xhr ) {
-					// 	if ( !url.match(/\/user\/login$/) ) {
-					// 		xhr.setRequestHeader( 'X-Access-Key', api.api_key );
-					// 	}
-					// },
-					context: pm,
-	                success: function () {
-	                	if ( arguments && arguments[0] && 
-	                		 typeof arguments[0] === 'object' && 
-	                		 !(arguments[0] instanceof Array) && 
-	                		 !('queryTime' in arguments[0]) ) {
-	                		arguments[0]['queryTime'] = ((new Date()).getTime()) - ts;
-	                	}
-	                	success.apply( pm, arguments );
-	                },
-	                error: function (err) {
-	                    xhrError( pm, callUrl, type, err );
-	                },
-	                /* , xhrFields: { withCredentials: true } */
-					/* , headers: { 'Cookie' : document.cookie } */
-					headers: {
-						'X-Access-Key': pm.api_key
-					}
-	            });
-	    };
-
-		var xhrGet = function ( pm, opts ) {
-			xhrRequest( pm, opts.url, 'get', opts.data, opts.success );
-		}
-
-		var xhrPut = function ( pm, opts ) {
-		    xhrRequest( pm, opts.url, 'put', opts.data, opts.success );
-		}
-
-		var xhrPost = function ( pm, opts ) {
-		    xhrRequest( pm, opts.url, 'post', opts.data, opts.success );
-		}
-
-		var xhrDelete = function ( pm, opts ) {
-		    xhrRequest( pm, opts.url, 'delete', null, opts.success );
-		}
-		
-		var xhrError = function ( pm, url, type, err ) {
-
-			var statusCode = -1, statusMessage = "";
-
-			if ( err ) {
-				statusCode = err.status || err.statusCode;
-				statusMessage = err.statusText || err.message || 'No error message';
-				if ( err.responseText ) {
-					statusMessage += " " + err.responseText;
-				}
-			}
-
-			if ( pm && 'piecemakerError' in pm && typeof pm['piecemakerError'] == 'function' )
-				pm['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
-			else {
-				if ( typeof console !== 'undefined' && console.log ) {
-					console.log( statusCode, statusMessage, url, type, err );
-				}
-				throw( err );
-			}
-		}
-
 	    // Class PieceMakerApi2
 	    // ---------------------
 
@@ -252,7 +81,9 @@
 
 		// ###Log a user in
 
-		// Returns api key as string
+		// If the user has no API key, this will generate one
+
+		// Returns API key as string
 
 		_PieceMakerApi.prototype.login = function ( userEmail, userPassword, cb ) {
 			var callback = cb || noop, api = this;
@@ -279,18 +110,11 @@
 
 		// ###Log a user out
 
+		// Does nothing at the moment, there is no more logging out
+
 		_PieceMakerApi.prototype.logout = function ( cb ) {
-			var callback = cb || noop, api = this;
-			var self = this;
-		    xhrPost( this, {
-		        url: self.host + '/user/logout',
-		        success: function ( response ) {
-		        	if ( response && 'api_access_key' in response && response['api_access_key'] ) {
-		        		self.api_key = response['api_access_key'];
-		        	}
-					callback.call( self.context || cb, null );
-		        }
-		    });
+			var callback = cb || noop;
+			callback.call( this.context || cb, null );
 		}
 
 		// ###Get all users
@@ -327,14 +151,18 @@
 
 		// Creates a new user and returns it
 
-		_PieceMakerApi.prototype.createUser = function ( userName, userEmail, userIsAdmin, cb ) {
-			var callback = cb || noop, api = this;
-			var self = this;
+		_PieceMakerApi.prototype.createUser = function ( userName, userEmail, optionalUserRoleId, cb ) {
+			if ( arguments.length === 3 ) {
+				cb = optionalUserRoleId;
+				optionalUserRoleId = "user";
+			}
+			var callback = cb || noop, self = this;
 			xhrPost( self, {
 				url: self.host + '/user',
 				data: {
-					name: userName, email: userEmail,
-					is_super_admin: userIsAdmin
+					name: userName, 
+					email: userEmail,
+					user_role_id: optionalUserRoleId
 				},
 				success: function ( response ) {
 					callback.call( self.context || cb, response );
@@ -360,15 +188,28 @@
 
 		// Update a user and return it
 
-		_PieceMakerApi.prototype.updateUser = function ( userId, userName, userEmail, userPassword, userToken, cb ) {
-			var callback = cb || noop;
-			var self = this;
+		_PieceMakerApi.prototype.updateUser = function ( userId, userName, userEmail, userRoleId_or_cb, 
+														 userIsDisabled, userNewPassword, 
+														 cb ) {
+			if ( arguments.length === 4 ) {
+				cb = userRoleId_or_cb;
+			} else if ( arguments.length !== 7 ) {
+				throw( 'Parameter exception: updateUser() expects 4 or 7 params' );
+			}
+			var callback = cb || noop, self = this;
+			var data = {
+				name: userName, 
+				email: userEmail
+			};
+			if ( arguments.length === 7 ) {
+				if ( userRoleId_or_cb )
+					data.user_role_id = userRoleId_or_cb;
+				data.is_disabled = userIsDisabled ? true : false;
+				data.new_password = userNewPassword ? true : false;
+			};
 			xhrPut( self, {
 				url: self.host + '/user/' + userId,
-				data: {
-					name: userName, email: userEmail,
-					password: userPassword, api_access_key: userToken
-				},
+				data: data,
 				success: function ( response ) {
 					callback.call( self.context || cb, response );
 				}
@@ -392,8 +233,8 @@
 		// Groups
 		// -------
 
-		// Groups are what Piecemaker 1 called "Piece":  
-		// they are just a collection of events
+		// Groups are what Piecemaker 1 called a "piece":  
+		// a collection of events (markers, videos, recordings, ...)
 
 		// ###Get all groups for current user
 
@@ -520,7 +361,7 @@
 
 		// Returns: TODO
 
-		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, userId, userRoleId, cb ) {
+		_PieceMakerApi.prototype.addUserToGroup = function ( groupId, userId, userRoleId, cb ) {
 			var callback = cb || noop, self = this;
 		    xhrPost( this, {
 		        url: self.host + '/group/'+groupId+'/user/'+userId,
@@ -537,7 +378,7 @@
 
 		// Returns: TODO
 
-		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, userId, userRoleId, cb ) {
+		_PieceMakerApi.prototype.updateUserGroupRole = function ( groupId, userId, userRoleId, cb ) {
 			var callback = cb || noop, self = this;
 		    xhrPut( this, {
 		        url: self.host + '/group/'+groupId+'/user/'+userId,
@@ -552,7 +393,7 @@
 
 		// ###Remove user from group
 
-		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, userId, cb ) {
+		_PieceMakerApi.prototype.removeUserFromGroup = function ( groupId, userId, cb ) {
 			var callback = cb || noop, self = this;
 		    xhrDelete( this, {
 		        url: self.host + '/group/'+groupId+'/user/'+userId,
@@ -727,7 +568,7 @@
 
 		// Returns: the role permission
 		
-		_PieceMakerApi.prototype.getPermissionForRole = function ( roleId, permission, cb ) {
+		_PieceMakerApi.prototype.getPermissionFromRole = function ( roleId, permission, cb ) {
 			var callback = cb || noop, self = this;
 			xhrGet( this, {
 		        url: self.host + 'role/' + roleId + '/permission/' + permission,
@@ -788,7 +629,7 @@
 			var cb = arguments[arguments.length-1];
 			var callback = cb || noop, self = this;
 			xhrGet( self, {
-		        url: self.host + '/group/'+groupId+'/events',
+		        url: self.host + '/group/' + groupId + '/events',
 		        data: {
 		        	fields: fields
 		        },
@@ -799,15 +640,31 @@
 		}
 
 		// ###Get all events that happened within given timeframe
+
+		// If either *to* or *from* are null it is like saying *before to* or *after from*.
+
+		// The *method* parameter is optional, can be any of
+		// <ul><li>'utc_timestamp', looking only at the start points</li>
+		// <li>'intersect', returning events that intersect the given time span or are contained within</li>
+		// <li>'contain', returning events that are contained in time span</li></ul>
+		// See here for details:
+		// https://github.com/motionbank/piecemaker2-api/issues/76#issuecomment-37030586
 		
-		_PieceMakerApi.prototype.listEventsBetween = function ( groupId, from, to, cb ) {
+		_PieceMakerApi.prototype.listEventsForTimespan = function ( groupId, from, to, method, cb ) {
+			if ( arguments.length === 4 ) cb = method;
 			var callback = cb || noop, self = this;
+			var data = {
+	        	from: (from !== null ? jsDateToTs(from) : null),
+	        	to:   (to   !== null ? jsDateToTs(to)   : null)
+	        };
+	        if ( arguments.length === 5 && method !== null ) {
+	        	method = method.toLowerCase();
+	        	if ( ['utc_timestamp','intersect','contain'].indexOf(method) === -1 ) method = 'intersect';
+	        	data.fromto_query = method;
+	        }
 			xhrGet( self, {
 		        url: self.host + '/group/'+groupId+'/events',
-		        data: {
-		        	from: jsDateToTs(from),
-		        	to:   jsDateToTs(to)
-		        },
+		        data: data,
 		        success: function ( response ) {
 		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
@@ -819,8 +676,8 @@
 		_PieceMakerApi.prototype.findEvents = function ( groupId, eventData, cb ) {
 			var callback = cb || noop, self = this;
 			xhrGet( self, {
-		        url: self.host + '/group/'+groupId+'/events',
-		        data: eventData,
+		        url: self.host + '/group/' + groupId + '/events',
+		        data: convertData( eventData ),
 		        success: function ( response ) {
 		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
 		        }
@@ -845,7 +702,7 @@
 			var data = convertData( eventData );
 			var callback = cb || noop, self = this;
 			xhrPost( this, {
-		        url: self.host + '/group/'+groupId+'/event',
+		        url: self.host + '/group/' + groupId + '/event',
 		        data: data,
 		        success: function ( response ) {
 		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
@@ -902,7 +759,10 @@
 		// ###Create a callback to be used for the API calls
 
 		_PieceMakerApi.prototype.createCallback = function () {
-			if ( arguments.length == 1 ) {
+
+			var self = this;
+
+			if ( arguments.length === 1 ) {
 
 				return self.context[arguments[0]];
 
@@ -939,10 +799,185 @@
 				throw( "createCallback(): wrong number of arguments" );
 		}
 
+
+		// Helpers
+		// -------
+
+		// ... just an empty function to use in place of missing callbacks
+
+	    var noop = function(){};
+
+	    // Convert Processing.js HashMaps to JavaScript objects
+
+	    var convertData = function ( data ) {
+	    	if ( !data ) return data;
+	    	if ( typeof data !== 'object' ) return data;
+	    	if ( 'entrySet' in data && typeof data.entrySet === 'function' ) {
+	    		//var allowed_long_keys = ['utc_timestamp', 'duration', 'type', 'token'];
+	    		var set = data.entrySet();
+	    		if ( !set ) return data;
+	    		var obj = {};
+	    		var iter = set.iterator();
+	    		while ( iter.hasNext() ) {
+					var entry = iter.next();
+					var val = entry.getValue();
+					if ( val && typeof val === 'object' && 
+						 'entrySet' in val && 
+						 typeof val.entrySet === 'function' ) val = convertData(val);
+					var key = entry.getKey();
+					if ( !key ) {
+						throw( "Field key is not valid: " + key );
+					}
+					obj[entry.getKey()] = val;
+				}
+				return obj;
+	    	} else {
+	    		if ( 'utc_timestamp' in data ) data.utc_timestamp = jsDateToTs(data.utc_timestamp);
+	    		if ( 'created_at' in data )    data.created_at 	  = jsDateToTs(data.created_at);
+	    	}
+	    	return data;
+	    }
+
+	    // temporary fix for:
+	    // https://github.com/motionbank/piecemaker2/issues/54
+
+	    var fixEventsResponseToArr = function ( resp ) {
+	    	if ( resp instanceof Array ) {
+	    		var arr = [];
+	    		for ( var i = 0; i < resp.length; i++ ) {
+	    			arr.push( expandEventToObject( fixEventResponse( resp[i] ) ) );
+	    		}
+	    		return arr;
+	    	}
+	    	return resp;
+	    }
+
+	    var fixEventResponse = function ( resp ) {
+	    	var eventObj = resp['event'];
+	    	eventObj['fields'] = {};
+	    	for ( var i = 0, fields = resp['fields']; i < fields.length; i++ ) {
+	    		eventObj['fields'][fields[i]['id']] = fields[i]['value'];
+	    	}
+	    	return eventObj;
+	    }
+
+	    var expandEventToObject = function ( event ) {
+	    	event.fields.get = (function(e){
+	    		return function ( k ) {
+	    			return e.fields[k];
+	    		}
+	    	})(event);
+	    	event.utc_timestamp = new Date( event.utc_timestamp * 1000.0 );
+	    	return event;
+	    }
+
+	    var jsDateToTs = function ( date_time ) {
+	    	if ( date_time instanceof Date ) {
+	    		return date_time.getTime() / 1000.0;
+	    	} else {
+	    		if ( date_time > 9999999999 ) {
+	    			return date_time / 1000.0; // assume it's a JS timestamp in ms
+	    		} else {
+	    			return date_time; // assume it's ok
+	    		}
+	    	}
+	    }
+
+	    // XHR requests
+	    // ------------
+
+		/* cross origin resource sharing
+		   http://www.html5rocks.com/en/tutorials/cors/ */
+		
+	    var xhrRequest = function ( pm, url, type, data, success ) {
+
+	    	// Almost all calls to the API need to be done including a per-user API token.
+	    	// This token is passed into the constructor below and gets automatically 
+	    	// added to each call here if it is not already present.
+
+	    	if ( !pm.api_key && !url.match(/\/user\/login$/) ) {
+	    		throw( "PieceMakerApi: need an API_KEY, please login first to obtain one" );
+	    	}
+
+	    	var ts = (new Date()).getTime();
+	    	var callUrl = url + '.json';
+
+	        ajaxImpl({
+	                url: callUrl,
+	                type: type,
+	                dataType: 'json',
+	                data: data || {},
+					// before: function ( xhr ) {
+					// 	if ( !url.match(/\/user\/login$/) ) {
+					// 		xhr.setRequestHeader( 'X-Access-Key', api.api_key );
+					// 	}
+					// },
+					context: pm,
+	                success: function () {
+	                	if ( arguments && arguments[0] && 
+	                		 typeof arguments[0] === 'object' && 
+	                		 !(arguments[0] instanceof Array) && 
+	                		 !('queryTime' in arguments[0]) ) {
+	                		arguments[0]['queryTime'] = ((new Date()).getTime()) - ts;
+	                	}
+	                	success.apply( pm, arguments );
+	                },
+	                error: function (err) {
+	                    xhrError( pm, callUrl, type, err );
+	                },
+	                /* , xhrFields: { withCredentials: true } */
+					/* , headers: { 'Cookie' : document.cookie } */
+					headers: {
+						'X-Access-Key': pm.api_key
+					}
+	            });
+	    };
+
+		var xhrGet = function ( pm, opts ) {
+			xhrRequest( pm, opts.url, 'get', opts.data, opts.success );
+		}
+
+		var xhrPut = function ( pm, opts ) {
+		    xhrRequest( pm, opts.url, 'put', opts.data, opts.success );
+		}
+
+		var xhrPost = function ( pm, opts ) {
+		    xhrRequest( pm, opts.url, 'post', opts.data, opts.success );
+		}
+
+		var xhrDelete = function ( pm, opts ) {
+		    xhrRequest( pm, opts.url, 'delete', null, opts.success );
+		}
+		
+		var xhrError = function ( pm, url, type, err ) {
+
+			var statusCode = -1, statusMessage = "";
+
+			if ( err ) {
+				statusCode = err.status || err.statusCode;
+				statusMessage = err.statusText || err.message || 'No error message';
+				if ( err.responseText ) {
+					statusMessage += " " + err.responseText;
+				}
+			}
+
+			if ( pm && 'piecemakerError' in pm && typeof pm['piecemakerError'] == 'function' )
+				pm['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
+			else {
+				if ( typeof console !== 'undefined' && console.log ) {
+					console.log( statusCode, statusMessage, url, type, err );
+				}
+				throw( err );
+			}
+		}
+
 	    return _PieceMakerApi;
 	});
 
-	// add it to the environment .. Node or browser window
+	// Environment setup
+	// -----------------
+
+	// ... Node or browser window
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 
@@ -1024,7 +1059,7 @@
 
 	} else if ( window && !('PieceMakerApi' in window) ) {
 
-		// browser
+		// in the browsers
 		window.PieceMakerApi = PieceMakerApi($.ajax);
 	}
 

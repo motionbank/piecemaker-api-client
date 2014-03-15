@@ -19,7 +19,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XdIkvf75OS3s" );
     api.whoAmI( api.createCallback( "selfLoaded" ) );
     
     // api.login( "administrator@fake-email.motionbank.org", 

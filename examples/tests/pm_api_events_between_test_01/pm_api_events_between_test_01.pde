@@ -18,9 +18,9 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XdIkvf75OS3s" );
 
-    api.listGroups( api.createCallback( "groupsLoaded" ) );
+    api.listAllGroups( api.createCallback( "groupsLoaded" ) );
     
     // api.login( "administrator@fake-email.motionbank.org", 
     //            "Administrator", 
@@ -40,8 +40,9 @@ void groupsLoaded ( Group[] groups )
 {
     for ( Group g : groups )
     {
-        if ( g.title.indexOf( "jbmf" ) != -1 )
+        if ( g.title.indexOf( "notimetofly" ) != -1 )
         {
+            println( "Loading: " + g.title );
             api.listEventsOfType( g.id, "video", api.createCallback( "videosLoaded", g ) );
             return;
         }
@@ -52,11 +53,12 @@ void videosLoaded ( org.piecemaker2.models.Event[] videos, Group g )
 {
     for ( org.piecemaker2.models.Event v : videos )
     {
-        if( v.fields.get("title").equals("20120518_002_jbmf") )
+        if( v.fields.get("title").equals("20130601_all") )
         {
-            api.listEventsBetween( g.id, 
+            api.listEventsForTimespan( g.id, 
                                    v.utc_timestamp, 
                                    new Date((long)(v.utc_timestamp.getTime() + (v.duration * 1000.0))),
+                                   //"contain",
                                    api.createCallback("videoEventsLoaded", v, g) );
         }
     }
@@ -64,10 +66,11 @@ void videosLoaded ( org.piecemaker2.models.Event[] videos, Group g )
 
 void videoEventsLoaded ( org.piecemaker2.models.Event[] events, org.piecemaker2.models.Event video, Group g )
 {
-    println( video.utc_timestamp + " " + video.duration );
+    println( "Found " + events.length );
+//    println( video.utc_timestamp + " " + video.duration );
     
     for ( org.piecemaker2.models.Event e : events )
     {
-        println( ((e.utc_timestamp.getTime() - video.utc_timestamp.getTime())/1000.0) + " sec -> " + e.fields.get("title") );
+        //println( ((e.utc_timestamp.getTime() - video.utc_timestamp.getTime())/1000.0) + " sec -> " + e.fields.get("title") );
     }
 }

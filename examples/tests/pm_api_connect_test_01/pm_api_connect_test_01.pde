@@ -17,10 +17,10 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XqmCQ4N7JkwP" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "XXX" );
     
-    api.login( "SuperAdmin", 
-               "SuperAdmin", 
+    api.login( "super-admin-1394793134@example.com", 
+               "super-admin-1394793134", 
                api.createCallback( "loggedIn" ) );
 }
 
@@ -28,7 +28,7 @@ void loggedIn ( String api_key )
 {
     println( "Logged in!" );
     println( api_key );
-    api.listGroups( api.createCallback( "groupsLoaded" ) );
+    api.listAllGroups( api.createCallback( "groupsLoaded" ) );
 }
 
 void draw ()

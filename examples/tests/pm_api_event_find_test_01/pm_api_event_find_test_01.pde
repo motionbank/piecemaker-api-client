@@ -14,7 +14,6 @@ import org.piecemaker2.models.*;
 import java.util.*;
 
 PieceMakerApi api;
-Group group;
 int eventsLen = 30;
 
 boolean passed = false;
@@ -23,7 +22,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XdIkvf75OS3s" );
     
     // api.login( "administrator@fake-email.motionbank.org", 
     //            "Administrator", 
@@ -52,11 +51,14 @@ void groupsLoaded ( Group[] groups )
 {
     if ( groups.length > 0 )
     {
-        HashMap args = new HashMap<String,String>();
+        HashMap args = new HashMap<String,Object>();
         args.put( "title", "test 123" );
         args.put( "utc_timestamp", (new Date().getTime() / 1000.0) + "");
         args.put( "duration", 1.0 );
         args.put( "type", "fake" );
+        HashMap fields = new HashMap<String,String>();
+        fields.put( "xxx-type", "also-fake" );
+        args.put( "fields", fields );
         api.createEvent( groups[0].id, args, api.createCallback( "eventsCreated", groups[0] ) );
     }
     else
@@ -67,7 +69,7 @@ void groupsLoaded ( Group[] groups )
 
 void eventsCreated ( org.piecemaker2.models.Event e, Group g ) 
 {
-    api.listEventsWithFields( g.id, "type", "fake", api.createCallback( "eventsLoaded", g ) );
+    api.listEventsWithFields( g.id, "xxx-type", "also-fake", api.createCallback( "eventsLoaded", g ) );
 }
 
 void eventsLoaded ( org.piecemaker2.models.Event[] events, Group g )
@@ -75,12 +77,15 @@ void eventsLoaded ( org.piecemaker2.models.Event[] events, Group g )
     println( events.length + " events found at eventsLoaded" );
     for ( org.piecemaker2.models.Event e : events )
     {
-        println( e.type + " " + e.fields.get("type") );
+        println( e.type + " " + e.fields.get("xxx-type") );
     }
   
+    //api.listEventsOfType( g.id, "fake", api.createCallback("eventsLoaded2", g) );
+    
     HashMap opts = new HashMap<String,String>();
     opts.put( "type", "fake" );
-    api.findEvents( g.id, opts, api.createCallback("eventsLoaded2", g) );  
+    
+    api.findEvents( g.id, opts, api.createCallback("eventsLoaded2", g) );
 }
 
 void eventsLoaded2 ( org.piecemaker2.models.Event[] events, Group g )
@@ -88,12 +93,12 @@ void eventsLoaded2 ( org.piecemaker2.models.Event[] events, Group g )
     println( events.length + " events found at eventsLoaded2" );
     for ( org.piecemaker2.models.Event e : events )
     {
-        println( e.type + " " + e.fields.get("type") );
+        println( e.type + " " + e.fields.get("xxx-type") );
     }
     
-    if ( group != null )
+    if ( g != null )
     {
-        api.deleteGroup( group.id, api.createCallback("groupDeleted") );
+        api.deleteGroup( g.id, api.createCallback("groupDeleted") );
     }
 }
 

@@ -18,7 +18,7 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XdIkvf75OS3s" );
 
     startTs = new Date().getTime();
     api.getSystemTime( api.createCallback("serverTimeReceived") );

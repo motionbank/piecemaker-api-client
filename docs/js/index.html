@@ -37,7 +37,7 @@
               <p>This is the JavaScript version</p>
 <p> Created by fjenett 2012, 2013<br> <a href="https://github.com/motionbank/piecemaker-api-client">https://github.com/motionbank/piecemaker-api-client</a></p>
 <p> See:<br><a href="http://motionbank.org/">http://motionbank.org/</a><br><a href="http://piecemaker.org/">http://piecemaker.org/</a></p>
-<p>Version: 0.0.18<br>Build: 793</p>
+<p>Version: 0.0.18<br>Build: 817</p>
 
             </div>
             
@@ -54,7 +54,7 @@
               <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <h2>Helpers</h2>
+              <h2>Class PieceMakerApi2</h2>
 
             </div>
             
@@ -67,11 +67,22 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>... just an empty function to use in place of missing callbacks</p>
+              <p>The actual implementation of the client class starts here</p>
+<h3>PieceMakerApi( context, host [, api_key] )</h3>
+<p>or</p>
+<h3>PieceMakerApi( options )</h3>
+<p>Expects these arguments or an options object with:</p>
+<pre><code>{  
+  context: &lt;object&gt;,
+  host: &lt;string&gt;,
+ api_key: &lt;string&gt; // optional
+}</code></pre>
+<p>If the api_key is not present you must use login() before being
+able to issue and calls to the API. </p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> noop = <span class="keyword">function</span>(){};</pre></div></div>
+            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> _PieceMakerApi = <span class="function"><span class="keyword">function</span> <span class="params">( argContext, argHost, argApiKey )</span> {</span></pre></div></div>
             
         </li>
         
@@ -82,6 +93,1311 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
+              <p>Fields</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="keyword">this</span>.host 	 = <span class="literal">undefined</span>;
+	    	<span class="keyword">this</span>.api_key = <span class="literal">undefined</span>;
+	    	<span class="keyword">this</span>.context = <span class="literal">undefined</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Parsing the parameters</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="keyword">var</span> params = arguments[<span class="number">0</span>];
+			
+			<span class="keyword">if</span> ( arguments.length === <span class="number">1</span> &amp;&amp; <span class="keyword">typeof</span> params == <span class="string">'object'</span> ) {
+		        <span class="keyword">this</span>.context 	= params.context || {};
+				<span class="keyword">this</span>.api_key	= params.api_key || <span class="literal">false</span>;
+				<span class="keyword">this</span>.host 		= params.host || params.base_url || <span class="string">'http://localhost:3000'</span>;
+			} <span class="keyword">else</span> {
+				<span class="keyword">if</span> ( argContext &amp;&amp; <span class="keyword">typeof</span> argContext == <span class="string">'object'</span> ) {
+					<span class="keyword">this</span>.context = argContext;
+				}
+				<span class="keyword">if</span> ( argHost &amp;&amp; <span class="keyword">typeof</span> argHost == <span class="string">'string'</span> ) {
+					<span class="keyword">this</span>.host = argHost;
+				}
+				<span class="keyword">if</span> ( argApiKey &amp;&amp; <span class="keyword">typeof</span> argApiKey == <span class="string">'string'</span> ) {
+					<span class="keyword">this</span>.api_key = argApiKey;
+				}
+			}
+
+			<span class="keyword">this</span>.host += <span class="string">'/api/v1'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Since piecemaker 2 we require the API key to be added</p>
+<p>if ( !this.api_key ) throw( &quot;PieceMaker2API: need an API_KEY for this to work&quot; );</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		}
+
+		<span class="comment">/* just as a personal reference: discussing the routes
+		   https://github.com/motionbank/piecemaker2/issues/17 */</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <h2>Users</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <h3>Log a user in</h3>
+<p>If the user has no API key, this will generate one</p>
+<p>Returns API key as string</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.login = <span class="function"><span class="keyword">function</span> <span class="params">( userEmail, userPassword, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
+			<span class="keyword">if</span> ( !userEmail || !userPassword ) {
+				<span class="keyword">throw</span>( <span class="string">"PieceMakerApi: need name and password to log user in"</span> );
+			}
+			<span class="keyword">var</span> self = <span class="keyword">this</span>;
+		    xhrPost( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/user/login'</span>,
+		        data: {
+		        	email: userEmail,
+		        	password: userPassword
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		        	<span class="keyword">var</span> api_key_new = <span class="literal">null</span>;
+		        	<span class="keyword">if</span> ( response &amp;&amp; <span class="string">'api_access_key'</span> <span class="keyword">in</span> response &amp;&amp; response[<span class="string">'api_access_key'</span>] ) {
+		        		self.api_key = response[<span class="string">'api_access_key'</span>];
+		        		api_key_new = self.api_key;
+		        	}
+					callback.call( self.context || cb, api_key_new );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <h3>Log a user out</h3>
+<p>Does nothing at the moment, there is no more logging out</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.logout = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop;
+			callback.call( <span class="keyword">this</span>.context || cb, <span class="literal">null</span> );
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <h3>Get all users</h3>
+<p>Returns a list of all users</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listUsers = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
+			<span class="keyword">var</span> self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/users'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <h3>Get self</h3>
+<p>Returns the user object for the user to given API key</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.whoAmI = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
+			<span class="keyword">var</span> self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/user/me'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h3>Create a user</h3>
+<p>Creates a new user and returns it</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createUser = <span class="function"><span class="keyword">function</span> <span class="params">( userName, userEmail, optionalUserRoleId, cb )</span> {</span>
+			<span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
+				cb = optionalUserRoleId;
+				optionalUserRoleId = <span class="string">"user"</span>;
+			}
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrPost( self, {
+				url: self.host + <span class="string">'/user'</span>,
+				data: {
+					name: userName, 
+					email: userEmail,
+					user_role_id: optionalUserRoleId
+				},
+				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+				}
+			});
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h3>Get one user</h3>
+<p>Get a user based on ID</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getUser = <span class="function"><span class="keyword">function</span> <span class="params">( userId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/user/'</span> + userId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <h3>Update one user</h3>
+<p>Update a user and return it</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateUser = <span class="function"><span class="keyword">function</span> <span class="params">( userId, userName, userEmail, userRoleId_or_cb, 
+														 userIsDisabled, userNewPassword, 
+														 cb )</span> {</span>
+			<span class="keyword">if</span> ( arguments.length === <span class="number">4</span> ) {
+				cb = userRoleId_or_cb;
+			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length !== <span class="number">7</span> ) {
+				<span class="keyword">throw</span>( <span class="string">'Parameter exception: updateUser() expects 4 or 7 params'</span> );
+			}
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			<span class="keyword">var</span> data = {
+				name: userName, 
+				email: userEmail
+			};
+			<span class="keyword">if</span> ( arguments.length === <span class="number">7</span> ) {
+				<span class="keyword">if</span> ( userRoleId_or_cb )
+					data.user_role_id = userRoleId_or_cb;
+				data.is_disabled = userIsDisabled ? <span class="literal">true</span> : <span class="literal">false</span>;
+				data.new_password = userNewPassword ? <span class="literal">true</span> : <span class="literal">false</span>;
+			};
+			xhrPut( self, {
+				url: self.host + <span class="string">'/user/'</span> + userId,
+				data: data,
+				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+				}
+			}); 
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <h3>Delete one user</h3>
+<p>Delete a user</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteUser = <span class="function"><span class="keyword">function</span> <span class="params">( userId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrDelete( <span class="keyword">this</span>, {
+				url: self.host + <span class="string">'/user/'</span> + userId,
+				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb <span class="comment">/*, response*/</span> );
+				}
+			});
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <h2>Groups</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Groups are what Piecemaker 1 called a &quot;piece&quot;:<br>a collection of events (markers, videos, recordings, ...)</p>
+<h3>Get all groups for current user</h3>
+<p>Get a list of all available (to current user) groups</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroups = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/groups'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h3>Get all groups</h3>
+<p>Get a list of all available groups,
+<strong>super_admin only</strong></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listAllGroups = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/groups/all'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <h3>Create a group</h3>
+<p>Arguments:<br><code>title</code> is the name of the group<br><code>text</code> is the group description<br>[ <code>callback</code> an optional callback ]  </p>
+<p>Returns:
+A fully loaded group object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupTitle, groupText, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop;
+			<span class="keyword">var</span> self = <span class="keyword">this</span>;
+			<span class="keyword">if</span> ( !groupTitle ) {
+				<span class="keyword">throw</span>( <span class="string">"createGroup(): title can not be empty"</span> );
+			}
+			xhrPost( self, {
+				url: self.host + <span class="string">'/group'</span>,
+				data: {
+					title: groupTitle,
+					text: groupText || <span class="string">''</span>
+				},
+			    success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+			    }
+			});
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <h3>Get a group</h3>
+<p>Returns:<br>A fully loaded group object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <h3>Update a group</h3>
+<p>Returns:<br>A fully group object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, groupData, cb )</span> {</span>
+			<span class="keyword">var</span> data = convertData( groupData );
+			<span class="keyword">var</span> callback = cb || noop;
+			<span class="keyword">var</span> self = <span class="keyword">this</span>;
+			xhrPut( self, {
+				url: self.host + <span class="string">'/group/'</span>+groupId,
+				data: data,
+				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+				}
+			});
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <h3>Delete a group</h3>
+<p>Returns nothing</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrDelete( <span class="keyword">this</span>, {
+					url: self.host + <span class="string">'/group/'</span>+groupId,
+					success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb <span class="comment">/*, response*/</span> );
+				}
+			});
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <h3>Get all users in this group</h3>
+<p>Returns:
+A list of all users in that group</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroupUsers = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/users'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <h3>Add a user to a group</h3>
+<p>Expects a user role id to be given as which the user will act in group</p>
+<p>Returns: TODO</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.addUserToGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, userId, userRoleId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrPost( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/user/'</span>+userId,
+		        data : {
+		        	user_role_id : userRoleId
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <h3>Update user role in a group</h3>
+<p>Returns: TODO</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateUserGroupRole = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, userId, userRoleId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrPut( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/user/'</span>+userId,
+		        data : {
+		        	user_role_id : userRoleId
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <h3>Remove user from group</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.removeUserFromGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, userId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrDelete( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/user/'</span>+userId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <h2>Roles</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>A role is a predefined set of permissions. Each user has a global role and 
+roles per group that he/she is part of.</p>
+<h3>List all available roles</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listRoles = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/roles'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <h3>Add new role</h3>
+<p>Returns: role created</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalText, cb )</span> {</span>
+			<span class="keyword">if</span> ( arguments.length === <span class="number">2</span> ) {
+				cb = optionalInheritRoleId;
+				optionalInheritRoleId = <span class="literal">undefined</span>;
+			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
+				cb = optionalText;
+				optionalText = <span class="literal">undefined</span>;
+			}
+			
+			<span class="keyword">var</span> data = { id: roleId };
+			<span class="keyword">if</span> ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
+			<span class="keyword">if</span> ( optionalText ) data.text = optionalText;
+
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrPost( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/role'</span>,
+		        data : data,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <h3>Update role</h3>
+<p>Returns: role updated</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalText, cb )</span> {</span>
+			<span class="keyword">if</span> ( arguments.length === <span class="number">2</span> ) {
+				cb = optionalInheritRoleId;
+				optionalInheritRoleId = <span class="literal">undefined</span>;
+			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
+				cb = optionalText;
+				optionalText = <span class="literal">undefined</span>;
+			}
+			
+			<span class="keyword">var</span> data = {};
+			<span class="keyword">if</span> ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
+			<span class="keyword">if</span> ( optionalText ) data.text = optionalText;
+
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrPut( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/role/'</span> + roleId,
+		        data : data,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <h3>Delete a role</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrDelete( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/role/'</span> + roleId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <h3>Get a role</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+		    xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/role/'</span> + roleId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, response );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <h2>Role permissions</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>A permission reflects a certain action in the API. 
+These can be grouped into roles to allow for fine grained user rights control.</p>
+<h3>Get all permissions</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.listPermissions = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/permissions'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <h3>Add a permission to a role</h3>
+<p>Returns: TODO</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.addPermissionToRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, right, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrPost( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission'</span>,
+		        data : {
+		        	entity : permission,
+		        	permission : right
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <h3>Update a role permission</h3>
+<p>Returns: TODO</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.updatePermissionForRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, right, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrPut( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
+		        data : {
+		        	permission : right
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <h3>Remove a permission from a role</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.removePermissionFromRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrDelete( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <h3>Get a role permission</h3>
+<p>Returns: the role permission</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.getPermissionFromRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <h2>Events</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>Events can be anything relating to time and a group</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <h3>Get all events</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.listEvents = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <h3>Get all events of a certain type</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.listEventsOfType = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, type, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
+		        data: {
+		        	type: type
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <h3>Get all events that have certain fields (id and value must match)</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.listEventsWithFields = <span class="function"><span class="keyword">function</span> <span class="params">( <span class="comment">/* groupId, id1, val1, id2, val2, …, cb */</span> )</span> {</span>
+			<span class="keyword">var</span> groupId = arguments[<span class="number">0</span>];
+			<span class="keyword">var</span> fields = {};
+			<span class="keyword">if</span> ( arguments.length &gt; <span class="number">3</span> ) {
+				<span class="keyword">for</span> ( <span class="keyword">var</span> i = <span class="number">1</span>; i &lt; arguments.length-<span class="number">1</span>; i+=<span class="number">2</span> ) {
+					fields[arguments[i]] = arguments[i+<span class="number">1</span>];
+				}
+			} <span class="keyword">else</span> <span class="keyword">if</span> ( <span class="keyword">typeof</span> arguments[<span class="number">1</span>] === <span class="string">'object'</span> ) {
+				<span class="keyword">for</span> ( <span class="keyword">var</span> k <span class="keyword">in</span> arguments[<span class="number">1</span>] ) {
+					<span class="keyword">if</span> ( arguments[<span class="number">1</span>].hasOwnProperty(k) ) fields[k] = arguments[<span class="number">1</span>][k];
+				}
+			} <span class="keyword">else</span> {
+				<span class="keyword">throw</span>( <span class="string">'Wrong parameter count'</span> );
+			}
+			<span class="keyword">var</span> cb = arguments[arguments.length-<span class="number">1</span>];
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( self, {
+		        url: self.host + <span class="string">'/group/'</span> + groupId + <span class="string">'/events'</span>,
+		        data: {
+		        	fields: fields
+		        },
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-45">&#182;</a>
+              </div>
+              <h3>Get all events that happened within given timeframe</h3>
+<p>If either <em>to</em> or <em>from</em> are null it is like saying <em>before to</em> or <em>after from</em>.</p>
+<p>The <em>method</em> parameter is optional, can be any of</p>
+<p><ul><li>&#39;utc_timestamp&#39;, looking only at the start points</li></p>
+<p><li>&#39;intersect&#39;, returning events that intersect the given time span or are contained within</li></p>
+<p><li>&#39;contain&#39;, returning events that are contained in time span</li></ul>
+See here for details:
+<a href="https://github.com/motionbank/piecemaker2-api/issues/76#issuecomment-37030586">https://github.com/motionbank/piecemaker2-api/issues/76#issuecomment-37030586</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.listEventsForTimespan = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, from, to, method, cb )</span> {</span>
+			<span class="keyword">if</span> ( arguments.length === <span class="number">4</span> ) cb = method;
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			<span class="keyword">var</span> data = {
+	        	from: (from !== <span class="literal">null</span> ? jsDateToTs(from) : <span class="literal">null</span>),
+	        	to:   (to   !== <span class="literal">null</span> ? jsDateToTs(to)   : <span class="literal">null</span>)
+	        };
+	        <span class="keyword">if</span> ( arguments.length === <span class="number">5</span> &amp;&amp; method !== <span class="literal">null</span> ) {
+	        	method = method.toLowerCase();
+	        	<span class="keyword">if</span> ( [<span class="string">'utc_timestamp'</span>,<span class="string">'intersect'</span>,<span class="string">'contain'</span>].indexOf(method) === -<span class="number">1</span> ) method = <span class="string">'intersect'</span>;
+	        	data.fromto_query = method;
+	        }
+			xhrGet( self, {
+		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
+		        data: data,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-46">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <h3>Get all events that match</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.findEvents = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventData, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( self, {
+		        url: self.host + <span class="string">'/group/'</span> + groupId + <span class="string">'/events'</span>,
+		        data: convertData( eventData ),
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-47">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <h3>Get one event</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		_PieceMakerApi.prototype.getEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( self, {
+		        url: self.host + <span class="string">'/event/'</span>+eventId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-48">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <h3>Create one event</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventData, cb )</span> {</span>
+			<span class="keyword">var</span> data = convertData( eventData );
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrPost( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/group/'</span> + groupId + <span class="string">'/event'</span>,
+		        data: data,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <h3>Update one event</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventId, eventData, cb )</span> {</span>
+			<span class="keyword">var</span> data = convertData( eventData );
+			data[<span class="string">'event_group_id'</span>] = groupId;
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrPut( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/event/'</span> + eventId,
+		        data: data,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		            callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-50">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <h3>Delete one event</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventId, cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			<span class="keyword">if</span> ( (<span class="keyword">typeof</span> eventId === <span class="string">'object'</span>) &amp;&amp; (<span class="string">'id'</span> <span class="keyword">in</span> eventId) ) eventId = eventId.id;
+			xhrDelete( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/event/'</span> + eventId,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		            callback.call( self.context || cb , expandEventToObject( fixEventResponse( response ) ) );
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-51">&#182;</a>
+              </div>
+              <h2>System related calls</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-52">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-52">&#182;</a>
+              </div>
+              <h3>Get the system (server) time</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getSystemTime = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
+			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
+			xhrGet( <span class="keyword">this</span>, {
+		        url: self.host + <span class="string">'/system/utc_timestamp'</span>,
+		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
+		            callback.call( self.context || cb, <span class="keyword">new</span> Date( response.utc_timestamp * <span class="number">1000</span> ));
+		        }
+		    });
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-53">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-53">&#182;</a>
+              </div>
+              <h2>Additional client methods</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-54">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h3">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <h3>Create a callback to be used for the API calls</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createCallback = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+
+			<span class="keyword">var</span> self = <span class="keyword">this</span>;
+
+			<span class="keyword">if</span> ( arguments.length === <span class="number">1</span> ) {
+
+				<span class="keyword">return</span> self.context[arguments[<span class="number">0</span>]];
+
+			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length &gt;= <span class="number">2</span> ) {
+				
+				<span class="keyword">var</span> more = <span class="number">1</span>;
+				<span class="keyword">var</span> cntx = self.context, meth = arguments[<span class="number">0</span>];
+				
+				<span class="keyword">if</span> ( <span class="keyword">typeof</span> arguments[<span class="number">0</span>] !== <span class="string">'string'</span> ) { <span class="comment">// then it's not a method name</span>
+					cntx = arguments[<span class="number">0</span>];
+					<span class="keyword">if</span> ( <span class="keyword">typeof</span> arguments[<span class="number">1</span>] !== <span class="string">'string'</span> ) {
+						<span class="keyword">throw</span>( <span class="string">'createCallback(): if first argument is a target then the second needs to be a method name'</span> );
+					}
+					meth = arguments[<span class="number">1</span>];
+					more = <span class="number">2</span>;
+				}
+
+				<span class="keyword">if</span> ( arguments.length &gt; more ) {
+					<span class="keyword">var</span> args = [];
+					<span class="keyword">for</span> ( <span class="keyword">var</span> i = more; i &lt; arguments.length; i++ ) {
+						args.push( arguments[i] );
+					}	
+					<span class="keyword">return</span> (<span class="keyword">function</span>(c,m,a){
+						<span class="keyword">return</span> <span class="keyword">function</span>(response) {
+							<span class="keyword">if</span> (response) a.unshift(response);
+							c[m].apply( c, a );
+						}
+					})(cntx, meth, args);
+				}
+				<span class="keyword">else</span> 
+					<span class="keyword">return</span> cntx[meth];
+			}
+			<span class="keyword">else</span>
+				<span class="keyword">throw</span>( <span class="string">"createCallback(): wrong number of arguments"</span> );
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-55">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-55">&#182;</a>
+              </div>
+              <h2>Helpers</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-56">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-56">&#182;</a>
+              </div>
+              <p>... just an empty function to use in place of missing callbacks</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> noop = <span class="keyword">function</span>(){};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-57">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-57">&#182;</a>
+              </div>
               <p>Convert Processing.js HashMaps to JavaScript objects</p>
 
             </div>
@@ -89,9 +1405,22 @@
             <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> convertData = <span class="function"><span class="keyword">function</span> <span class="params">( data )</span> {</span>
 	    	<span class="keyword">if</span> ( !data ) <span class="keyword">return</span> data;
 	    	<span class="keyword">if</span> ( <span class="keyword">typeof</span> data !== <span class="string">'object'</span> ) <span class="keyword">return</span> data;
-	    	<span class="keyword">if</span> ( <span class="string">'entrySet'</span> <span class="keyword">in</span> data &amp;&amp; <span class="keyword">typeof</span> data.entrySet === <span class="string">'function'</span> ) {
-	    		<span class="keyword">var</span> allowed_long_keys = [<span class="string">'utc_timestamp'</span>, <span class="string">'duration'</span>, <span class="string">'type'</span>];
-	    		<span class="keyword">var</span> set = data.entrySet();
+	    	<span class="keyword">if</span> ( <span class="string">'entrySet'</span> <span class="keyword">in</span> data &amp;&amp; <span class="keyword">typeof</span> data.entrySet === <span class="string">'function'</span> ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-58">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-58">&#182;</a>
+              </div>
+              <p>var allowed_long_keys = [&#39;utc_timestamp&#39;, &#39;duration&#39;, &#39;type&#39;, &#39;token&#39;];</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	    		<span class="keyword">var</span> set = data.entrySet();
 	    		<span class="keyword">if</span> ( !set ) <span class="keyword">return</span> data;
 	    		<span class="keyword">var</span> obj = {};
 	    		<span class="keyword">var</span> iter = set.iterator();
@@ -118,11 +1447,11 @@
         </li>
         
         
-        <li id="section-6">
+        <li id="section-59">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-59">&#182;</a>
               </div>
               <p>temporary fix for:
 <a href="https://github.com/motionbank/piecemaker2/issues/54">https://github.com/motionbank/piecemaker2/issues/54</a></p>
@@ -174,11 +1503,11 @@
         </li>
         
         
-        <li id="section-7">
+        <li id="section-60">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
               <h2>XHR requests</h2>
 
@@ -187,11 +1516,11 @@
         </li>
         
         
-        <li id="section-8">
+        <li id="section-61">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
               
             </div>
@@ -204,11 +1533,11 @@
         </li>
         
         
-        <li id="section-9">
+        <li id="section-62">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-62">&#182;</a>
               </div>
               <p>Almost all calls to the API need to be done including a per-user API token.
 This token is passed into the constructor below and gets automatically 
@@ -232,11 +1561,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-10">
+        <li id="section-63">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-63">&#182;</a>
               </div>
               <p>before: function ( xhr ) {
     if ( !url.match(/\/user\/login$/) ) {
@@ -303,1150 +1632,6 @@ added to each call here if it is not already present.</p>
 				}
 				<span class="keyword">throw</span>( err );
 			}
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-11">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-11">&#182;</a>
-              </div>
-              <h2>Class PieceMakerApi2</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-12">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
-              </div>
-              <p>The actual implementation of the client class starts here</p>
-<h3>PieceMakerApi( context, host [, api_key] )</h3>
-<p>or</p>
-<h3>PieceMakerApi( options )</h3>
-<p>Expects these arguments or an options object with:</p>
-<pre><code>{  
-  context: &lt;object&gt;,
-  host: &lt;string&gt;,
- api_key: &lt;string&gt; // optional
-}</code></pre>
-<p>If the api_key is not present you must use login() before being
-able to issue and calls to the API. </p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> _PieceMakerApi = <span class="function"><span class="keyword">function</span> <span class="params">( argContext, argHost, argApiKey )</span> {</span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-13">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
-              </div>
-              <p>Fields</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>			<span class="keyword">this</span>.host 	 = <span class="literal">undefined</span>;
-	    	<span class="keyword">this</span>.api_key = <span class="literal">undefined</span>;
-	    	<span class="keyword">this</span>.context = <span class="literal">undefined</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-14">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
-              </div>
-              <p>Parsing the parameters</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>			<span class="keyword">var</span> params = arguments[<span class="number">0</span>];
-			
-			<span class="keyword">if</span> ( arguments.length === <span class="number">1</span> &amp;&amp; <span class="keyword">typeof</span> params == <span class="string">'object'</span> ) {
-		        <span class="keyword">this</span>.context 	= params.context || {};
-				<span class="keyword">this</span>.api_key	= params.api_key || <span class="literal">false</span>;
-				<span class="keyword">this</span>.host 		= params.host || params.base_url || <span class="string">'http://localhost:3000'</span>;
-			} <span class="keyword">else</span> {
-				<span class="keyword">if</span> ( argContext &amp;&amp; <span class="keyword">typeof</span> argContext == <span class="string">'object'</span> ) {
-					<span class="keyword">this</span>.context = argContext;
-				}
-				<span class="keyword">if</span> ( argHost &amp;&amp; <span class="keyword">typeof</span> argHost == <span class="string">'string'</span> ) {
-					<span class="keyword">this</span>.host = argHost;
-				}
-				<span class="keyword">if</span> ( argApiKey &amp;&amp; <span class="keyword">typeof</span> argApiKey == <span class="string">'string'</span> ) {
-					<span class="keyword">this</span>.api_key = argApiKey;
-				}
-			}
-
-			<span class="keyword">this</span>.host += <span class="string">'/api/v1'</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-15">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
-              </div>
-              <p>Since piecemaker 2 we require the API key to be added</p>
-<p>if ( !this.api_key ) throw( &quot;PieceMaker2API: need an API_KEY for this to work&quot; );</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		}
-
-		<span class="comment">/* just as a personal reference: discussing the routes
-		   https://github.com/motionbank/piecemaker2/issues/17 */</span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-16">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-16">&#182;</a>
-              </div>
-              <h2>Users</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-17">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-17">&#182;</a>
-              </div>
-              <h3>Log a user in</h3>
-<p>Returns api key as string</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.login = <span class="function"><span class="keyword">function</span> <span class="params">( userEmail, userPassword, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
-			<span class="keyword">if</span> ( !userEmail || !userPassword ) {
-				<span class="keyword">throw</span>( <span class="string">"PieceMakerApi: need name and password to log user in"</span> );
-			}
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-		    xhrPost( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/user/login'</span>,
-		        data: {
-		        	email: userEmail,
-		        	password: userPassword
-		        },
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	<span class="keyword">var</span> api_key_new = <span class="literal">null</span>;
-		        	<span class="keyword">if</span> ( response &amp;&amp; <span class="string">'api_access_key'</span> <span class="keyword">in</span> response &amp;&amp; response[<span class="string">'api_access_key'</span>] ) {
-		        		self.api_key = response[<span class="string">'api_access_key'</span>];
-		        		api_key_new = self.api_key;
-		        	}
-					callback.call( self.context || cb, api_key_new );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-18">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-18">&#182;</a>
-              </div>
-              <h3>Log a user out</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.logout = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-		    xhrPost( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/user/logout'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	<span class="keyword">if</span> ( response &amp;&amp; <span class="string">'api_access_key'</span> <span class="keyword">in</span> response &amp;&amp; response[<span class="string">'api_access_key'</span>] ) {
-		        		self.api_key = response[<span class="string">'api_access_key'</span>];
-		        	}
-					callback.call( self.context || cb, <span class="literal">null</span> );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-19">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-19">&#182;</a>
-              </div>
-              <h3>Get all users</h3>
-<p>Returns a list of all users</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listUsers = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/users'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-20">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-20">&#182;</a>
-              </div>
-              <h3>Get self</h3>
-<p>Returns the user object for the user to given API key</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.whoAmI = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/user/me'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-21">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-21">&#182;</a>
-              </div>
-              <h3>Create a user</h3>
-<p>Creates a new user and returns it</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createUser = <span class="function"><span class="keyword">function</span> <span class="params">( userName, userEmail, userIsAdmin, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, api = <span class="keyword">this</span>;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-			xhrPost( self, {
-				url: self.host + <span class="string">'/user'</span>,
-				data: {
-					name: userName, email: userEmail,
-					is_super_admin: userIsAdmin
-				},
-				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-				}
-			});
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-22">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-22">&#182;</a>
-              </div>
-              <h3>Get one user</h3>
-<p>Get a user based on ID</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getUser = <span class="function"><span class="keyword">function</span> <span class="params">( userId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/user/'</span> + userId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-23">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-23">&#182;</a>
-              </div>
-              <h3>Update one user</h3>
-<p>Update a user and return it</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateUser = <span class="function"><span class="keyword">function</span> <span class="params">( userId, userName, userEmail, userPassword, userToken, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-			xhrPut( self, {
-				url: self.host + <span class="string">'/user/'</span> + userId,
-				data: {
-					name: userName, email: userEmail,
-					password: userPassword, api_access_key: userToken
-				},
-				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-				}
-			}); 
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-24">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-24">&#182;</a>
-              </div>
-              <h3>Delete one user</h3>
-<p>Delete a user</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteUser = <span class="function"><span class="keyword">function</span> <span class="params">( userId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrDelete( <span class="keyword">this</span>, {
-				url: self.host + <span class="string">'/user/'</span> + userId,
-				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb <span class="comment">/*, response*/</span> );
-				}
-			});
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-25">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-25">&#182;</a>
-              </div>
-              <h2>Groups</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-26">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
-              </div>
-              <p>Groups are what Piecemaker 1 called &quot;Piece&quot;:<br>they are just a collection of events</p>
-<h3>Get all groups for current user</h3>
-<p>Get a list of all available (to current user) groups</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroups = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/groups'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-27">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-27">&#182;</a>
-              </div>
-              <h3>Get all groups</h3>
-<p>Get a list of all available groups,
-<strong>super_admin only</strong></p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listAllGroups = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/groups/all'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-28">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-28">&#182;</a>
-              </div>
-              <h3>Create a group</h3>
-<p>Arguments:<br><code>title</code> is the name of the group<br><code>text</code> is the group description<br>[ <code>callback</code> an optional callback ]  </p>
-<p>Returns:
-A fully loaded group object</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupTitle, groupText, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-			<span class="keyword">if</span> ( !groupTitle ) {
-				<span class="keyword">throw</span>( <span class="string">"createGroup(): title can not be empty"</span> );
-			}
-			xhrPost( self, {
-				url: self.host + <span class="string">'/group'</span>,
-				data: {
-					title: groupTitle,
-					text: groupText || <span class="string">''</span>
-				},
-			    success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-			    }
-			});
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-29">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-29">&#182;</a>
-              </div>
-              <h3>Get a group</h3>
-<p>Returns:<br>A fully loaded group object</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-30">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-30">&#182;</a>
-              </div>
-              <h3>Update a group</h3>
-<p>Returns:<br>A fully group object</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, groupData, cb )</span> {</span>
-			<span class="keyword">var</span> data = convertData( groupData );
-			<span class="keyword">var</span> callback = cb || noop;
-			<span class="keyword">var</span> self = <span class="keyword">this</span>;
-			xhrPut( self, {
-				url: self.host + <span class="string">'/group/'</span>+groupId,
-				data: data,
-				success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-				}
-			});
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-31">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-31">&#182;</a>
-              </div>
-              <h3>Delete a group</h3>
-<p>Returns nothing</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrDelete( <span class="keyword">this</span>, {
-					url: self.host + <span class="string">'/group/'</span>+groupId,
-					success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb <span class="comment">/*, response*/</span> );
-				}
-			});
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-32">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-32">&#182;</a>
-              </div>
-              <h3>Get all users in this group</h3>
-<p>Returns:
-A list of all users in that group</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroupUsers = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/users'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-33">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-33">&#182;</a>
-              </div>
-              <h3>Add a user to a group</h3>
-<p>Expects a user role id to be given as which the user will act in group</p>
-<p>Returns: TODO</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroupUsers = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, userId, userRoleId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrPost( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/user/'</span>+userId,
-		        data : {
-		        	user_role_id : userRoleId
-		        },
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-34">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-34">&#182;</a>
-              </div>
-              <h3>Update user role in a group</h3>
-<p>Returns: TODO</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroupUsers = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, userId, userRoleId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrPut( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/user/'</span>+userId,
-		        data : {
-		        	user_role_id : userRoleId
-		        },
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-35">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-35">&#182;</a>
-              </div>
-              <h3>Remove user from group</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listGroupUsers = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, userId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrDelete( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/user/'</span>+userId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-36">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-36">&#182;</a>
-              </div>
-              <h2>Roles</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-37">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
-              </div>
-              <p>A role is a predefined set of permissions. Each user has a global role and 
-roles per group that he/she is part of.</p>
-<h3>List all available roles</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listRoles = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/roles'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-38">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-38">&#182;</a>
-              </div>
-              <h3>Add new role</h3>
-<p>Returns: role created</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalText, cb )</span> {</span>
-			<span class="keyword">if</span> ( arguments.length === <span class="number">2</span> ) {
-				cb = optionalInheritRoleId;
-				optionalInheritRoleId = <span class="literal">undefined</span>;
-			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
-				cb = optionalText;
-				optionalText = <span class="literal">undefined</span>;
-			}
-			
-			<span class="keyword">var</span> data = { id: roleId };
-			<span class="keyword">if</span> ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
-			<span class="keyword">if</span> ( optionalText ) data.text = optionalText;
-
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrPost( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/role'</span>,
-		        data : data,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-39">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-39">&#182;</a>
-              </div>
-              <h3>Update role</h3>
-<p>Returns: role updated</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalText, cb )</span> {</span>
-			<span class="keyword">if</span> ( arguments.length === <span class="number">2</span> ) {
-				cb = optionalInheritRoleId;
-				optionalInheritRoleId = <span class="literal">undefined</span>;
-			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
-				cb = optionalText;
-				optionalText = <span class="literal">undefined</span>;
-			}
-			
-			<span class="keyword">var</span> data = {};
-			<span class="keyword">if</span> ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
-			<span class="keyword">if</span> ( optionalText ) data.text = optionalText;
-
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrPut( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/role/'</span> + roleId,
-		        data : data,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-40">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-40">&#182;</a>
-              </div>
-              <h3>Delete a role</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrDelete( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/role/'</span> + roleId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-41">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-41">&#182;</a>
-              </div>
-              <h3>Get a role</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-		    xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/role/'</span> + roleId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-42">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-42">&#182;</a>
-              </div>
-              <h2>Events</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-43">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-43">&#182;</a>
-              </div>
-              <p>Events can be anything relating to time and a group</p>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-44">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-44">&#182;</a>
-              </div>
-              <h3>Get all events</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.listEvents = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-45">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-45">&#182;</a>
-              </div>
-              <h3>Get all events of a certain type</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.listEventsOfType = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, type, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
-		        data: {
-		        	type: type
-		        },
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-46">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-46">&#182;</a>
-              </div>
-              <h3>Get all events that have certain fields (id and value must match)</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.listEventsWithFields = <span class="function"><span class="keyword">function</span> <span class="params">( <span class="comment">/* groupId, id1, val1, id2, val2, …, cb */</span> )</span> {</span>
-			<span class="keyword">var</span> groupId = arguments[<span class="number">0</span>];
-			<span class="keyword">var</span> fields = {};
-			<span class="keyword">if</span> ( arguments.length &gt; <span class="number">3</span> ) {
-				<span class="keyword">for</span> ( <span class="keyword">var</span> i = <span class="number">1</span>; i &lt; arguments.length-<span class="number">1</span>; i+=<span class="number">2</span> ) {
-					fields[arguments[i]] = arguments[i+<span class="number">1</span>];
-				}
-			} <span class="keyword">else</span> <span class="keyword">if</span> ( <span class="keyword">typeof</span> arguments[<span class="number">1</span>] === <span class="string">'object'</span> ) {
-				<span class="keyword">for</span> ( <span class="keyword">var</span> k <span class="keyword">in</span> arguments[<span class="number">1</span>] ) {
-					<span class="keyword">if</span> ( arguments[<span class="number">1</span>].hasOwnProperty(k) ) fields[k] = arguments[<span class="number">1</span>][k];
-				}
-			} <span class="keyword">else</span> {
-				<span class="keyword">throw</span>( <span class="string">'Wrong parameter count'</span> );
-			}
-			<span class="keyword">var</span> cb = arguments[arguments.length-<span class="number">1</span>];
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( self, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
-		        data: {
-		        	fields: fields
-		        },
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-47">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-47">&#182;</a>
-              </div>
-              <h3>Get all events that happened within given timeframe</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.listEventsBetween = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, from, to, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( self, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
-		        data: {
-		        	from: jsDateToTs(from),
-		        	to:   jsDateToTs(to)
-		        },
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-48">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-48">&#182;</a>
-              </div>
-              <h3>Get all events that match</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.findEvents = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventData, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( self, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
-		        data: eventData,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-49">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-49">&#182;</a>
-              </div>
-              <h3>Get one event</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.getEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( self, {
-		        url: self.host + <span class="string">'/event/'</span>+eventId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-50">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-50">&#182;</a>
-              </div>
-              <h3>Create one event</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventData, cb )</span> {</span>
-			<span class="keyword">var</span> data = convertData( eventData );
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrPost( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/event'</span>,
-		        data: data,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-51">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-51">&#182;</a>
-              </div>
-              <h3>Update one event</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventId, eventData, cb )</span> {</span>
-			<span class="keyword">var</span> data = convertData( eventData );
-			data[<span class="string">'event_group_id'</span>] = groupId;
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrPut( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/event/'</span> + eventId,
-		        data: data,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		            callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-52">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-52">&#182;</a>
-              </div>
-              <h3>Delete one event</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.deleteEvent = <span class="function"><span class="keyword">function</span> <span class="params">( groupId, eventId, cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			<span class="keyword">if</span> ( (<span class="keyword">typeof</span> eventId === <span class="string">'object'</span>) &amp;&amp; (<span class="string">'id'</span> <span class="keyword">in</span> eventId) ) eventId = eventId.id;
-			xhrDelete( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/event/'</span> + eventId,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		            callback.call( self.context || cb , expandEventToObject( fixEventResponse( response ) ) );
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-53">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-53">&#182;</a>
-              </div>
-              <h2>System related calls</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-54">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-54">&#182;</a>
-              </div>
-              <h3>Get the system (server) time</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.getSystemTime = <span class="function"><span class="keyword">function</span> <span class="params">( cb )</span> {</span>
-			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
-			xhrGet( <span class="keyword">this</span>, {
-		        url: self.host + <span class="string">'/system/utc_timestamp'</span>,
-		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		            callback.call( self.context || cb, <span class="keyword">new</span> Date( response.utc_timestamp * <span class="number">1000</span> ));
-		        }
-		    });
-		}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-55">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-55">&#182;</a>
-              </div>
-              <h2>Additional client methods</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-56">
-            <div class="annotation">
-              
-              <div class="pilwrap for-h3">
-                <a class="pilcrow" href="#section-56">&#182;</a>
-              </div>
-              <h3>Create a callback to be used for the API calls</h3>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createCallback = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
-			<span class="keyword">if</span> ( arguments.length == <span class="number">1</span> ) {
-
-				<span class="keyword">return</span> self.context[arguments[<span class="number">0</span>]];
-
-			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length &gt;= <span class="number">2</span> ) {
-				
-				<span class="keyword">var</span> more = <span class="number">1</span>;
-				<span class="keyword">var</span> cntx = self.context, meth = arguments[<span class="number">0</span>];
-				
-				<span class="keyword">if</span> ( <span class="keyword">typeof</span> arguments[<span class="number">0</span>] !== <span class="string">'string'</span> ) { <span class="comment">// then it's not a method name</span>
-					cntx = arguments[<span class="number">0</span>];
-					<span class="keyword">if</span> ( <span class="keyword">typeof</span> arguments[<span class="number">1</span>] !== <span class="string">'string'</span> ) {
-						<span class="keyword">throw</span>( <span class="string">'createCallback(): if first argument is a target then the second needs to be a method name'</span> );
-					}
-					meth = arguments[<span class="number">1</span>];
-					more = <span class="number">2</span>;
-				}
-
-				<span class="keyword">if</span> ( arguments.length &gt; more ) {
-					<span class="keyword">var</span> args = [];
-					<span class="keyword">for</span> ( <span class="keyword">var</span> i = more; i &lt; arguments.length; i++ ) {
-						args.push( arguments[i] );
-					}	
-					<span class="keyword">return</span> (<span class="keyword">function</span>(c,m,a){
-						<span class="keyword">return</span> <span class="keyword">function</span>(response) {
-							<span class="keyword">if</span> (response) a.unshift(response);
-							c[m].apply( c, a );
-						}
-					})(cntx, meth, args);
-				}
-				<span class="keyword">else</span> 
-					<span class="keyword">return</span> cntx[meth];
-			}
-			<span class="keyword">else</span>
-				<span class="keyword">throw</span>( <span class="string">"createCallback(): wrong number of arguments"</span> );
 		}
 
 	    <span class="keyword">return</span> _PieceMakerApi;
@@ -1455,13 +1640,26 @@ roles per group that he/she is part of.</p>
         </li>
         
         
-        <li id="section-57">
+        <li id="section-64">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-64">&#182;</a>
+              </div>
+              <h2>Environment setup</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-65">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-57">&#182;</a>
+                <a class="pilcrow" href="#section-65">&#182;</a>
               </div>
-              <p>add it to the environment .. Node or browser window</p>
+              <p>... Node or browser window</p>
 
             </div>
             
@@ -1480,11 +1678,11 @@ roles per group that he/she is part of.</p>
         </li>
         
         
-        <li id="section-58">
+        <li id="section-66">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-58">&#182;</a>
+                <a class="pilcrow" href="#section-66">&#182;</a>
               </div>
               <p>a shim to mimic jQuery.ajax for node.js</p>
 
@@ -1555,11 +1753,11 @@ roles per group that he/she is part of.</p>
         </li>
         
         
-        <li id="section-59">
+        <li id="section-67">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-59">&#182;</a>
+                <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               <p>support common-js</p>
 
@@ -1572,13 +1770,13 @@ roles per group that he/she is part of.</p>
         </li>
         
         
-        <li id="section-60">
+        <li id="section-68">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-60">&#182;</a>
+                <a class="pilcrow" href="#section-68">&#182;</a>
               </div>
-              <p>browser</p>
+              <p>in the browsers</p>
 
             </div>
             

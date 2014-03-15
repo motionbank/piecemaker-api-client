@@ -15,8 +15,8 @@ void setup ()
 {
     size( 400, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
-    api.listGroups( api.createCallback( "groupsLoaded" ) );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XdIkvf75OS3s" );
+    api.listAllGroups( api.createCallback( "groupsLoaded" ) );
     
     // api.login( "administrator@fake-email.motionbank.org", 
     //            "Administrator", 
@@ -38,8 +38,9 @@ void groupsLoaded ( Group[] groups )
     {
         println( g.title );
         
-        if (  g.title.indexOf("jbmf") != -1 ) {
+        if (  g.title.indexOf("notimetofly") != -1 ) {
             api.getGroup( g.id, api.createCallback("groupLoaded") );
+            break;
         }
     }
 }

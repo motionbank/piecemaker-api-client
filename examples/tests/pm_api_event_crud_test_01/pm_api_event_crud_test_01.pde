@@ -22,7 +22,7 @@ void setup ()
 {
     size( 200, 200 );
     
-    api = new PieceMakerApi( this, "http://localhost:9292", "0310XMMFx35tqryp" );
+    api = new PieceMakerApi( this, "http://localhost:9292", "0310XdIkvf75OS3s" );
     
 //    api.login( "administrator@fake-email.motionbank.org", 
 //               "Administrator", 
@@ -67,13 +67,14 @@ void groupCreated ( Group g )
 
 void eventCreated ( org.piecemaker2.models.Event event )
 {
-    println( "Event #" + event.id + " '" + event.fields.get("title") + "' created" );
+    //api.getEvent( group.id, event.id, api.createCallback("eventReceived") );
     
     HashMap<String, Object> eventData = new HashMap<String, Object>();
     
     eventData.put( "utc_timestamp", (new Date().getTime()) + "" );
     eventData.put( "duration", (2000) + "" );
     eventData.put( "type", "test-type-2" );
+    eventData.put( "token", event.token );
     
     eventData.put( "fields[title]", "Oh my goodness" );
     eventData.put( "fields[super-type]", "a-super-fancy-type" );
