@@ -1,0 +1,14 @@
+{
+  "name": "piecemaker2-api-client-node-js-examples",
+  "version": "0.0.0",
+  "description": "Node.js examples for Piecemaker2 API client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "fjenett",
+  "license": "BSD-2-Clause",
+  "dependencies" : {
+  		"moment" : "*"
+	}
+}
