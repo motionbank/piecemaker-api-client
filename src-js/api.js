@@ -77,6 +77,12 @@
 			this.host += '/api/v1';
 		}
 
+		// Static fields
+
+		_PieceMakerApi.TIMESPAN 	= "utc_timestamp";
+		_PieceMakerApi.INTERSECTING = "intersect"
+		_PieceMakerApi.CONTAINED 	= "contain";
+
 		// Users
 		// ------
 
