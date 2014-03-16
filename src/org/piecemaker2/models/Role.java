@@ -17,4 +17,6 @@ public class Role
 	public String id;
 	public String inherit_from_id;
 	public String description;
+
+	public Permission[] permissions;
 }

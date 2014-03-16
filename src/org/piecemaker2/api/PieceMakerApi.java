@@ -482,17 +482,41 @@ public class PieceMakerApi
 
 	public void addUserToGroup ( int groupId, int userId, String userRoleName, ApiCallback callback )
 	{
+		HashMap data = new HashMap<String,String>();
+		data.put( "user_role_id", userRoleName );
 
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, USER, host + "/group/" + groupId + "/user/" + userId, 
+								ApiRequest.POST, data, callback )
+			).start();
+		}
 	}
 
 	public void changeUserRoleInGroup ( int groupId, int userId, String userRoleName, ApiCallback callback )
 	{
+		HashMap data = new HashMap<String,String>();
+		data.put( "user_role_id", userRoleName );
 
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, USER, host + "/group/" + groupId + "/user/" + userId, 
+								ApiRequest.PUT, data, callback )
+			).start();
+		}
 	}
 
 	public void removeUserFromGroup ( int groupId, int userId, ApiCallback callback )
 	{
-
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, USER, host + "/group/" + groupId + "/user/" + userId, 
+								ApiRequest.DELETE, null, callback )
+			).start();
+		}
 	}
 
 	// ----------------------------------------
@@ -703,7 +727,9 @@ public class PieceMakerApi
 	public void deleteEvent ( int groupId, int eventId, ApiCallback callback )
 	{
 		if ( ensureApiKey() ) {
-			new Thread( new ApiRequest( this, api_key, EVENT, host + "/event/" + eventId, ApiRequest.DELETE, null, callback ) ).start();
+			new Thread( 
+				new ApiRequest( this, api_key, EVENT, host + "/event/" + eventId, ApiRequest.DELETE, null, callback ) 
+			).start();
 		}
 	}
 
@@ -713,27 +739,59 @@ public class PieceMakerApi
 
 	public void listRoles ( ApiCallback callback )
 	{
-
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, ROLES, host + "/roles", ApiRequest.GET, null, callback )
+			).start();
+		}
 	}
 
 	public void createRole ( String roleName, String inheritFromRoleName, String description, ApiCallback callback )
 	{
+		HashMap data = new HashMap<String,String>();
+		data.put( "id", roleName );
+		data.put( "inherit_from_id", inheritFromRoleName == null ? "" : inheritFromRoleName );
+		data.put( "text", description );
+		//data.put( "description", description );
 
+		if ( ensureApiKey() ) {
+			new Thread(
+				new ApiRequest( this, api_key, ROLE, host + "/role", ApiRequest.POST, data, callback )
+			).start();
+		}
 	}
 
 	public void updateRole ( String roleName, String inheritFromRoleName, String description, ApiCallback callback )
 	{
+		HashMap data = new HashMap<String,String>();
+		data.put( "inherit_from_id", inheritFromRoleName == null ? "" : inheritFromRoleName );
+		//data.put( "text", description );
+		data.put( "description", description );
 
+		if ( ensureApiKey() ) {
+			new Thread(
+				new ApiRequest( this, api_key, ROLE, host + "/role/" + roleName, ApiRequest.PUT, data, callback )
+			).start();
+		}
 	}
 
 	public void deleteRole ( String roleName, ApiCallback callback )
 	{
-
+		if ( ensureApiKey() ) {
+			new Thread(
+				new ApiRequest( this, api_key, ROLE, host + "/role/" + roleName, ApiRequest.DELETE, null, callback )
+			).start();
+		}
 	}
 
 	public void getRole ( String roleName, ApiCallback callback )
 	{
-
+		if ( ensureApiKey() ) {
+			new Thread(
+				new ApiRequest( this, api_key, ROLE, host + "/role/" + roleName, ApiRequest.GET, null, callback )
+			).start();
+		}
 	}
 
 	// ----------------------------------------
@@ -742,27 +800,68 @@ public class PieceMakerApi
 
 	public void listPermissions ( ApiCallback callback )
 	{
-
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, PERMISSIONS, host + "/permissions", ApiRequest.GET, null, callback )
+			).start();
+		}
 	}
 
 	public void addPermissionToRole ( String roleName, String permission, String right, ApiCallback callback )
 	{
+		HashMap data = new HashMap<String,String>();
+		data.put( "entity", permission );
+		data.put( "permission", right );
 
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, PERMISSION, 
+								host + "/role/" + roleName + "/permission", 
+								ApiRequest.POST, data, callback )
+			).start();
+		}
 	}
 
 	public void changePermissionForRole ( String roleName, String permission, String right, ApiCallback callback )
 	{
+		HashMap data = new HashMap<String,String>();
+		data.put( "entity", permission );
+		data.put( "permission", right );
 
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, PERMISSION, 
+								host + "/role/" + roleName + "/permission/" + permission, 
+								ApiRequest.PUT, data, callback )
+			).start();
+		}
 	}
 
 	public void removePermissionFromRole ( String roleName, String permission, ApiCallback callback ) 
 	{
-
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, PERMISSION, 
+								host + "/role/" + roleName + "/permission/" + permission, 
+								ApiRequest.DELETE, null, callback )
+			).start();
+		}
 	}
 
 	public void getPermissionFromRole ( String roleName, String permission, ApiCallback callback )
 	{
-
+		if ( ensureApiKey() )
+		{
+			new Thread(
+				new ApiRequest( this, api_key, PERMISSION, 
+								host + "/role/" + roleName + "/permission/" + permission, 
+								ApiRequest.GET, null, callback )
+			).start();
+		}
 	}
 
 
@@ -957,19 +1056,6 @@ public class PieceMakerApi
 				request.getCallback().call( userFromJson( new JSONObject( responseBody ) ) );
 			}
 
-			else if ( request.getType() == SYSTEM )
-			{
-				request.getCallback().call(
-					new java.util.Date( 
-						(long)(
-							new JSONObject(
-								responseBody
-							).getDouble("utc_timestamp") * 1000.0 
-						)
-					)
-				);
-			}
-
 			else if ( request.getType() == LOG_IN_OUT )
 			{
 				JSONObject jsonKey = new JSONObject( responseBody );
@@ -994,6 +1080,90 @@ public class PieceMakerApi
 					request.getCallback().call();
 				else
 					request.getCallback().call( api_key_new );
+			}
+
+			else if ( request.getType() == ROLES )
+			{
+				JSONArray jsonRoles = new JSONArray( responseBody );
+
+				Role[] roles = new Role[ jsonRoles.length() ];
+
+				for ( int i = 0, k = jsonRoles.length(); i < k; i++ )
+				{
+					Role role = roleFromJson( jsonRoles.getJSONObject( i ) );
+
+					roles[i] = role;
+				}
+			
+				request.getCallback().call( (Object)roles );
+			}
+
+			else if ( request.getType() == ROLE )
+			{
+				JSONObject responseObject = new JSONObject( responseBody );
+
+				Role role = null;
+				
+				try {
+					role = roleFromJson( responseObject.getJSONObject( "role" ) );
+
+					JSONArray perms = responseObject.getJSONArray( "permissions" );
+					if ( perms != null && perms.length() > 0 ) {
+						role.permissions = new Permission[ perms.length() ];
+						for ( int i = 0; i < perms.length(); i++ ) {
+							role.permissions[i] = permissionFromJson( perms.getJSONObject(i) );
+						}
+					}
+				} catch ( Exception excp ) {
+					// ignore
+				}
+
+				if ( role == null ) {
+					role = roleFromJson( responseObject );
+				}
+
+				request.getCallback().call( (Object)role );
+			}
+
+			else if ( request.getType() == PERMISSION ) 
+			{
+				JSONObject responseObject = new JSONObject( responseBody );
+
+				Permission perm = permissionFromJson( responseObject );
+
+				request.getCallback().call( (Object)perm );
+			}
+
+			else if ( request.getType() == PERMISSIONS ) 
+			{
+				JSONArray responseArr = new JSONArray( responseBody );
+				
+				Permission[] perms = null;
+
+				if ( responseArr != null && responseArr.length() > 0 )
+				{
+					perms = new Permission[responseArr.length()];
+
+					for ( int i = 0; i < responseArr.length(); i++ ) {
+						perms[i] = new Permission();
+						perms[i].name = responseArr.getString(i);
+					}
+				}
+
+				request.getCallback().call( (Object)perms );
+			}
+
+			else if ( request.getType() == SYSTEM )
+			{
+				request.getCallback().call(
+					new java.util.Date( 
+						(long)(
+							new JSONObject(
+								responseBody
+							).getDouble("utc_timestamp") * 1000.0 
+						)
+					)
+				);
 			}
 
 			else
@@ -1151,6 +1321,65 @@ public class PieceMakerApi
 
 	// 	return event;
 	// }
+
+	/**
+	 *	roleFromJson()
+	 *
+	 *	@param json The JSON data in form of a JSONObject
+	 *  @return User The newly created Role object 
+	 */
+	private Role roleFromJson ( JSONObject e )
+	{
+		Role role = new Role();
+
+		try 
+		{
+			role.id = e.getString( "id" );
+			role.description = e.getString( "description" );
+
+			// permissions?
+		}
+		catch ( Exception excp )
+		{
+			excp.printStackTrace();
+			return null;
+		}
+
+		try {
+			role.inherit_from_id = e.getString( "inherit_from_id" );
+		} catch ( Exception excp ) {
+			// ignore
+		}
+
+		try {
+			JSONArray perms = e.getJSONArray("permissions");
+			Permission[] rolePerms = new Permission[perms.length()];
+			for ( int i = 0; i < perms.length(); i++ ) {
+				rolePerms[i] = permissionFromJson( perms.getJSONObject(i) );
+			}
+			role.permissions = rolePerms;
+		} catch ( Exception excp ) {
+			// ignore
+		}
+
+		return role;
+	}
+
+	private Permission permissionFromJson ( JSONObject e )
+	{
+		Permission perm = new Permission();
+
+		try {
+			perm.name 		= e.getString("entity");
+			perm.permission = e.getString("permission");
+
+		} catch ( Exception excp ) {
+			excp.printStackTrace();
+			return null;
+		}
+
+		return perm; 
+	}
 
 	/**
 	 *	userFromJson()

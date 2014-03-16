@@ -43,7 +43,72 @@ void selfLoaded ( User u )
 
 void rolesLoaded ( Role[] roles )
 {
-    console.log( roles );
+    for ( Role r : roles )
+    {
+        api.getRole( r.id, api.createCallback( "roleLoaded" ) );
+    }
+    
+    api.createRole( "test_role", "", "Just a simple test role", api.createCallback( "roleCreated" ) );
+}
+
+void roleLoaded ( Role r )
+{
+    println( r.id );
+    if ( r.permissions != null )
+    { 
+       for ( Permission p : r.permissions )
+       {
+           println( "    " + p.name );
+       }
+    }
+}
+
+void roleCreated ( Role r )
+{
+    println( "created " + r.id );
+    
+    api.updateRole( r.id, "user", "Changing the description as well", api.createCallback( "roleUpdated" ) );
+}
+
+void roleUpdated ( Role r )
+{
+    println( "updated " + r.id );
+    
+    api.listPermissions( api.createCallback( "permissionsLoaded", r ) );
+}
+
+void permissionsLoaded ( Permission[] perms, Role r )
+{
+    println( perms.length + " permissions loaded" );
+    
+    api.addPermissionToRole( r.id, "get_events", "allow", api.createCallback( "rolePermissionAdded", r ) );
+}
+
+void rolePermissionAdded ( Permission p, Role r )
+{
+    println( "added " + p.name + " " + p.permission );
+    
+    api.changePermissionForRole( r.id, p.name, "forbid", api.createCallback( "rolePermissionChanged", r ) );
+}
+
+void rolePermissionChanged ( Permission p, Role r )
+{
+    println( "changed " + p.name + " " + p.permission );
+    
+    api.removePermissionFromRole( r.id, p.name, api.createCallback( "rolePermissionRemoved", r ) );
+}
+
+void rolePermissionRemoved ( Permission p, Role r )
+{
+    println( "removed " + p.name );
+    
+    api.deleteRole( r.id, api.createCallback( "roleDeleted" ) );
+}
+
+void roleDeleted ( Role r )
+{
+    println( "deleted " + r.id );
+    println( "done" );
 }
 
 void piecemakerError ( int status, String errMsg, String request )

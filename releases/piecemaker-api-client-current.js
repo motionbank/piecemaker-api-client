@@ -9,7 +9,7 @@
  *	  http://piecemaker.org
  *	  http://motionbank.org
  *
- *	Version: 0.0.18, build: 838
+ *	Version: 0.0.18, build: 854
  */
  (function(){var t=function(i){var e=function(a,b,c){this.context=this.api_key=this.host=void 0;var d=arguments[0];if(1===arguments.length&&"object"==typeof d)this.context=d.context||{},this.api_key=d.api_key||!1,this.host=d.host||d.base_url||"http://localhost:3000";else if(a&&"object"==typeof a&&(this.context=a),b&&"string"==typeof b&&(this.host=b),c&&"string"==typeof c)this.api_key=c;this.host+="/api/v1"};e.TIMESPAN="utc_timestamp";e.INTERSECTING="intersect";e.CONTAINED="contain";e.prototype.login=
 function(a,b,c){var d=c||f;if(!a||!b)throw"PieceMakerApi: need name and password to log user in";var g=this;o(this,{url:g.host+"/user/login",data:{email:a,password:b},success:function(a){var b=null;a&&("api_access_key"in a&&a.api_access_key)&&(g.api_key=a.api_access_key,b=g.api_key);d.call(g.context||c,b)}})};e.prototype.logout=function(a){(a||f).call(this.context||a,null)};e.prototype.listUsers=function(a){var b=a||f,c=this;h(this,{url:c.host+"/users",success:function(d){b.call(c.context||a,d)}})};
