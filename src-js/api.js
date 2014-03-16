@@ -1,17 +1,26 @@
 // Piecemaker 2 API client for Processing and plain Java, JS in the browser and node.js
 // ====================================================================================
 
-// This is the JavaScript version
+// This is the JavaScript version.
 
-//  Created by fjenett 2012, 2013  
-//  https://github.com/motionbank/piecemaker-api-client
+// Created by fjenett 2012, 2013  
+// https://github.com/motionbank/piecemaker-api-client
 
-//  See:  
-//	http://motionbank.org/  
-//	http://piecemaker.org/
+// Parameters listed in square brackets are optional:
+// ```
+// api.someMethod( arg1 [, optionalArg2 ] )
+// ```
 
-//	Version: ##version##  
-//	Build: ##build##
+// Because of the asynchronous nature of it all API client methods except 
+// for createCallback() do not return any values. Results are passed 
+// into an mostly optional callback instead.
+
+// See:  
+// http://motionbank.org/  
+// http://piecemaker.org/
+
+// Version: ##version##  
+// Build: ##build##
 
 (function(){
 
@@ -20,40 +29,39 @@
 	    // Class PieceMakerApi2
 	    // ---------------------
 
-	    // The actual implementation of the client class starts here
-
-	    // ###PieceMakerApi( context, host [, api_key] )
-	    // or
-	    // ###PieceMakerApi( options )
-
-	    // Expects these arguments or an options object with:
+	    // Constructor versions:
+	    // ```
+	    // new PieceMakerApi( <object> context, <string> host [, <string> api_key ] )
+	    // new PieceMakerApi( <object> options )
+	    // ```
+	    // Where options object has:
 	    // ```
 	    // {  
-	    //   context: <object>,
-	    //   host: <string>,
-	    //	 api_key: <string> // optional
+	    //   context : <object>,
+	    //   host :    <string>,
+	    //   api_key : <string> // optional
 	    // }
 	    // ```
 	    //
 	    // If the api_key is not present you must use login() before being
-	    // able to issue and calls to the API. 
+	    // able to issue any other calls to the API.
 
 	    var _PieceMakerApi = function ( argContext, argHost, argApiKey ) {
 
-	    	// Fields
+	    	// Public fields
 
 			this.host 	 = undefined;
 	    	this.api_key = undefined;
 	    	this.context = undefined;
 
-	    	// Parsing the parameters
+	    	/* parsing the parameters */
 
 			var params = arguments[0];
 			
 			if ( arguments.length === 1 && typeof params == 'object' ) {
 		        this.context 	= params.context || {};
 				this.api_key	= params.api_key || false;
-				this.host 		= params.host || params.base_url || 'http://localhost:3000';
+				this.host 		= params.host 	 || params.base_url || 'http://localhost:3000';
 			} else {
 				if ( argContext && typeof argContext == 'object' ) {
 					this.context = argContext;
@@ -67,14 +75,7 @@
 			}
 
 			this.host += '/api/v1';
-
-			// Since piecemaker 2 we require the API key to be added
-
-			//if ( !this.api_key ) throw( "PieceMaker2API: need an API_KEY for this to work" );
 		}
-
-		/* just as a personal reference: discussing the routes
-		   https://github.com/motionbank/piecemaker2/issues/17 */
 
 		// Users
 		// ------
@@ -83,7 +84,14 @@
 
 		// If the user has no API key, this will generate one
 
-		// Returns API key as string
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/POST_api_version_user_login_format
+
+		// ```
+		// api.login( <string> email, <string> password [, <function> callback ] )
+		// ```
+
+		// Callback returns API key as string
 
 		_PieceMakerApi.prototype.login = function ( userEmail, userPassword, cb ) {
 			var callback = cb || noop, api = this;
@@ -112,6 +120,13 @@
 
 		// Does nothing at the moment, there is no more logging out
 
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/POST_api_version_user_logout_format
+
+		// ```
+		// api.logout( [ <function> callback ] )
+		// ```
+
 		_PieceMakerApi.prototype.logout = function ( cb ) {
 			var callback = cb || noop;
 			callback.call( this.context || cb, null );
@@ -120,6 +135,15 @@
 		// ###Get all users
 
 		// Returns a list of all users
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/users/GET_api_version_users_format
+
+		// ```
+		// api.listUsers( [ <function> callback ] )
+		// ```
+
+		// Callback receives array with all users
 
 		_PieceMakerApi.prototype.listUsers = function ( cb ) {
 			var callback = cb || noop, api = this;
@@ -132,9 +156,18 @@
 		    });
 		}
 
-		// ###Get self
+		// ###Get current user
 
-		// Returns the user object for the user to given API key
+		// Returns the currently logged in user by looking up the active API key
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/GET_api_version_user_me_format
+
+		// ```
+		// api.whoAmI( [ <function> callback ] )
+		// ```
+
+		// Callback receives current user
 
 		_PieceMakerApi.prototype.whoAmI = function ( cb ) {
 			var callback = cb || noop, api = this;
@@ -149,7 +182,16 @@
 
 		// ###Create a user
 
-		// Creates a new user and returns it
+		// Role id is optional, if none is provided it will be "user" (no permissions)
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/POST_api_version_user_format
+
+		// ```
+		// api.createUser( <string> name, <string> email [, <string> role_id ] [, <function> callback ] )
+		// ```
+
+		// Callback receives new user object
 
 		_PieceMakerApi.prototype.createUser = function ( userName, userEmail, optionalUserRoleId, cb ) {
 			if ( arguments.length === 3 ) {
@@ -170,9 +212,16 @@
 			});
 		}
 
-		// ###Get one user
+		// ###Get one user by id
 
-		// Get a user based on ID
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/GET_api_version_user_id_format
+
+		// ```
+		// api.getUser( <int> user_id [, <function> callback ] )
+		// ```
+
+		// Callback receives user object
 
 		_PieceMakerApi.prototype.getUser = function ( userId, cb ) {
 			var callback = cb || noop, self = this;
@@ -184,9 +233,21 @@
 		    });
 		}
 
-		// ###Update one user
+		// ###Update a user
 
-		// Update a user and return it
+		// Updating can change name, email or role_id and
+		// it can disable a user and recreate a new password.
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/PUT_api_version_user_id_format
+
+		// Versions:
+		// ```
+		// api.updateUser( <int> user_id, <string> name, <string> email, <function> callback )
+		// api.updateUser( <int> user_id, <string> name, <string> email, <boolean> disable, <boolean> refresh_password, <function> callback )
+		// ```
+
+		// Callback receives updated user object
 
 		_PieceMakerApi.prototype.updateUser = function ( userId, userName, userEmail, userRoleId_or_cb, 
 														 userIsDisabled, userNewPassword, 
@@ -218,7 +279,12 @@
 
 		// ###Delete one user
 
-		// Delete a user
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/DELETE_api_version_user_id_format
+
+		// ```
+		// api.deleteUser( <int> user_id [, <function> callback ] )
+		// ```
 
 		_PieceMakerApi.prototype.deleteUser = function ( userId, cb ) {
 			var callback = cb || noop, self = this;
@@ -236,9 +302,18 @@
 		// Groups are what Piecemaker 1 called a "piece":  
 		// a collection of events (markers, videos, recordings, ...)
 
-		// ###Get all groups for current user
+		// ###Get all groups visible to current user
 
-		// Get a list of all available (to current user) groups
+		// This returns a list of groups that the user belongs to
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/groups/GET_api_version_groups_format
+
+		// ```
+		// api.listGroups( <function> callback )
+		// ```
+
+		// Callback receives an array of group objects
 
 		_PieceMakerApi.prototype.listGroups = function ( cb ) {
 			var callback = cb || noop, self = this;
@@ -252,8 +327,16 @@
 
 		// ###Get all groups
 
-		// Get a list of all available groups,
-		// **super_admin only**
+		// Get a list of all available groups
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/groups/GET_api_version_groups_all_format
+
+		// ```
+		// api.listAllGroups( <function> callback )
+		// ```
+
+		// Callback receives an array of group objects
 
 		_PieceMakerApi.prototype.listAllGroups = function ( cb ) {
 			var callback = cb || noop, self = this;
@@ -267,13 +350,14 @@
 
 		// ###Create a group
 
-		// Arguments:  
-		// ```title``` is the name of the group  
-		// ```text``` is the group description  
-		// [ ```callback``` an optional callback ]  
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/POST_api_version_group_format
 
-		// Returns:
-		// A fully loaded group object
+		// ```
+		// api.createGroup( <string> title, <string> description [, <function> callback ] )
+		// ```
+
+		// Callback receives new group object
 
 		_PieceMakerApi.prototype.createGroup = function ( groupTitle, groupText, cb ) {
 			var callback = cb || noop;
@@ -293,10 +377,16 @@
 			});
 		}
 
-		// ###Get a group
+		// ###Get a group by id
 
-		// Returns:  
-		// A fully loaded group object
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_format
+
+		// ```
+		// api.getGroup( <int> group_id [, <function> callback ] )
+		// ```
+
+		// Callback receives group object
 
 		_PieceMakerApi.prototype.getGroup = function ( groupId, cb ) {
 			var callback = cb || noop, self = this;
@@ -308,10 +398,23 @@
 		    });
 		}
 
-		// ###Update a group
+		// ###Update a group by id
 
-		// Returns:  
-		// A fully group object
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/PUT_api_version_group_id_format
+
+		// ```
+		// api.updateGroup( <int> group_id, <object> data [, <function> callback ] )
+		// ```
+		// where data is
+		// ```
+		// {
+		//   title : <string>,
+		//   text :  <string>
+		// }
+		// ```
+
+		// Callback receives updated group object
 
 		_PieceMakerApi.prototype.updateGroup = function ( groupId, groupData, cb ) {
 			var data = convertData( groupData );
@@ -328,7 +431,12 @@
 
 		// ###Delete a group
 
-		// Returns nothing
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/DELETE_api_version_group_id_format
+
+		// ```
+		// api.deleteGroup( <int> group_id [, <function> callback ] )
+		// ```
 
 		_PieceMakerApi.prototype.deleteGroup = function ( groupId, cb ) {
 			var callback = cb || noop, self = this;
@@ -342,8 +450,14 @@
 
 		// ###Get all users in this group
 
-		// Returns:
-		// A list of all users in that group
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_users_format
+
+		// ```
+		// api.listGroupUsers( <int> group_id [, <function> callback ] )
+		// ```
+
+		// Callback receives an array of all users in that group
 
 		_PieceMakerApi.prototype.listGroupUsers = function ( groupId, cb ) {
 			var callback = cb || noop, self = this;
@@ -357,7 +471,14 @@
 
 		// ###Add a user to a group
 
-		// Expects a user role id to be given as which the user will act in group
+		// Expects a user role id to be given as which the user will act in the group
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/POST_api_version_group_event_group_id_user_user_id_format
+
+		// ```
+		// api.addUserToGroup( <int> group_id, <int> user_id, <string> role_id [, <function> callback ] )
+		// ```
 
 		// Returns: TODO
 
@@ -374,11 +495,18 @@
 		    });
 		}
 
-		// ###Update user role in a group
+		// ###Change a users role in a group
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/PUT_api_version_group_event_group_id_user_user_id_format
+
+		// ```
+		// api.changeUserRoleInGroup( <int> group_id, <int> user_id, <string> role_id [, <function> callback ] )
+		// ```
 
 		// Returns: TODO
 
-		_PieceMakerApi.prototype.updateUserGroupRole = function ( groupId, userId, userRoleId, cb ) {
+		_PieceMakerApi.prototype.changeUserRoleInGroup = function ( groupId, userId, userRoleId, cb ) {
 			var callback = cb || noop, self = this;
 		    xhrPut( this, {
 		        url: self.host + '/group/'+groupId+'/user/'+userId,
@@ -392,6 +520,15 @@
 		}
 
 		// ###Remove user from group
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/DELETE_api_version_group_event_group_id_user_user_id_format
+
+		// ```
+		// api.removeUserFromGroup( <int> group_id, <int> user_id [, <function> callback ] )
+		// ```
+
+		// Returns: TODO
 
 		_PieceMakerApi.prototype.removeUserFromGroup = function ( groupId, userId, cb ) {
 			var callback = cb || noop, self = this;
@@ -407,9 +544,19 @@
 		// -------
 
 		// A role is a predefined set of permissions. Each user has a global role and 
-		// roles per group that he/she is part of.
+		// roles per group that he/she is part of. Roles can inherit permissions from
+		// other roles.
 
 		// ###List all available roles
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/roles/GET_api_version_roles_format
+
+		// ```
+		// api.listRoles( [ <function> callback ] )
+		// ```
+
+		// Callback receives an array of all available roles
 
 		_PieceMakerApi.prototype.listRoles = function ( cb ) {
 			var callback = cb || noop, self = this;
@@ -423,7 +570,14 @@
 
 		// ###Add new role
 
-		// Returns: role created
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/POST_api_version_role_format
+
+		// ```
+		// api.createRole( <string> role_id [, <string> inherit_role_id ] [, <string> description ] [, <function> callback ] )
+		// ```
+
+		// Callback receives new role created
 
 		_PieceMakerApi.prototype.createRole = function ( roleId, optionalInheritRoleId, optionalText, cb ) {
 			if ( arguments.length === 2 ) {
@@ -450,7 +604,14 @@
 
 		// ###Update role
 
-		// Returns: role updated
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/PUT_api_version_role_id_format
+
+		// ```
+		// api.updateRole( <string> role_id, [, <string> inherit_role_id ] [, <string> description ] [, <function> callback ] )
+		// ```
+
+		// Callback receives updated role
 
 		_PieceMakerApi.prototype.updateRole = function ( roleId, optionalInheritRoleId, optionalText, cb ) {
 			if ( arguments.length === 2 ) {
@@ -477,6 +638,13 @@
 
 		// ###Delete a role
 
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/DELETE_api_version_role_id_format
+
+		// ```
+		// api.deleteRole( <string> role_id [, <function> callback ] )
+		// ```
+
 		_PieceMakerApi.prototype.deleteRole = function ( roleId, cb ) {
 			var callback = cb || noop, self = this;
 		    xhrDelete( this, {
@@ -487,7 +655,16 @@
 		    });
 		}
 
-		// ###Get a role
+		// ###Get a role by id
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/GET_api_version_role_id_format
+
+		// ```
+		// api.getRole( <string> role_id [, <function> callback ] )
+		// ```
+
+		// Callback receives role
 
 		_PieceMakerApi.prototype.getRole = function ( roleId, cb ) {
 			var callback = cb || noop, self = this;
@@ -502,10 +679,24 @@
 		// Role permissions
 		// --------
 
-		// A permission reflects a certain action in the API. 
-		// These can be grouped into roles to allow for fine grained user rights control.
+		// A permission reflects a certain action on the server that can be triggered through the API.
+		// Each permission can be set to "allow" or "forbid" one action.
+		// Permissions are grouped into roles to allow for fine grained user rights control.
+
+		// Permissions are predefined (hard coded) into the API, use listPermissions() to get a list.
 
 		// ###Get all permissions
+
+		// Only the permissions returned by this call are available
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/permissions/GET_api_version_permissions_format
+
+		// ```
+		// api.listPermissions( [ <function> callback ] )
+		// ```
+
+		// Callback receives an array of permissions
 		
 		_PieceMakerApi.prototype.listPermissions = function ( cb ) {
 			var callback = cb || noop, self = this;
@@ -518,6 +709,15 @@
 		}
 
 		// ###Add a permission to a role
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/POST_api_version_role_format
+
+		// ```
+		// api.addPermissionToRole( <string> role_id, <string> permission [, <string> right ] [, <function> callback ] );
+		// ```
+		// "permission" as available through listPermissions()
+		// "right" can be one of "allow" or "forbid"
 
 		// Returns: TODO
 		
@@ -541,11 +741,20 @@
 		    });
 		}
 
-		// ###Update a role permission
+		// ###Change a role permission
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/PUT_api_version_role_user_role_id_permission_role_permission_entity_format
+
+		// ```
+		// api.changePermissionForRole( <string> role_id, <string> permission, <string> right [, <function> callback ] )
+		// ```
+		// "permission" as available through listPermissions()
+		// "right" can be one of "allow" or "forbid"
 
 		// Returns: TODO
 		
-		_PieceMakerApi.prototype.updatePermissionForRole = function ( roleId, permission, right, cb ) {
+		_PieceMakerApi.prototype.changePermissionForRole = function ( roleId, permission, right, cb ) {
 			var callback = cb || noop, self = this;
 			xhrPut( this, {
 		        url: self.host + '/role/' + roleId + '/permission/' + permission,
@@ -559,6 +768,13 @@
 		}
 
 		// ###Remove a permission from a role
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/DELETE_api_version_role_user_role_id_permission_role_permission_entity_format
+
+		// ```
+		// api.removePermissionFromRole( <string> role_id, <string> permission [, <function> callback ] )
+		// ```
 		
 		_PieceMakerApi.prototype.removePermissionFromRole = function ( roleId, permission, cb ) {
 			var callback = cb || noop, self = this;
@@ -572,7 +788,14 @@
 
 		// ###Get a role permission
 
-		// Returns: the role permission
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/GET_api_version_role_user_role_id_permission_role_permission_entity_format
+
+		// ```
+		// api.getPermissionFromRole( <string> role_id, <string> permission [, <function> callback ] )
+		// ```
+
+		// Callback receives permission
 		
 		_PieceMakerApi.prototype.getPermissionFromRole = function ( roleId, permission, cb ) {
 			var callback = cb || noop, self = this;
@@ -587,9 +810,21 @@
 		// Events
 		// --------
 
-		// Events can be anything relating to time and a group
+		// Anything on a timeline is an event in Piecemaker. That includes videos, data, annotations, ...
+
+		// A bare event is a point in time (utc_timestamp), a duration in seconds and a type. 
+		// Each event can have an undefined amount of additional fields in the form of {key:value}.
 		
-		// ###Get all events
+		// ###Get all events from a group
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_events_format
+
+		// ```
+		// api.listEvents( <int> group_id [, <function> callback ] )
+		// ```
+
+		// Callback receives an array with all events in the group
 		
 		_PieceMakerApi.prototype.listEvents = function ( groupId, cb ) {
 			var callback = cb || noop, self = this;
@@ -602,6 +837,15 @@
 		}
 
 		// ###Get all events of a certain type
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_events_format
+
+		// ```
+		// api.listEventsOfType( <int> group_id, <string> type [, <function> callback ] )
+		// ```
+
+		// Callback receives an array of events
 		
 		_PieceMakerApi.prototype.listEventsOfType = function ( groupId, type, cb ) {
 			var callback = cb || noop, self = this;
@@ -617,7 +861,29 @@
 		}
 
 		// ###Get all events that have certain fields (id and value must match)
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_events_format
 		
+		// Versions:
+		// ```
+		// api.listEventsOfType( <int> group_id [, <string> key1, <string> value1, ... ] [, <function> callback ] )
+		// ```
+		// This version is a vararg and takes any amount of key-value pair parameters.
+		// ```
+		// api.listEventsOfType( <int> group_id [, <object> fields ] [, <function> callback ] )
+		// ```
+		// This version assumes the second parameter to be an object with key-values:
+		// ```
+		// {
+		//    key1 : value1,
+		//    key2 : value2,
+		//    ...
+		// }
+		// ```
+
+		// Callback receives an array of events
+
 		_PieceMakerApi.prototype.listEventsWithFields = function ( /* groupId, id1, val1, id2, val2, …, cb */ ) {
 			var groupId = arguments[0];
 			var fields = {};
@@ -646,15 +912,29 @@
 		}
 
 		// ###Get all events that happened within given timeframe
+		
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_events_format
+
+		// Versions:
+		// ```
+		// api.listEventsForTimespan( <int> group_id, <date> from [, <string> method ] [, <function> callback ] )
+		// api.listEventsForTimespan( <int> group_id, <date> to [, <string> method ] [, <function> callback ] )
+		// api.listEventsForTimespan( <int> group_id, <date> from, <date> to [, <string> method ] [, <function> callback ] )
+		// ```
 
 		// If either *to* or *from* are null it is like saying *before to* or *after from*.
 
-		// The *method* parameter is optional, can be any of
-		// <ul><li>'utc_timestamp', looking only at the start points</li>
-		// <li>'intersect', returning events that intersect the given time span or are contained within</li>
-		// <li>'contain', returning events that are contained in time span</li></ul>
+		// The *method* parameter is optional, can be any of:
+		// ```
+		// 'utc_timestamp', looking only at the start points
+		// 'intersect', returning events that intersect the given time span or are contained within
+		// 'contain', returning events that are fully contained (start+duration) in time span
+		// ```
 		// See here for details:
 		// https://github.com/motionbank/piecemaker2-api/issues/76#issuecomment-37030586
+
+		// Callback receives an array of events
 		
 		_PieceMakerApi.prototype.listEventsForTimespan = function ( groupId, from, to, method, cb ) {
 			if ( arguments.length === 4 ) cb = method;
@@ -678,6 +958,17 @@
 		}
 
 		// ###Get all events that match
+
+		// This is a very generic method that allows for more complex searches
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/GET_api_version_group_id_events_format
+
+		// ```
+		// api.findEvents( <int> group_id, <object> query [, <function> callback ] )
+		// ```
+
+		// Callback receives an array of events
 		
 		_PieceMakerApi.prototype.findEvents = function ( groupId, eventData, cb ) {
 			var callback = cb || noop, self = this;
@@ -690,7 +981,16 @@
 		    });
 		}
 
-		// ###Get one event
+		// ###Get one event by id
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/event/GET_api_version_event_id_format
+
+		// ```
+		// api.getEvent( <int> group_id, <int> event_id [, <function> callback ] )
+		// ```
+
+		// Callback receives one event
 		
 		_PieceMakerApi.prototype.getEvent = function ( groupId, eventId, cb ) {
 			var callback = cb || noop, self = this;
@@ -703,6 +1003,29 @@
 		}
 
 		// ###Create one event
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/group/POST_api_version_group_id_event_format
+
+		// ```
+		// api.createEvent( <int> group_id, <object> event_data [, <function> callback ] )
+		// ```
+		// Where *event_data* is:
+		// ```
+		// {
+		//    utc_timestamp: <date>,
+		//    duration:      <int>,
+		//    type:          <string>,
+		//	  // optionally:
+		//    fields: {
+		//        key1 : value1,
+		//        key2 : value2,
+		//        ...
+		//     } 
+		// }
+		// ```
+
+		// Callback receives newly created event
 
 		_PieceMakerApi.prototype.createEvent = function ( groupId, eventData, cb ) {
 			var data = convertData( eventData );
@@ -718,6 +1041,29 @@
 
 		// ###Update one event
 
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/event/PUT_api_version_event_id_format
+
+		// ```
+		// api.updateEvent( <int> group_id, <int> event_id, <object> event_data [, <function> callback ] )
+		// ```
+		// Where *event_data* is:
+		// ```
+		// {
+		//    utc_timestamp: <date>,
+		//    duration:      <int>,
+		//    type:          <string>,
+		//	  // optionally:
+		//    fields: {
+		//        key1 : value1,
+		//        key2 : value2,
+		//        ...
+		//     } 
+		// }
+		// ```
+
+		// Callback receives updated event
+
 		_PieceMakerApi.prototype.updateEvent = function ( groupId, eventId, eventData, cb ) {
 			var data = convertData( eventData );
 			data['event_group_id'] = groupId;
@@ -732,6 +1078,13 @@
 		}
 
 		// ###Delete one event
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/event/DELETE_api_version_event_id_format
+
+		// ```
+		// api.deleteEvent( <int> group_id, <int> event_id [, <function> callback ] )
+		// ```
 
 		_PieceMakerApi.prototype.deleteEvent = function ( groupId, eventId, cb ) {
 			var callback = cb || noop, self = this;
@@ -749,6 +1102,15 @@
 
 		// ###Get the system (server) time
 
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/system/GET_api_version_system_utc_timestamp_format
+
+		// ```
+		// api.getSystemTime( [ <function> callback ] )
+		// ```
+
+		// Callback receives UTC timestamp (date) of server
+
 		_PieceMakerApi.prototype.getSystemTime = function ( cb ) {
 			var callback = cb || noop, self = this;
 			xhrGet( this, {
@@ -763,6 +1125,17 @@
 		// --------------------------
 
 		// ###Create a callback to be used for the API calls
+
+		// This method mainly serves to legalize the Processing / Java syntax. 
+		// In plain JavaScript just pass a function as callback into the API client methods.
+
+		// Versions:
+		// ```
+		// api.createCallback( <string> method_name )
+		// api.createCallback( <object> context, <string> method_name )
+		// ```
+		
+		// Returns a function or callable
 
 		_PieceMakerApi.prototype.createCallback = function () {
 
