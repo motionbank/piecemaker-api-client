@@ -3,9 +3,9 @@
 Piecemaker is a software originally started by David Kern and further developed [as part of the Motion Bank project](http://motionbank.org/en/content/education-piecemaker). It is a simple system to annotate time based (mostly video) material. It is heavily being used by [The Forsythe Company](http://theforsythecompany.com/) and behind the [online scores of the Motion Bank project](http://scores.motionbank.org/).
 
 There are multiple versions of Piecemaker out in the wild at the moment:
- - original [Piecemaker and Piecemaker Lite](http://piecemaker.org/) by David Kern
- - [PM2GO (Piecemaker to go)](http://motionbank.org/en/event/pm2go-easy-use-video-annotation-tool) by H_Da for Motion Bank
- - [Piecemaker 2](https://github.com/motionbank/piecemaker2-app) which includes [the API](https://github.com/motionbank/piecemaker2-api) by H_Da for Motion Bank
+ - original [Piecemaker and Piecemaker Lite](http://piecemaker.org/) by [David Kern](https://github.com/nutbits)
+ - [PM2GO (Piecemaker to go)](http://motionbank.org/en/event/pm2go-easy-use-video-annotation-tool) by [H_Da](https://www.h-da.de/) for Motion Bank
+ - [Piecemaker 2](https://github.com/motionbank/piecemaker2-app) which includes [the API](https://github.com/motionbank/piecemaker2-api) by [H_Da](https://www.h-da.de/) for Motion Bank
 
 This client's API implementation is based upon the new/upcoming [Piecemaker 2.0 API](https://github.com/motionbank/piecemaker2-api) which is part of Piecemaker 2.
 
