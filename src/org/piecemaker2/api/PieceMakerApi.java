@@ -488,7 +488,7 @@ public class PieceMakerApi
 		if ( ensureApiKey() )
 		{
 			new Thread(
-				new ApiRequest( this, api_key, USER, host + "/group/" + groupId + "/user/" + userId, 
+				new ApiRequest( this, api_key, IGNORE, host + "/group/" + groupId + "/user/" + userId, 
 								ApiRequest.POST, data, callback )
 			).start();
 		}
@@ -502,7 +502,7 @@ public class PieceMakerApi
 		if ( ensureApiKey() )
 		{
 			new Thread(
-				new ApiRequest( this, api_key, USER, host + "/group/" + groupId + "/user/" + userId, 
+				new ApiRequest( this, api_key, IGNORE, host + "/group/" + groupId + "/user/" + userId, 
 								ApiRequest.PUT, data, callback )
 			).start();
 		}
@@ -513,7 +513,7 @@ public class PieceMakerApi
 		if ( ensureApiKey() )
 		{
 			new Thread(
-				new ApiRequest( this, api_key, USER, host + "/group/" + groupId + "/user/" + userId, 
+				new ApiRequest( this, api_key, IGNORE, host + "/group/" + groupId + "/user/" + userId, 
 								ApiRequest.DELETE, null, callback )
 			).start();
 		}
@@ -1407,9 +1407,19 @@ public class PieceMakerApi
 		try {
 			user.name = e.getString( "name" );
 			user.email = e.getString( "email" );
+		} catch ( Exception excp ) {
+			/* ignore for now */
 		}
-		catch ( Exception excp )
-		{
+
+		try {
+			user.password = e.getString( "password" );
+		} catch ( Exception excp ) {
+			/* ignore for now */
+		}
+
+		try {
+			user.is_disabled = e.getBoolean( "is_disabled" );
+		} catch ( Exception excp ) {
 			/* ignore for now */
 		}
 

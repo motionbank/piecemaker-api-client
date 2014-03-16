@@ -18,4 +18,7 @@ public class User
 	public int id;
 	public String name;
 	public String email;
+	public String password;
+	public String api_key;
+	public boolean is_disabled;
 }
