@@ -34,6 +34,6 @@ ant
 ```
 
 Resources:
-- "Motion Bank on Github":https://github.com/motionbank
-- "motionbank.org":http://motionbank.org
-- "piecemaker.org":http://piecemaker.org
+- [Motion Bank on Github](https://github.com/motionbank)
+- [motionbank.org](http://motionbank.org)
+- [piecemaker.org](http://piecemaker.org)
