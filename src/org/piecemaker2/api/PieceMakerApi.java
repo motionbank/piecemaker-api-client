@@ -480,6 +480,19 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	addUserToGroup()
+	 *
+	 *	@param groupId The id of the group the user should be added to
+	 * 	@param userId The id of the user to add
+	 *	@param userRoleName The name / id of the role the user should have in the group
+	 *	@param callback The callback to run once user is added
+	 *
+	 *	<p>The callback receives nothing at the moment</p>
+	 *
+	 *	@see org.piecemaker2.models.User
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void addUserToGroup ( int groupId, int userId, String userRoleName, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
@@ -494,6 +507,19 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	changeUserRoleInGroup()
+	 *
+	 *	@param groupId The id of the group
+	 * 	@param userId The id of the user
+	 *	@param userRoleName The name / id of the role the user should have in the group
+	 *	@param callback The callback to run once user role has been changed
+	 *
+	 *	<p>The callback receives nothing at the moment</p>
+	 *
+	 *	@see org.piecemaker2.models.User
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void changeUserRoleInGroup ( int groupId, int userId, String userRoleName, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
@@ -508,6 +534,18 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	removeUserFromGroup()
+	 *
+	 *	@param groupId The id of the group
+	 * 	@param userId The id of the user
+	 *	@param callback The callback to run once user has been removed from group
+	 *
+	 *	<p>The callback receives nothing at the moment</p>
+	 *
+	 *	@see org.piecemaker2.models.User
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void removeUserFromGroup ( int groupId, int userId, ApiCallback callback )
 	{
 		if ( ensureApiKey() )
@@ -737,6 +775,16 @@ public class PieceMakerApi
 	//	ROLES
 	// ----------------------------------------
 
+	/**
+	 *	listRoles()
+	 *
+	 *	@param callback A callback to run once roles become available
+	 *
+	 *	<p>The callback receives an array of Role objects</p>
+	 *
+	 *	@see org.piecemaker2.models.Role
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void listRoles ( ApiCallback callback )
 	{
 		if ( ensureApiKey() )
@@ -747,6 +795,19 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	createRole()
+	 *
+	 *	@param roleName Name / id of the role to create
+	 *	@param inheritFromRoleName Another name / id of an existing role for new role to inherit from
+	 *	@param description A description of the role
+	 *	@param callback A callback to run once role has been created
+	 *
+	 *	<p>The callback receives a Role object</p>
+	 *
+	 *	@see org.piecemaker2.models.Role
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void createRole ( String roleName, String inheritFromRoleName, String description, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
@@ -762,6 +823,19 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	updateRole()
+	 *
+	 *	@param roleName Name / id of the role to update
+	 *	@param inheritFromRoleName Another name / id of an existing role for role to inherit from
+	 *	@param description A description of the role
+	 *	@param callback A callback to run once role has been updated
+	 *
+	 *	<p>The callback receives the updated Role object</p>
+	 *
+	 *	@see org.piecemaker2.models.Role
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void updateRole ( String roleName, String inheritFromRoleName, String description, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
@@ -776,6 +850,17 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	deleteRole()
+	 *
+	 *	@param roleName Name / id of the role to delete
+	 *	@param callback A callback to run once role has been deleted
+	 *
+	 *	<p>The callback receives the deleted Role object</p>
+	 *
+	 *	@see org.piecemaker2.models.Role
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void deleteRole ( String roleName, ApiCallback callback )
 	{
 		if ( ensureApiKey() ) {
@@ -785,6 +870,17 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	getRole()
+	 *
+	 *	@param roleName Name / id of the role to load
+	 *	@param callback A callback to run once role has been loaded
+	 *
+	 *	<p>The callback receives the Role object</p>
+	 *
+	 *	@see org.piecemaker2.models.Role
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void getRole ( String roleName, ApiCallback callback )
 	{
 		if ( ensureApiKey() ) {
@@ -798,6 +894,16 @@ public class PieceMakerApi
 	//	PERMISSIONS
 	// ----------------------------------------
 
+	/**
+	 *	listPermissions()
+	 *
+	 *	@param callback A callback to run once the permissions are available
+	 *
+	 *	<p>The callback receives an array of Permission objects</p>
+	 *
+	 *	@see org.piecemaker2.models.Permission
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void listPermissions ( ApiCallback callback )
 	{
 		if ( ensureApiKey() )
@@ -808,11 +914,24 @@ public class PieceMakerApi
 		}
 	}
 
-	public void addPermissionToRole ( String roleName, String permission, String right, ApiCallback callback )
+	/**
+	 *	addPermissionToRole()
+	 *
+	 *	@param roleName The name / id of the role to add a permission to
+	 *	@param name The name / entity of the permission to add
+	 *	@param permission Either "allow" or "forbid" 
+	 *	@param callback A callback to run once the permissions are available
+	 *
+	 *	<p>The callback receives a Permission object</p>
+	 *
+	 *	@see org.piecemaker2.models.Permission
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void addPermissionToRole ( String roleName, String name, String permission, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
-		data.put( "entity", permission );
-		data.put( "permission", right );
+		data.put( "entity", name );
+		data.put( "permission", permission );
 
 		if ( ensureApiKey() )
 		{
@@ -824,22 +943,47 @@ public class PieceMakerApi
 		}
 	}
 
-	public void changePermissionForRole ( String roleName, String permission, String right, ApiCallback callback )
+	/**
+	 *	changePermissionForRole()
+	 *
+	 *	@param roleName The name / id of the role
+	 *	@param name The name / entity of the permission
+	 *	@param permission Either "allow" or "forbid"
+	 *	@param callback A callback to run once the permissions are available
+	 *
+	 *	<p>The callback receives a Permission object</p>
+	 *
+	 *	@see org.piecemaker2.models.Permission
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void changePermissionForRole ( String roleName, String name, String permission, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
-		data.put( "entity", permission );
-		data.put( "permission", right );
+		data.put( "entity", name );
+		data.put( "permission", permission );
 
 		if ( ensureApiKey() )
 		{
 			new Thread(
 				new ApiRequest( this, api_key, PERMISSION, 
-								host + "/role/" + roleName + "/permission/" + permission, 
+								host + "/role/" + roleName + "/permission/" + name, 
 								ApiRequest.PUT, data, callback )
 			).start();
 		}
 	}
 
+	/**
+	 *	removePermissionFromRole()
+	 *
+	 *	@param roleName The name / id of the role
+	 *	@param name The name / entity of the permission
+	 *	@param callback A callback to run once the permissions are available
+	 *
+	 *	<p>The callback receives a Permission object</p>
+	 *
+	 *	@see org.piecemaker2.models.Permission
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void removePermissionFromRole ( String roleName, String permission, ApiCallback callback ) 
 	{
 		if ( ensureApiKey() )
@@ -852,6 +996,18 @@ public class PieceMakerApi
 		}
 	}
 
+	/**
+	 *	getPermissionFromRole()
+	 *
+	 *	@param roleName The name / id of the role
+	 *	@param name The name / entity of the permission
+	 *	@param callback A callback to run once the permissions are available
+	 *
+	 *	<p>The callback receives a Permission object</p>
+	 *
+	 *	@see org.piecemaker2.models.Permission
+	 *	@see #createCallback( Object[] args )
+	 */
 	public void getPermissionFromRole ( String roleName, String permission, ApiCallback callback )
 	{
 		if ( ensureApiKey() )
@@ -863,7 +1019,6 @@ public class PieceMakerApi
 			).start();
 		}
 	}
-
 
 	// ----------------------------------------
 	//	SYSTEM
@@ -960,22 +1115,6 @@ public class PieceMakerApi
     	String responseBody = request.getResponse();
     	
     	//System.out.println( responseBody );
-
-    	// FIXME: this is an API design bug? always return JSON if that was requested?
-    	// try {
-    	// 	if ( request.getType() == USERS || request.getType() == GROUPS || request.getType() == EVENTS ) {
-    	// 		JSONArray jsonTest = new JSONArray( responseBody );
-    	// 	}
-    	// 	else
-    	// 	{
-    	// 		JSONObject jsonTest = new JSONObject( responseBody );
-    	// 	}
-    	// } catch ( JSONException jsonEx ) {
-    	// 	System.err.println( "Piecemaker API: Response body is not JSON!" );
-    	// 	// FIXME: should never happen 
-    	// 	request.getCallback().call( /* no args? this is a wild guess! */ );
-    	// 	return;
-    	// }
 
 	    try {
 
