@@ -14,7 +14,7 @@ The JS version can be used in a browser or with Node.js.
 Java version is targeted at Processing but should run elsewhere just fine.
 An openFrameworks addon is [in the works](https://github.com/motionbank/ofxPiecemaker2).
 
-The JS uses [jQuery.ajax](https://api.jquery.com/jQuery.ajax/) in the browser DOM and [Node.js' "http"](http://nodejs.org/api/http.html) for the asynchronous Piecemaker API requests. Java version uses [Apache Commons](http://commons.apache.org/).
+The JS version uses [jQuery.ajax](https://api.jquery.com/jQuery.ajax/) in the browser DOM and Node.js' ["http"](http://nodejs.org/api/http.html) for the asynchronous Piecemaker API requests. Java version uses [Apache Commons](http://commons.apache.org/).
 
 Install for browser, use bower:
 ```
