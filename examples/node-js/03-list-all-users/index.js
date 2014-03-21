@@ -14,6 +14,8 @@ var pm = new PieceMakerApi({
 
 pm.listUsers(function ( users ) {
 	
-	console.log( users );
+	for ( var u in users ) {
+		console.log( users[u].id + " " + users[u].name + " " + users[u].email + " " + users[u].role.id );
+	}
 	
 });

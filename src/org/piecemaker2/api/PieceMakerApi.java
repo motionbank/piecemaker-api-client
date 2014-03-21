@@ -917,6 +917,23 @@ public class PieceMakerApi
 	 *
 	 *	@param roleName The name / id of the role to add a permission to
 	 *	@param name The name / entity of the permission to add
+	 *	@param callback A callback to run once the permissions are available
+	 *
+	 *	<p>The callback receives a Permission object</p>
+	 *
+	 *	@see org.piecemaker2.models.Permission
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void addPermissionToRole ( String roleName, String name, ApiCallback callback )
+	{
+		addPermissionToRole( roleName, name, "allow", callback );
+	}
+
+	/**
+	 *	addPermissionToRole()
+	 *
+	 *	@param roleName The name / id of the role to add a permission to
+	 *	@param name The name / entity of the permission to add
 	 *	@param permission Either "allow" or "forbid" 
 	 *	@param callback A callback to run once the permissions are available
 	 *
@@ -1498,6 +1515,7 @@ public class PieceMakerApi
 		{
 			user = new User();
 			user.id = e.getInt( "id" );
+			user.user_role_id = e.getString( "user_role_id" );
 		}
 		catch ( Exception excp )
 		{
