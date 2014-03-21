@@ -12,17 +12,18 @@ This client's API implementation is based upon the new/upcoming [Piecemaker 2.0 
 The library is actually two implementations in one: JavaScript and Java.
 The JS version can be used in a browser or with Node.js.
 Java version is targeted at Processing but should run elsewhere just fine.
+An openFrameworks addon is (in the works)[https://github.com/motionbank/ofxPiecemaker2].
 
 The JS uses (jQuery.ajax)[https://api.jquery.com/jQuery.ajax/] in the browser DOM and [Node.js' "http"](http://nodejs.org/api/http.html) for the asynchronous Piecemaker API requests. Java version uses [Apache Commons](http://commons.apache.org/).
 
 Install for browser, use bower:
 ```
-bower install piecemaker-api-client
+$ bower install piecemaker-api-client
 ```
 
 Install for Node.js, use npm:
 ```
-npm install piecemaker-api-client
+$ npm install piecemaker-api-client
 ```
 
 For Processing: i will ask for inclusion into the PDE library manager once we hit a first official release.
@@ -30,7 +31,7 @@ For Processing: i will ask for inclusion into the PDE library manager once we hi
 For Java you should build from source:
 Tweak the build.xml to point to your Processing copy, then:
 ```
-ant
+$ ant
 ```
 
 Resources:
