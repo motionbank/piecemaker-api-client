@@ -1082,8 +1082,8 @@ public class PieceMakerApi
 		}
 		else
 		{
+			// allow for Mozilla rhino functions to be passed in
 			cb = new ApiCallback( args[0] );
-			return cb;
 		}
 
 		if ( args.length > shift )

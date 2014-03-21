@@ -20,8 +20,22 @@ public class ApiCallback
 	Object[] arguments;
 	boolean ignoreNoMethod = false;
 
+	// an org.mozilla.javascript.NativeFunction callback
 	Object mozFn = null;
 
+	/**
+	 *	Constructor ApiCallback for Mozilla rhino (via ringo.js)
+	 *
+	 *	<p>
+	 *	This constructor gets called if you pass one non-String Object into createCallback().
+	 *  </p>
+	 *
+	 *	<p>See: http://ringojs.org/</p>
+	 *
+	 *	@param fn An org.mozilla.javascript.NativeFunction as callback
+	 *
+	 *	@see org.piecemaker2.api.PieceMakerApi#createCallback( Object[] args )
+	 */
 	public ApiCallback ( Object fn )
 	{
 		if ( fn == null ) 
@@ -37,9 +51,13 @@ public class ApiCallback
 			{
 				mozFn = fn;
 			}
+			else
+			{
+				System.err.println( "createCallback( fn, ... ) assumes first argument to be "+
+									"a JavaScript function!" );
+			}
 		}
 	}
-
 
 	/**
 	 *	Constructor ApiCallback
@@ -113,6 +131,7 @@ public class ApiCallback
 			tmp = null;
 		}
 
+		// this only exists to allow for passing functions in via Mozilla Rhino / ringo.org
 		if ( mozFn != null )
 		{
 			try {
