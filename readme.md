@@ -9,12 +9,12 @@ There are multiple versions of Piecemaker out in the wild at the moment:
 
 This client's API implementation is based upon the new/upcoming [Piecemaker 2.0 API](https://github.com/motionbank/piecemaker2-api) which is part of Piecemaker 2.
 
-The library is actually two implementations in one: JavaScript and Java.
-The JS version can be used in a browser or with Node.js.
-Java version is targeted at Processing but should run elsewhere just fine.
+This client library is actually two implementations in one: JavaScript and Java.
+The JavaScript version can be used in a browser or with Node.js.
+Java version is targeted at Processing but should run in plan Java just fine.
 An openFrameworks addon is [in the works](https://github.com/motionbank/ofxPiecemaker2).
 
-The JS version uses [jQuery.ajax](https://api.jquery.com/jQuery.ajax/) in the browser DOM and Node.js' ["http"](http://nodejs.org/api/http.html) for the asynchronous Piecemaker API requests. Java version uses [Apache Commons](http://commons.apache.org/).
+The JavaScript version uses [jQuery.ajax](https://api.jquery.com/jQuery.ajax/) in the browser DOM and Node.js' ["http"](http://nodejs.org/api/http.html) for the asynchronous Piecemaker API requests. Java version uses [Apache Commons](http://commons.apache.org/).
 
 Install for browser, use bower:
 ```
