@@ -15,10 +15,30 @@ import java.lang.reflect.*;
 public class ApiCallback
 {
 	String methodName;
-	Method meth;
+	Method meth = null;
 	Object obj;
 	Object[] arguments;
 	boolean ignoreNoMethod = false;
+
+	Object mozFn = null;
+
+	public ApiCallback ( Object fn )
+	{
+		if ( fn == null ) 
+		{
+			System.err.println( "Function is null here!" );
+		}
+		else
+		{
+			Class fnClass = fn.getClass();
+			Class superFnClass = fnClass.getSuperclass();
+			if ( superFnClass != null && 
+				 superFnClass.getName().equals( "org.mozilla.javascript.NativeFunction" ) )
+			{
+				mozFn = fn;
+			}
+		}
+	}
 
 
 	/**
@@ -46,8 +66,14 @@ public class ApiCallback
 		{
 			methodName = method;
 
+			// System.out.println( target.getClass() );
+			// System.out.println( target.getClass().getSuperclass() );
+
 			Method[] meths = target.getClass().getMethods();
 			for ( Method meth : meths ) {
+				
+				// System.out.println( meth.getName() );
+				
 				if ( meth.getName().equals(method) ) {
 					this.meth = meth;
 					break;
@@ -56,6 +82,9 @@ public class ApiCallback
 			if ( meth == null ) {
 				meths = target.getClass().getDeclaredMethods();
 				for ( Method meth : meths ) {
+					
+					// System.out.println( meth.getName() );
+					
 					if ( meth.getName().equals(method) ) {
 						this.meth = meth;
 						break;
@@ -75,15 +104,6 @@ public class ApiCallback
 	 */
 	public void call ( Object...args )
 	{
-		if ( meth == null ) 
-		{
-			if ( !ignoreNoMethod ) 
-			{
-				System.err.println( "Method '" + methodName + "' was not found in '" + obj.toString() + "'!" );	
-			}
-			return;
-		}
-
 		if ( arguments != null && arguments.length > 0 ) 
 		{
 			Object[] tmp = new Object[args.length + arguments.length];
@@ -91,6 +111,40 @@ public class ApiCallback
 			System.arraycopy( arguments, 0, tmp, args.length, arguments.length );
 			args = tmp;
 			tmp = null;
+		}
+
+		if ( mozFn != null )
+		{
+			try {
+				Class fnClass = mozFn.getClass();
+
+				Class ctxClass = Class.forName( "org.mozilla.javascript.Context" );
+				Method ctxEnterMeth = ctxClass.getMethod( "enter", new Class[0] );
+				Method ctxExitMeth = ctxClass.getMethod( "exit", new Class[0] );
+				Object ctx = ctxEnterMeth.invoke( null, new Object[0] );
+
+				Class scopeClass = Class.forName( "org.mozilla.javascript.Scriptable" );
+				Method scopeMeth = fnClass.getMethod( "getParentScope", new Class[0] );
+				Object scope = scopeMeth.invoke( mozFn, new Object[0] );
+
+				Method callMeth = fnClass.getMethod( "call", new Class[]{ ctxClass, scopeClass, scopeClass, Object[].class } );
+				callMeth.invoke( mozFn, new Object[]{ ctx, scope, mozFn, args } );
+
+				ctxExitMeth.invoke( null, new Object[0] );
+				return;
+
+			} catch ( Exception e ) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		else if ( meth == null ) 
+		{
+			if ( !ignoreNoMethod ) 
+			{
+				System.err.println( "Method '" + methodName + "' was not found in '" + obj.getClass().getName() + "'!" );
+			}
+			return;
 		}
 
 		if ( false == meth.isAccessible() )
@@ -124,7 +178,17 @@ public class ApiCallback
 	 */
 	public void addArguments ( Object[] args )
 	{
-		arguments = args;
+		if ( arguments == null || arguments.length == 0 ) 
+		{
+			arguments = args;
+		}
+		else
+		{
+			Object[] nArgs = new Object[ arguments.length + args.length ];
+			System.arraycopy( nArgs, 0, arguments, 0, arguments.length );
+			System.arraycopy( nArgs, arguments.length, args, 0, args.length );
+			arguments = nArgs;
+		}
 	}
 
 	/** 

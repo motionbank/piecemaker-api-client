@@ -34,15 +34,17 @@
 			  location="/Users/fjenett/Documents/Processing/libraries"/>
 
 	<path id="library-classpath">
-		<fileset dir="${processing.classes}" >
-			<include name="core.jar"/>
-		</fileset>
 		<fileset dir="external">
 			<include name="commons-codec-1.3.jar" />
 			<include name="commons-httpclient-3.1.jar" />
 			<include name="commons-logging-1.1.jar" />
 			<include name="commons-validator-1.4.0.jar" />
 			<include name="json.jar" />
+		</fileset>
+	</path>
+	<path id="library-classpath-processing">
+		<fileset dir="${processing.classes}" >
+			<include name="core.jar"/>
 		</fileset>
 	</path>
 	
@@ -80,6 +82,7 @@ See readme for time being please.
 		<javac srcdir="${src-versioned}" destdir="${bin}" source="${java.target.version}">
 			<classpath>
 				<path refid="library-classpath"/>
+				<path refid="library-classpath-processing"/>
 			</classpath>
 		</javac>
 		
@@ -128,6 +131,7 @@ See readme for time being please.
 			</fileset>
 			<classpath>
 				<path refid="library-classpath" />
+				<path refid="library-classpath-processing" />
 				<path refid="junit-classpath" />
 			</classpath>
 		</javadoc>

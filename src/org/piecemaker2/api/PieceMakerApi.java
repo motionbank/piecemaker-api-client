@@ -401,19 +401,19 @@ public class PieceMakerApi
 	 *	createGroup()
 	 *
 	 *	@param groupTitle The title / name for the new group
-	 *	@param groupText The text / description of the group
+	 *	@param groupDescription The description of the group
 	 *
 	 *	<p>The callback receives the newly created group as Group object</p>
 	 *
 	 *	@see #createCallback( Object[] args )
 	 *	@see org.piecemaker2.models.Group
 	 */
-	public void createGroup ( String groupTitle, String groupText, ApiCallback callback )
+	public void createGroup ( String groupTitle, String groupDescription, ApiCallback callback )
 	{
 		if ( ensureApiKey() ) {
 			HashMap groupData = new HashMap();
 			groupData.put( "title", groupTitle );
-			groupData.put( "text", groupText );
+			groupData.put( "description", groupDescription );
 
 			new Thread( new ApiRequest( this, api_key, GROUP, host + "/group", ApiRequest.POST, groupData, callback ) ).start();
 		}
@@ -425,7 +425,7 @@ public class PieceMakerApi
 	 *	@param groupId The ID of the group to update
 	 *	@param groupData The data for the new group as HashMap
 	 *
-	 *	<p><em>groupData</em> can have a "title" and "text" entry</p>
+	 *	<p><em>groupData</em> can have a "title" and "description" entry</p>
 	 *
 	 *	<p>The callback receives the updated group as Group object</p>
 	 *
@@ -813,8 +813,7 @@ public class PieceMakerApi
 		HashMap data = new HashMap<String,String>();
 		data.put( "id", roleName );
 		data.put( "inherit_from_id", inheritFromRoleName == null ? "" : inheritFromRoleName );
-		data.put( "text", description );
-		//data.put( "description", description );
+		data.put( "description", description );
 
 		if ( ensureApiKey() ) {
 			new Thread(
@@ -840,7 +839,6 @@ public class PieceMakerApi
 	{
 		HashMap data = new HashMap<String,String>();
 		data.put( "inherit_from_id", inheritFromRoleName == null ? "" : inheritFromRoleName );
-		//data.put( "text", description );
 		data.put( "description", description );
 
 		if ( ensureApiKey() ) {
@@ -1068,16 +1066,24 @@ public class PieceMakerApi
 		Object target = context;
 		String method = "";
 		int shift = 1;
+		ApiCallback cb = null;
 
 		if ( args.length >= 2 && args[0].getClass() != String.class )
 		{
 			target = args[0];
 			method = (String)args[1];
 			shift = 2;
+			cb = new ApiCallback( target, method );
+		}
+		else if ( args[0].getClass() == String.class )
+		{
+			method = (String)args[0];
+			cb = new ApiCallback( target, method );
 		}
 		else
 		{
-			method = (String)args[0];
+			cb = new ApiCallback( args[0] );
+			return cb;
 		}
 
 		if ( args.length > shift )
@@ -1091,7 +1097,6 @@ public class PieceMakerApi
 			args = null;
 		}
 
-		ApiCallback cb = new ApiCallback( target, method );
 		if ( args != null && args.length > 0 )
 		{
 			cb.addArguments( args );
@@ -1159,7 +1164,7 @@ public class PieceMakerApi
 
 				for ( int i = 0, k = jsonEvents.length(); i < k; i++ )
 				{
-					Event event = eventFromJsonTmpFixBug54( jsonEvents.getJSONObject( i ) );
+					Event event = eventFromJson( jsonEvents.getJSONObject( i ) );
 
 					events[i] = event;
 				}
@@ -1169,7 +1174,7 @@ public class PieceMakerApi
 
 			else if ( request.getType() == EVENT )
 			{
-				Event e = eventFromJsonTmpFixBug54( new JSONObject( responseBody ) );
+				Event e = eventFromJson( new JSONObject( responseBody ) );
 
 				request.getCallback().call( e );
 			}
@@ -1336,17 +1341,17 @@ public class PieceMakerApi
 	 *
 	 *	Create a Group object from JSON data
 	 *
-	 *	@param json The JSON data on form of a JSONObject
-	 *	@return Group The newly created group object
+	 *	@param groupJson The group JSON data in form of a JSONObject
+	 *	@return The newly created Group object
 	 */
-	private Group groupFromJson ( JSONObject g )
+	private Group groupFromJson ( JSONObject groupJson )
 	{
 		Group group = null;
 
 		try 
 		{
 			group = new Group();
-			group.id = g.getInt( "id" );
+			group.id = groupJson.getInt( "id" );
 		}
 		catch ( Exception excp )
 		{
@@ -1355,8 +1360,8 @@ public class PieceMakerApi
 		}
 
 		try {
-			group.title 	= g.getString( "title" );
-			group.text 		= g.getString( "text" );
+			group.title 	  = groupJson.getString( "title" );
+			group.description = groupJson.getString( "description" );
 		}
 		catch ( Exception excp )
 		{
@@ -1366,20 +1371,23 @@ public class PieceMakerApi
 		return group;
 	}
 
-	private Event eventFromJsonTmpFixBug54 ( JSONObject eArr )
+	/**
+	 *	eventFromJson()
+	 *
+	 *	Create an Event object from JSON data
+	 *
+	 *	@param eventJson The event JSON data in form of a JSONObject
+	 *	@return The newly created Event object
+	 */
+	private Event eventFromJson ( JSONObject eventJson )
 	{
 		Event event = null;
-
-		JSONObject eventData = null;
 		JSONArray eventFields = null;
 
 		try 
 		{
-			eventData 	= eArr.getJSONObject("event");
-			eventFields = eArr.getJSONArray("fields");
-
 			event = new Event();
-			event.id = eventData.getInt( "id" );
+			event.id = eventJson.getInt( "id" );
 		}
 		catch ( Exception excp )
 		{
@@ -1388,11 +1396,12 @@ public class PieceMakerApi
 		}
 
 		try {
-			event.utc_timestamp = new java.util.Date( (long)(eventData.getDouble( "utc_timestamp" ) * 1000.0) );
-			event.duration 		= eventData.getLong( "duration" );
-			event.type 			= eventData.getString( "type" );
+			event.utc_timestamp = new java.util.Date( (long)(eventJson.getDouble( "utc_timestamp" ) * 1000.0) );
+			event.duration 		= eventJson.getLong( "duration" );
+			event.type 			= eventJson.getString( "type" );
 
 			event.fields 		= new HashMap<String, String>();
+			eventFields 		= eventJson.getJSONArray("fields");
 
 			for ( int i = 0; i < eventFields.length(); i++ ) 
 			{
@@ -1413,53 +1422,6 @@ public class PieceMakerApi
 
 		return event;
 	}
-
-	// /**
-	//  *	eventFromJson()
-	//  *
-	//  *	Create an Event from JSON data
-	//  *
-	//  *	@param json The JSON data in form of a JSONObject
-	//  *  @return Event The newly created Event object 
-	//  */
-	// private Event eventFromJson ( JSONObject e )
-	// {
-	// 	Event event = null;
-
-	// 	try 
-	// 	{
-	// 		event = new Event();
-	// 		event.id = e.getInt( "id" );
-	// 	}
-	// 	catch ( Exception excp )
-	// 	{
-	// 		excp.printStackTrace();
-	// 		return null;
-	// 	}
-
-	// 	try {
-	// 		event.utc_timestamp = new java.util.Date( (long)(e.getDouble( "utc_timestamp" ) * 1000.0) );
-	// 		event.duration 		= e.getLong( "duration" );
-	// 		event.type 			= e.getString( "type" );
-
-	// 		event.fields 		= new HashMap<String, String>();
-
-	// 		JSONObject jsonEventFields = e.getJSONObject( "fields" );
-	// 		java.util.Iterator<String> iter = jsonEventFields.keys();
-
-	// 		while ( iter.hasNext() ) {
-	// 			String key = iter.next();
-	// 			String val = jsonEventFields.getString( key );
-	// 			event.fields.put( key, val );
-	// 		}
-	// 	}
-	// 	catch ( Exception excp )
-	// 	{
-	// 		/* ignore for now */
-	// 	}
-
-	// 	return event;
-	// }
 
 	/**
 	 *	roleFromJson()

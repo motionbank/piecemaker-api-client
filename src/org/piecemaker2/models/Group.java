@@ -17,5 +17,5 @@ public class Group
 {
 	public int id;
 	public String title;
-	public String text;
+	public String description;
 }

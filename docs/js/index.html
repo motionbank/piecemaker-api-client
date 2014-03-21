@@ -42,7 +42,7 @@
 for createCallback() do not return any values. Results are passed 
 into an mostly optional callback instead.</p>
 <p>See:<br><a href="http://motionbank.org/">http://motionbank.org/</a><br><a href="http://piecemaker.org/">http://piecemaker.org/</a></p>
-<p>Version: 0.0.18<br>Build: 857</p>
+<p>Version: 0.0.18<br>Build: 888</p>
 
             </div>
             
@@ -505,7 +505,7 @@ api.updateUser( &lt;int&gt; user_id, &lt;string&gt; name, &lt;string&gt; email, 
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupTitle, groupText, cb )</span> {</span>
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createGroup = <span class="function"><span class="keyword">function</span> <span class="params">( groupTitle, groupDescription, cb )</span> {</span>
 			<span class="keyword">var</span> callback = cb || noop;
 			<span class="keyword">var</span> self = <span class="keyword">this</span>;
 			<span class="keyword">if</span> ( !groupTitle ) {
@@ -515,7 +515,7 @@ api.updateUser( &lt;int&gt; user_id, &lt;string&gt; name, &lt;string&gt; email, 
 				url: self.host + <span class="string">'/group'</span>,
 				data: {
 					title: groupTitle,
-					text: groupText || <span class="string">''</span>
+					description: groupDescription || <span class="string">''</span>
 				},
 			    success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
 					callback.call( self.context || cb, response );
@@ -786,18 +786,18 @@ other roles.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalText, cb )</span> {</span>
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.createRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalDescription, cb )</span> {</span>
 			<span class="keyword">if</span> ( arguments.length === <span class="number">2</span> ) {
 				cb = optionalInheritRoleId;
 				optionalInheritRoleId = <span class="literal">undefined</span>;
 			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
-				cb = optionalText;
-				optionalText = <span class="literal">undefined</span>;
+				cb = optionalDescription;
+				optionalDescription = <span class="literal">undefined</span>;
 			}
 			
 			<span class="keyword">var</span> data = { id: roleId };
 			<span class="keyword">if</span> ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
-			<span class="keyword">if</span> ( optionalText ) data.text = optionalText;
+			<span class="keyword">if</span> ( optionalDescription ) 	 data.description     = optionalDescription;
 
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 		    xhrPost( <span class="keyword">this</span>, {
@@ -826,18 +826,18 @@ other roles.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalText, cb )</span> {</span>
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.updateRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, optionalInheritRoleId, optionalDescription, cb )</span> {</span>
 			<span class="keyword">if</span> ( arguments.length === <span class="number">2</span> ) {
 				cb = optionalInheritRoleId;
 				optionalInheritRoleId = <span class="literal">undefined</span>;
 			} <span class="keyword">else</span> <span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
-				cb = optionalText;
-				optionalText = <span class="literal">undefined</span>;
+				cb = optionalDescription;
+				optionalDescription = <span class="literal">undefined</span>;
 			}
 			
 			<span class="keyword">var</span> data = {};
 			<span class="keyword">if</span> ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
-			<span class="keyword">if</span> ( optionalText ) data.text = optionalText;
+			<span class="keyword">if</span> ( optionalDescription )   data.description     = optionalDescription;
 
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 		    xhrPut( <span class="keyword">this</span>, {
@@ -1127,7 +1127,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 			xhrGet( <span class="keyword">this</span>, {
 		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -1158,7 +1158,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 		        	type: type
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -1201,7 +1201,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listEventsWithFields = <span class="function"><span class="keyword">function</span> <span class="params">( <span class="comment">/* groupId, id1, val1, id2, val2, …, cb */</span> )</span> {</span>
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listEventsWithFields = <span class="function"><span class="keyword">function</span> <span class="params">( <span class="comment">/* groupId, id1, val1, id2, val2, ???, cb */</span> )</span> {</span>
 			<span class="keyword">var</span> groupId = arguments[<span class="number">0</span>];
 			<span class="keyword">var</span> fields = {};
 			<span class="keyword">if</span> ( arguments.length &gt; <span class="number">3</span> ) {
@@ -1223,7 +1223,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 		        	fields: fields
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -1284,7 +1284,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
 		        data: data,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -1314,7 +1314,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 		        url: self.host + <span class="string">'/group/'</span> + groupId + <span class="string">'/events'</span>,
 		        data: convertData( eventData ),
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, response );
 		        }
 		    });
 		}</pre></div></div>
@@ -1342,7 +1342,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 			xhrGet( self, {
 		        url: self.host + <span class="string">'/event/'</span>+eventId,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        	callback.call( self.context || cb, expandEventToObject( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1383,7 +1383,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 		        url: self.host + <span class="string">'/group/'</span> + groupId + <span class="string">'/event'</span>,
 		        data: data,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        	callback.call( self.context || cb, expandEventToObject( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1425,7 +1425,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 		        url: self.host + <span class="string">'/event/'</span> + eventId,
 		        data: data,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		            callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		            callback.call( self.context || cb, expandEventToObject( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1452,7 +1452,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 			xhrDelete( <span class="keyword">this</span>, {
 		        url: self.host + <span class="string">'/event/'</span> + eventId,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		            callback.call( self.context || cb , expandEventToObject( fixEventResponse( response ) ) );
+		            callback.call( self.context || cb , expandEventToObject( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1676,30 +1676,28 @@ api.createCallback( &lt;object&gt; context, &lt;string&gt; method_name )</code><
               </div>
               <p>temporary fix for:
 <a href="https://github.com/motionbank/piecemaker2/issues/54">https://github.com/motionbank/piecemaker2/issues/54</a></p>
+<p>var fixEventsResponseToArr = function ( resp ) {
+    if ( resp instanceof Array ) {
+        var arr = [];
+        for ( var i = 0; i &lt; resp.length; i++ ) {
+            arr.pus h( expandEventToObject( resp[i] ) );
+        }
+        return arr;
+    }
+    return resp;
+}</p>
+<p>var fixEventResponse = function ( resp ) {
+    var eventObj = resp[&#39;event&#39;];
+    eventObj[&#39;fields&#39;] = {};
+    for ( var i = 0, fields = resp[&#39;fields&#39;]; i &lt; fields.length; i++ ) {
+        eventObj[&#39;fields&#39;][fields[i][&#39;id&#39;]] = fields[i][&#39;value&#39;];
+    }
+    return eventObj;
+}</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> fixEventsResponseToArr = <span class="function"><span class="keyword">function</span> <span class="params">( resp )</span> {</span>
-	    	<span class="keyword">if</span> ( resp <span class="keyword">instanceof</span> Array ) {
-	    		<span class="keyword">var</span> arr = [];
-	    		<span class="keyword">for</span> ( <span class="keyword">var</span> i = <span class="number">0</span>; i &lt; resp.length; i++ ) {
-	    			arr.push( expandEventToObject( fixEventResponse( resp[i] ) ) );
-	    		}
-	    		<span class="keyword">return</span> arr;
-	    	}
-	    	<span class="keyword">return</span> resp;
-	    }
-
-	    <span class="keyword">var</span> fixEventResponse = <span class="function"><span class="keyword">function</span> <span class="params">( resp )</span> {</span>
-	    	<span class="keyword">var</span> eventObj = resp[<span class="string">'event'</span>];
-	    	eventObj[<span class="string">'fields'</span>] = {};
-	    	<span class="keyword">for</span> ( <span class="keyword">var</span> i = <span class="number">0</span>, fields = resp[<span class="string">'fields'</span>]; i &lt; fields.length; i++ ) {
-	    		eventObj[<span class="string">'fields'</span>][fields[i][<span class="string">'id'</span>]] = fields[i][<span class="string">'value'</span>];
-	    	}
-	    	<span class="keyword">return</span> eventObj;
-	    }
-
-	    <span class="keyword">var</span> expandEventToObject = <span class="function"><span class="keyword">function</span> <span class="params">( event )</span> {</span>
+            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> expandEventToObject = <span class="function"><span class="keyword">function</span> <span class="params">( event )</span> {</span>
 	    	event.fields.get = (<span class="keyword">function</span>(e){
 	    		<span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">( k )</span> {</span>
 	    			<span class="keyword">return</span> e.fields[k];
@@ -1892,7 +1890,7 @@ added to each call here if it is not already present.</p>
 
 		<span class="keyword">if</span> ( <span class="keyword">typeof</span> global !== <span class="string">'undefined'</span> ) { <span class="comment">// check if environment could be Node</span>
 
-			<span class="keyword">var</span> url = require(<span class="string">'url'</span>), 
+			<span class="keyword">var</span> url  = require(<span class="string">'url'</span>), 
 				qstr = require(<span class="string">'querystring'</span>),
 				http = require(<span class="string">'http'</span>);</pre></div></div>
             

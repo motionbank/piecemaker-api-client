@@ -365,7 +365,7 @@
 
 		// Callback receives new group object
 
-		_PieceMakerApi.prototype.createGroup = function ( groupTitle, groupText, cb ) {
+		_PieceMakerApi.prototype.createGroup = function ( groupTitle, groupDescription, cb ) {
 			var callback = cb || noop;
 			var self = this;
 			if ( !groupTitle ) {
@@ -375,7 +375,7 @@
 				url: self.host + '/group',
 				data: {
 					title: groupTitle,
-					text: groupText || ''
+					description: groupDescription || ''
 				},
 			    success: function ( response ) {
 					callback.call( self.context || cb, response );
@@ -585,18 +585,18 @@
 
 		// Callback receives new role created
 
-		_PieceMakerApi.prototype.createRole = function ( roleId, optionalInheritRoleId, optionalText, cb ) {
+		_PieceMakerApi.prototype.createRole = function ( roleId, optionalInheritRoleId, optionalDescription, cb ) {
 			if ( arguments.length === 2 ) {
 				cb = optionalInheritRoleId;
 				optionalInheritRoleId = undefined;
 			} else if ( arguments.length === 3 ) {
-				cb = optionalText;
-				optionalText = undefined;
+				cb = optionalDescription;
+				optionalDescription = undefined;
 			}
 			
 			var data = { id: roleId };
 			if ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
-			if ( optionalText ) data.text = optionalText;
+			if ( optionalDescription ) 	 data.description     = optionalDescription;
 
 			var callback = cb || noop, self = this;
 		    xhrPost( this, {
@@ -619,18 +619,18 @@
 
 		// Callback receives updated role
 
-		_PieceMakerApi.prototype.updateRole = function ( roleId, optionalInheritRoleId, optionalText, cb ) {
+		_PieceMakerApi.prototype.updateRole = function ( roleId, optionalInheritRoleId, optionalDescription, cb ) {
 			if ( arguments.length === 2 ) {
 				cb = optionalInheritRoleId;
 				optionalInheritRoleId = undefined;
 			} else if ( arguments.length === 3 ) {
-				cb = optionalText;
-				optionalText = undefined;
+				cb = optionalDescription;
+				optionalDescription = undefined;
 			}
 			
 			var data = {};
 			if ( optionalInheritRoleId ) data.inherit_from_id = optionalInheritRoleId;
-			if ( optionalText ) data.text = optionalText;
+			if ( optionalDescription )   data.description     = optionalDescription;
 
 			var callback = cb || noop, self = this;
 		    xhrPut( this, {
@@ -837,7 +837,7 @@
 			xhrGet( this, {
 		        url: self.host + '/group/'+groupId+'/events',
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -861,7 +861,7 @@
 		        	type: type
 		        },
 		        success: function ( response ) {
-					callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+					callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -912,7 +912,7 @@
 		        	fields: fields
 		        },
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -958,7 +958,7 @@
 		        url: self.host + '/group/'+groupId+'/events',
 		        data: data,
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -982,7 +982,7 @@
 		        url: self.host + '/group/' + groupId + '/events',
 		        data: convertData( eventData ),
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, fixEventsResponseToArr( response ) );
+		        	callback.call( self.context || cb, response );
 		        }
 		    });
 		}
@@ -1003,7 +1003,7 @@
 			xhrGet( self, {
 		        url: self.host + '/event/'+eventId,
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        	callback.call( self.context || cb, expandEventToObject( response ) );
 		        }
 		    });
 		}
@@ -1040,7 +1040,7 @@
 		        url: self.host + '/group/' + groupId + '/event',
 		        data: data,
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		        	callback.call( self.context || cb, expandEventToObject( response ) );
 		        }
 		    });
 		}
@@ -1078,7 +1078,7 @@
 		        url: self.host + '/event/' + eventId,
 		        data: data,
 		        success: function ( response ) {
-		            callback.call( self.context || cb, expandEventToObject( fixEventResponse( response ) ) );
+		            callback.call( self.context || cb, expandEventToObject( response ) );
 		        }
 		    });
 		}
@@ -1098,7 +1098,7 @@
 			xhrDelete( this, {
 		        url: self.host + '/event/' + eventId,
 		        success: function ( response ) {
-		            callback.call( self.context || cb , expandEventToObject( fixEventResponse( response ) ) );
+		            callback.call( self.context || cb , expandEventToObject( response ) );
 		        }
 		    });
 		}
@@ -1226,25 +1226,25 @@
 	    // temporary fix for:
 	    // https://github.com/motionbank/piecemaker2/issues/54
 
-	    var fixEventsResponseToArr = function ( resp ) {
-	    	if ( resp instanceof Array ) {
-	    		var arr = [];
-	    		for ( var i = 0; i < resp.length; i++ ) {
-	    			arr.push( expandEventToObject( fixEventResponse( resp[i] ) ) );
-	    		}
-	    		return arr;
-	    	}
-	    	return resp;
-	    }
+	    // var fixEventsResponseToArr = function ( resp ) {
+	    // 	if ( resp instanceof Array ) {
+	    // 		var arr = [];
+	    // 		for ( var i = 0; i < resp.length; i++ ) {
+	    // 			arr.pus h( expandEventToObject( resp[i] ) );
+	    // 		}
+	    // 		return arr;
+	    // 	}
+	    // 	return resp;
+	    // }
 
-	    var fixEventResponse = function ( resp ) {
-	    	var eventObj = resp['event'];
-	    	eventObj['fields'] = {};
-	    	for ( var i = 0, fields = resp['fields']; i < fields.length; i++ ) {
-	    		eventObj['fields'][fields[i]['id']] = fields[i]['value'];
-	    	}
-	    	return eventObj;
-	    }
+	    // var fixEventResponse = function ( resp ) {
+	    // 	var eventObj = resp['event'];
+	    // 	eventObj['fields'] = {};
+	    // 	for ( var i = 0, fields = resp['fields']; i < fields.length; i++ ) {
+	    // 		eventObj['fields'][fields[i]['id']] = fields[i]['value'];
+	    // 	}
+	    // 	return eventObj;
+	    // }
 
 	    var expandEventToObject = function ( event ) {
 	    	event.fields.get = (function(e){
@@ -1372,7 +1372,7 @@
 
 		if ( typeof global !== 'undefined' ) { // check if environment could be Node
 
-			var url = require('url'), 
+			var url  = require('url'), 
 				qstr = require('querystring'),
 				http = require('http');
 			

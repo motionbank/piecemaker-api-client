@@ -1,4 +1,7 @@
+var __dirname = module.directory;
+
 var PieceMakerApi = require( __dirname + '/../../../releases/piecemaker-api-client-current'),
+	PieceMakerApiDebug = require( __dirname + '/../../../src-js/api'),
 	config = require( __dirname + '/../config/config' );
 
 var pm = new PieceMakerApi({

@@ -1,4 +1,5 @@
 var PieceMakerApi = require( __dirname + '/../../../releases/piecemaker-api-client-current'),
+	PieceMakerApiDebug = require( __dirname + '/../../../src-js/api'),
 	config = require( __dirname + '/../config/config' );
 
 var pm = new PieceMakerApi({
@@ -15,9 +16,13 @@ var pm = new PieceMakerApi({
 var role, user, group, events = [];
 
 pm.listRoles( function ( rr ) {
+	
+	console.log( rr );
+
 	pm.createRole( 'group_user', 'user', '', function ( r ) {
 
 		console.log( r );
+
 		role = r;
 
 		pm.addPermissionToRole( role.id, 'create_new_event' );
