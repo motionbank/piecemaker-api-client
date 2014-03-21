@@ -11,7 +11,7 @@ This client's API implementation is based upon the new/upcoming [Piecemaker 2.0 
 
 This client library is actually two implementations in one: JavaScript and Java.
 The JavaScript version can be used in a browser or with Node.js.
-Java version is targeted at Processing but should run in plan Java just fine.
+The Java version is targeted at Processing but should run in plain Java just fine.
 An openFrameworks addon is [in the works](https://github.com/motionbank/ofxPiecemaker2).
 
 The JavaScript version uses [jQuery.ajax](https://api.jquery.com/jQuery.ajax/) in the browser DOM and Node.js' ["http"](http://nodejs.org/api/http.html) for the asynchronous Piecemaker API requests. Java version uses [Apache Commons](http://commons.apache.org/).
