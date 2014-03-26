@@ -16,6 +16,6 @@ package org.piecemaker2.models;
 
 public class Permission
 {
-	public String name;
-	public String permission;
+	public String action;
+	public boolean allowed;
 }

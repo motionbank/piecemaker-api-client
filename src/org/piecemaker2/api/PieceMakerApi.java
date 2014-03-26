@@ -916,7 +916,7 @@ public class PieceMakerApi
 	 *	addPermissionToRole()
 	 *
 	 *	@param roleName The name / id of the role to add a permission to
-	 *	@param name The name / entity of the permission to add
+	 *	@param action The action of the permission to add
 	 *	@param callback A callback to run once the permissions are available
 	 *
 	 *	<p>The callback receives a Permission object</p>
@@ -924,17 +924,17 @@ public class PieceMakerApi
 	 *	@see org.piecemaker2.models.Permission
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void addPermissionToRole ( String roleName, String name, ApiCallback callback )
+	public void addPermissionToRole ( String roleName, String action, ApiCallback callback )
 	{
-		addPermissionToRole( roleName, name, "allow", callback );
+		addPermissionToRole( roleName, action, true, callback );
 	}
 
 	/**
 	 *	addPermissionToRole()
 	 *
 	 *	@param roleName The name / id of the role to add a permission to
-	 *	@param name The name / entity of the permission to add
-	 *	@param permission Either "allow" or "forbid" 
+	 *	@param action The action of the permission to add
+	 *	@param isAllowed Wether this action should be allowed or forbidden
 	 *	@param callback A callback to run once the permissions are available
 	 *
 	 *	<p>The callback receives a Permission object</p>
@@ -942,11 +942,11 @@ public class PieceMakerApi
 	 *	@see org.piecemaker2.models.Permission
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void addPermissionToRole ( String roleName, String name, String permission, ApiCallback callback )
+	public void addPermissionToRole ( String roleName, String action, boolean isAllowed, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
-		data.put( "entity", name );
-		data.put( "permission", permission );
+		data.put( "action",  action );
+		data.put( "allowed", isAllowed ? "yes" : "no" );
 
 		if ( ensureApiKey() )
 		{
@@ -962,8 +962,8 @@ public class PieceMakerApi
 	 *	changePermissionForRole()
 	 *
 	 *	@param roleName The name / id of the role
-	 *	@param name The name / entity of the permission
-	 *	@param permission Either "allow" or "forbid"
+	 *	@param action The action of the permission
+	 *	@param isAllowed Wether to allow or forbid this action
 	 *	@param callback A callback to run once the permissions are available
 	 *
 	 *	<p>The callback receives a Permission object</p>
@@ -971,17 +971,17 @@ public class PieceMakerApi
 	 *	@see org.piecemaker2.models.Permission
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void changePermissionForRole ( String roleName, String name, String permission, ApiCallback callback )
+	public void changePermissionForRole ( String roleName, String action, boolean isAllowed, ApiCallback callback )
 	{
 		HashMap data = new HashMap<String,String>();
-		data.put( "entity", name );
-		data.put( "permission", permission );
+		data.put( "action", action );
+		data.put( "allowed", isAllowed ? "yes" : "no" );
 
 		if ( ensureApiKey() )
 		{
 			new Thread(
 				new ApiRequest( this, api_key, PERMISSION, 
-								host + "/role/" + roleName + "/permission/" + name, 
+								host + "/role/" + roleName + "/permission/" + action, 
 								ApiRequest.PUT, data, callback )
 			).start();
 		}
@@ -991,7 +991,7 @@ public class PieceMakerApi
 	 *	removePermissionFromRole()
 	 *
 	 *	@param roleName The name / id of the role
-	 *	@param name The name / entity of the permission
+	 *	@param action The action of the permission
 	 *	@param callback A callback to run once the permissions are available
 	 *
 	 *	<p>The callback receives a Permission object</p>
@@ -999,13 +999,13 @@ public class PieceMakerApi
 	 *	@see org.piecemaker2.models.Permission
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void removePermissionFromRole ( String roleName, String permission, ApiCallback callback ) 
+	public void removePermissionFromRole ( String roleName, String action, ApiCallback callback ) 
 	{
 		if ( ensureApiKey() )
 		{
 			new Thread(
 				new ApiRequest( this, api_key, PERMISSION, 
-								host + "/role/" + roleName + "/permission/" + permission, 
+								host + "/role/" + roleName + "/permission/" + action, 
 								ApiRequest.DELETE, null, callback )
 			).start();
 		}
@@ -1015,7 +1015,7 @@ public class PieceMakerApi
 	 *	getPermissionFromRole()
 	 *
 	 *	@param roleName The name / id of the role
-	 *	@param name The name / entity of the permission
+	 *	@param action The action of the permission
 	 *	@param callback A callback to run once the permissions are available
 	 *
 	 *	<p>The callback receives a Permission object</p>
@@ -1023,13 +1023,13 @@ public class PieceMakerApi
 	 *	@see org.piecemaker2.models.Permission
 	 *	@see #createCallback( Object[] args )
 	 */
-	public void getPermissionFromRole ( String roleName, String permission, ApiCallback callback )
+	public void getPermissionFromRole ( String roleName, String action, ApiCallback callback )
 	{
 		if ( ensureApiKey() )
 		{
 			new Thread(
 				new ApiRequest( this, api_key, PERMISSION, 
-								host + "/role/" + roleName + "/permission/" + permission, 
+								host + "/role/" + roleName + "/permission/" + action, 
 								ApiRequest.GET, null, callback )
 			).start();
 		}
@@ -1307,7 +1307,7 @@ public class PieceMakerApi
 
 					for ( int i = 0; i < responseArr.length(); i++ ) {
 						perms[i] = new Permission();
-						perms[i].name = responseArr.getString(i);
+						perms[i].action = responseArr.getString(i);
 					}
 				}
 
@@ -1488,8 +1488,8 @@ public class PieceMakerApi
 		Permission perm = new Permission();
 
 		try {
-			perm.name 		= e.getString("entity");
-			perm.permission = e.getString("permission");
+			perm.action = e.getString("action");
+			perm.allowed = e.getBoolean("allowed");
 
 		} catch ( Exception excp ) {
 			excp.printStackTrace();

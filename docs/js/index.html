@@ -42,7 +42,7 @@
 for createCallback() do not return any values. Results are passed 
 into an mostly optional callback instead.</p>
 <p>See:<br><a href="http://motionbank.org/">http://motionbank.org/</a><br><a href="http://piecemaker.org/">http://piecemaker.org/</a></p>
-<p>Version: 0.0.18<br>Build: 896</p>
+<p>Version: 0.0.18<br>Build: 904</p>
 
             </div>
             
@@ -925,7 +925,7 @@ other roles.</p>
                 <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p>A permission reflects a certain action on the server that can be triggered through the API.
-Each permission can be set to &quot;allow&quot; or &quot;forbid&quot; one action.
+Each permission can be set to allow or forbid one action.
 Permissions are grouped into roles to allow for fine grained user rights control.</p>
 <p>Permissions are predefined (hard coded) into the API, use listPermissions() to get a list.</p>
 <h3>Get all permissions</h3>
@@ -960,27 +960,26 @@ Permissions are grouped into roles to allow for fine grained user rights control
               <h3>Add a permission to a role</h3>
 <p>See:
 <a href="http://motionbank.github.io/piecemaker2-api/swagger/#!/role/POST_api_version_role_format">http://motionbank.github.io/piecemaker2-api/swagger/#!/role/POST_api_version_role_format</a></p>
-<pre><code>api.addPermissionToRole( &lt;string&gt; role_id, &lt;string&gt; permission [, &lt;string&gt; right ] [, &lt;function&gt; callback ] );</code></pre>
-<p>&quot;permission&quot; as available through listPermissions()
-&quot;right&quot; can be one of &quot;allow&quot; or &quot;forbid&quot;</p>
+<pre><code>api.addPermissionToRole( &lt;string&gt; role_id, &lt;string&gt; action [, &lt;boolean&gt; isAllowed ] [, &lt;function&gt; callback ] );</code></pre>
+<p>&quot;action&quot; as available through listPermissions()</p>
 <p>Returns: TODO</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.addPermissionToRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, optionalRight_or_cb, cb )</span> {</span>
+		_PieceMakerApi.prototype.addPermissionToRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, action, isAllowed_or_cb, cb )</span> {</span>
 			<span class="keyword">if</span> ( arguments.length === <span class="number">3</span> ) {
-				cb = optionalRight_or_cb;
+				cb = isAllowed_or_cb;
 			}
 			<span class="keyword">if</span> ( arguments.length == <span class="number">2</span> ) {
-				optionalRight_or_cb = <span class="string">'allow'</span>;
+				isAllowed_or_cb = <span class="literal">true</span>;
 			}
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 			xhrPost( <span class="keyword">this</span>, {
 		        url: self.host + <span class="string">'/role/'</span> + roleId + <span class="string">'/permission'</span>,
 		        data : {
-		        	entity : permission,
-		        	permission : optionalRight_or_cb
+		        	action : action,
+		        	allowed : (isAllowed_or_cb === <span class="literal">true</span> ? <span class="string">'yes'</span> : <span class="string">'no'</span>)
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
 					callback.call( self.context || cb, response );
@@ -1002,18 +1001,18 @@ Permissions are grouped into roles to allow for fine grained user rights control
 <a href="http://motionbank.github.io/piecemaker2-api/swagger/#!/role/PUT_api_version_role_user_role_id_permission_role_permission_entity_format">http://motionbank.github.io/piecemaker2-api/swagger/#!/role/PUT_api_version_role_user_role_id_permission_role_permission_entity_format</a></p>
 <pre><code>api.changePermissionForRole( &lt;string&gt; role_id, &lt;string&gt; permission, &lt;string&gt; right [, &lt;function&gt; callback ] )</code></pre>
 <p>&quot;permission&quot; as available through listPermissions()
-&quot;right&quot; can be one of &quot;allow&quot; or &quot;forbid&quot;</p>
+&quot;isAllowed&quot; can be true or false</p>
 <p>Returns: TODO</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>		
-		_PieceMakerApi.prototype.changePermissionForRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, right, cb )</span> {</span>
+		_PieceMakerApi.prototype.changePermissionForRole = <span class="function"><span class="keyword">function</span> <span class="params">( roleId, permission, isAllowed, cb )</span> {</span>
 			<span class="keyword">var</span> callback = cb || noop, self = <span class="keyword">this</span>;
 			xhrPut( <span class="keyword">this</span>, {
 		        url: self.host + <span class="string">'/role/'</span> + roleId + <span class="string">'/permission/'</span> + permission,
 		        data : {
-		        	permission : right
+		        	allowed : (isAllowed === <span class="literal">true</span> ? <span class="string">'yes'</span> : <span class="string">'no'</span>)
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
 					callback.call( self.context || cb, response );

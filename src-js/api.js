@@ -686,7 +686,7 @@
 		// --------
 
 		// A permission reflects a certain action on the server that can be triggered through the API.
-		// Each permission can be set to "allow" or "forbid" one action.
+		// Each permission can be set to allow or forbid one action.
 		// Permissions are grouped into roles to allow for fine grained user rights control.
 
 		// Permissions are predefined (hard coded) into the API, use listPermissions() to get a list.
@@ -720,26 +720,25 @@
 		// http://motionbank.github.io/piecemaker2-api/swagger/#!/role/POST_api_version_role_format
 
 		// ```
-		// api.addPermissionToRole( <string> role_id, <string> permission [, <string> right ] [, <function> callback ] );
+		// api.addPermissionToRole( <string> role_id, <string> action [, <boolean> isAllowed ] [, <function> callback ] );
 		// ```
-		// "permission" as available through listPermissions()
-		// "right" can be one of "allow" or "forbid"
+		// "action" as available through listPermissions()
 
 		// Returns: TODO
 		
-		_PieceMakerApi.prototype.addPermissionToRole = function ( roleId, permission, optionalRight_or_cb, cb ) {
+		_PieceMakerApi.prototype.addPermissionToRole = function ( roleId, action, isAllowed_or_cb, cb ) {
 			if ( arguments.length === 3 ) {
-				cb = optionalRight_or_cb;
+				cb = isAllowed_or_cb;
 			}
 			if ( arguments.length == 2 ) {
-				optionalRight_or_cb = 'allow';
+				isAllowed_or_cb = true;
 			}
 			var callback = cb || noop, self = this;
 			xhrPost( this, {
 		        url: self.host + '/role/' + roleId + '/permission',
 		        data : {
-		        	entity : permission,
-		        	permission : optionalRight_or_cb
+		        	action : action,
+		        	allowed : (isAllowed_or_cb === true ? 'yes' : 'no')
 		        },
 		        success: function ( response ) {
 					callback.call( self.context || cb, response );
@@ -756,16 +755,16 @@
 		// api.changePermissionForRole( <string> role_id, <string> permission, <string> right [, <function> callback ] )
 		// ```
 		// "permission" as available through listPermissions()
-		// "right" can be one of "allow" or "forbid"
+		// "isAllowed" can be true or false
 
 		// Returns: TODO
 		
-		_PieceMakerApi.prototype.changePermissionForRole = function ( roleId, permission, right, cb ) {
+		_PieceMakerApi.prototype.changePermissionForRole = function ( roleId, permission, isAllowed, cb ) {
 			var callback = cb || noop, self = this;
 			xhrPut( this, {
 		        url: self.host + '/role/' + roleId + '/permission/' + permission,
 		        data : {
-		        	permission : right
+		        	allowed : (isAllowed === true ? 'yes' : 'no')
 		        },
 		        success: function ( response ) {
 					callback.call( self.context || cb, response );
