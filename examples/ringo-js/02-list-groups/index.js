@@ -9,6 +9,8 @@ for ( var j in jars ) {
 importPackage( org.piecemaker2.api );
 importPackage( org.piecemaker2.models );
 
+var HashMap = Packages.java.util.HashMap;
+
 var config = require('../config/config.js');
 
 var pm = new PieceMakerApi(
@@ -21,6 +23,18 @@ pm.listAllGroups( pm.createCallback( function ( groups ) {
 	
 	for ( var g in groups ) {
 		print( groups[g].id + " " + groups[g].title );
+
+		if ( groups[g].id === 24 ) {
+			
+			var h = new HashMap();
+			h.put('type','scene');
+
+			pm.findEvents( groups[g].id, h, pm.createCallback( function (evts) {
+
+				print( evts[0].fields );
+
+			} ) );
+		}
 	}
 	
 } ) );

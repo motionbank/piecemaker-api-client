@@ -42,7 +42,7 @@
 for createCallback() do not return any values. Results are passed 
 into an mostly optional callback instead.</p>
 <p>See:<br><a href="http://motionbank.org/">http://motionbank.org/</a><br><a href="http://piecemaker.org/">http://piecemaker.org/</a></p>
-<p>Version: 0.0.18<br>Build: 904</p>
+<p>Version: 0.0.18<br>Build: 909</p>
 
             </div>
             
@@ -1126,7 +1126,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 			xhrGet( <span class="keyword">this</span>, {
 		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
+					callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1157,7 +1157,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 		        	type: type
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-					callback.call( self.context || cb, response );
+					callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1200,7 +1200,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listEventsWithFields = <span class="function"><span class="keyword">function</span> <span class="params">( <span class="comment">/* groupId, id1, val1, id2, val2, ???, cb */</span> )</span> {</span>
+            <div class="content"><div class='highlight'><pre>		_PieceMakerApi.prototype.listEventsWithFields = <span class="function"><span class="keyword">function</span> <span class="params">( <span class="comment">/* groupId, id1, val1, id2, val2, …, cb */</span> )</span> {</span>
 			<span class="keyword">var</span> groupId = arguments[<span class="number">0</span>];
 			<span class="keyword">var</span> fields = {};
 			<span class="keyword">if</span> ( arguments.length &gt; <span class="number">3</span> ) {
@@ -1222,7 +1222,7 @@ Each event can have an undefined amount of additional fields in the form of {key
 		        	fields: fields
 		        },
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, response );
+		        	callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1283,7 +1283,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 		        url: self.host + <span class="string">'/group/'</span>+groupId+<span class="string">'/events'</span>,
 		        data: data,
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, response );
+		        	callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1313,7 +1313,7 @@ api.listEventsForTimespan( &lt;int&gt; group_id, &lt;date&gt; from, &lt;date&gt;
 		        url: self.host + <span class="string">'/group/'</span> + groupId + <span class="string">'/events'</span>,
 		        data: convertData( eventData ),
 		        success: <span class="function"><span class="keyword">function</span> <span class="params">( response )</span> {</span>
-		        	callback.call( self.context || cb, response );
+		        	callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}</pre></div></div>
@@ -1673,35 +1673,65 @@ api.createCallback( &lt;object&gt; context, &lt;string&gt; method_name )</code><
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
-              <p>temporary fix for:
-<a href="https://github.com/motionbank/piecemaker2/issues/54">https://github.com/motionbank/piecemaker2/issues/54</a></p>
-<p>var fixEventsResponseToArr = function ( resp ) {
-    if ( resp instanceof Array ) {
-        var arr = [];
-        for ( var i = 0; i &lt; resp.length; i++ ) {
-            arr.pus h( expandEventToObject( resp[i] ) );
-        }
-        return arr;
-    }
-    return resp;
-}</p>
-<p>var fixEventResponse = function ( resp ) {
-    var eventObj = resp[&#39;event&#39;];
-    eventObj[&#39;fields&#39;] = {};
-    for ( var i = 0, fields = resp[&#39;fields&#39;]; i &lt; fields.length; i++ ) {
-        eventObj[&#39;fields&#39;][fields[i][&#39;id&#39;]] = fields[i][&#39;value&#39;];
-    }
-    return eventObj;
-}</p>
+              <p>FIXME: these are temporary fixes for:
+<a href="https://github.com/motionbank/piecemaker2/issues/54">https://github.com/motionbank/piecemaker2/issues/54</a>
+<a href="https://github.com/motionbank/piecemaker2-api/issues/105">https://github.com/motionbank/piecemaker2-api/issues/105</a></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> expandEventToObject = <span class="function"><span class="keyword">function</span> <span class="params">( event )</span> {</span>
-	    	event.fields.get = (<span class="keyword">function</span>(e){
-	    		<span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">( k )</span> {</span>
-	    			<span class="keyword">return</span> e.fields[k];
+            <div class="content"><div class='highlight'><pre>	    <span class="keyword">var</span> fixEventsResponse = <span class="function"><span class="keyword">function</span> <span class="params">( resp )</span> {</span>
+	    	<span class="keyword">if</span> ( resp <span class="keyword">instanceof</span> Array ) {
+	    		<span class="keyword">var</span> arr = [];
+	    		<span class="keyword">for</span> ( <span class="keyword">var</span> i = <span class="number">0</span>; i &lt; resp.length; i++ ) {
+	    			arr.push( expandEventToObject( resp[i] ) );
 	    		}
-	    	})(event);
+	    		<span class="keyword">return</span> arr;
+	    	}
+	    	<span class="keyword">return</span> resp;
+	    }
+
+	    <span class="keyword">var</span> expandEventToObject = <span class="function"><span class="keyword">function</span> <span class="params">( event )</span> {</span>
+	    	<span class="keyword">if</span> ( event.fields &amp;&amp; event.fields.length &gt; <span class="number">0</span> ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-62">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-62">&#182;</a>
+              </div>
+              <p>fix JSON formatting</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		    	<span class="keyword">var</span> new_fields = {};
+				<span class="keyword">for</span> ( <span class="keyword">var</span> i = <span class="number">0</span>, f = event.fields, l = f.length; i &lt; l; i++ ) {
+					<span class="keyword">var</span> field = f[i];
+					new_fields[f[i][<span class="string">'id'</span>]] = f[i][<span class="string">'value'</span>];
+				}
+				event.fields = new_fields;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-63">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-63">&#182;</a>
+              </div>
+              <p>add a fake getter to make Processing.js happy</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	    		event.fields.get = (<span class="keyword">function</span>(e){
+		    		<span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">( k )</span> {</span>
+		    			<span class="keyword">return</span> e.fields[k];
+		    		}
+		    	})(event);
+		    }
 	    	event.utc_timestamp = <span class="keyword">new</span> Date( event.utc_timestamp * <span class="number">1000.0</span> );
 	    	<span class="keyword">return</span> event;
 	    }
@@ -1721,11 +1751,11 @@ api.createCallback( &lt;object&gt; context, &lt;string&gt; method_name )</code><
         </li>
         
         
-        <li id="section-62">
+        <li id="section-64">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-62">&#182;</a>
+                <a class="pilcrow" href="#section-64">&#182;</a>
               </div>
               <h2>XHR requests</h2>
 
@@ -1734,11 +1764,11 @@ api.createCallback( &lt;object&gt; context, &lt;string&gt; method_name )</code><
         </li>
         
         
-        <li id="section-63">
+        <li id="section-65">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-63">&#182;</a>
+                <a class="pilcrow" href="#section-65">&#182;</a>
               </div>
               
             </div>
@@ -1751,11 +1781,11 @@ api.createCallback( &lt;object&gt; context, &lt;string&gt; method_name )</code><
         </li>
         
         
-        <li id="section-64">
+        <li id="section-66">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-64">&#182;</a>
+                <a class="pilcrow" href="#section-66">&#182;</a>
               </div>
               <p>Almost all calls to the API need to be done including a per-user API token.
 This token is passed into the constructor below and gets automatically 
@@ -1779,11 +1809,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-65">
+        <li id="section-67">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-65">&#182;</a>
+                <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               <p>before: function ( xhr ) {
     if ( !url.match(/\/user\/login$/) ) {
@@ -1858,11 +1888,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-66">
+        <li id="section-68">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-66">&#182;</a>
+                <a class="pilcrow" href="#section-68">&#182;</a>
               </div>
               <h2>Environment setup</h2>
 
@@ -1871,11 +1901,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-67">
+        <li id="section-69">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-67">&#182;</a>
+                <a class="pilcrow" href="#section-69">&#182;</a>
               </div>
               <p>... Node or browser window</p>
 
@@ -1896,11 +1926,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-68">
+        <li id="section-70">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-68">&#182;</a>
+                <a class="pilcrow" href="#section-70">&#182;</a>
               </div>
               <p>a shim to mimic jQuery.ajax for node.js</p>
 
@@ -1971,11 +2001,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-69">
+        <li id="section-71">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-69">&#182;</a>
+                <a class="pilcrow" href="#section-71">&#182;</a>
               </div>
               <p>support common-js</p>
 
@@ -1988,11 +2018,11 @@ added to each call here if it is not already present.</p>
         </li>
         
         
-        <li id="section-70">
+        <li id="section-72">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-70">&#182;</a>
+                <a class="pilcrow" href="#section-72">&#182;</a>
               </div>
               <p>in the browsers</p>
 

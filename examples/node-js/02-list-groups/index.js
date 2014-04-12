@@ -15,5 +15,15 @@ var pm = new PieceMakerApi({
 pm.listAllGroups(function ( groups ) {
 	
 	console.log( groups );
+
+	for ( var g in  groups ) {
+		var group = groups[g];
+		if ( group.id === 24 ) {
+			
+			pm.findEvents(group.id,{type:'scene'},function(evts){
+				console.log( evts[0] );
+			});
+		}
+	}
 	
 });

@@ -1,7 +1,7 @@
 package org.piecemaker2.api;
 
 /**
- *	Class PieceMakerApi
+ *	Piecemaker 2 API client
  *
  *	References:
  *	<ul>

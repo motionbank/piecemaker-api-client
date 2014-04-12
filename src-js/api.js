@@ -836,7 +836,7 @@
 			xhrGet( this, {
 		        url: self.host + '/group/'+groupId+'/events',
 		        success: function ( response ) {
-					callback.call( self.context || cb, response );
+					callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}
@@ -860,7 +860,7 @@
 		        	type: type
 		        },
 		        success: function ( response ) {
-					callback.call( self.context || cb, response );
+					callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}
@@ -911,7 +911,7 @@
 		        	fields: fields
 		        },
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, response );
+		        	callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}
@@ -957,7 +957,7 @@
 		        url: self.host + '/group/'+groupId+'/events',
 		        data: data,
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, response );
+		        	callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}
@@ -981,7 +981,7 @@
 		        url: self.host + '/group/' + groupId + '/events',
 		        data: convertData( eventData ),
 		        success: function ( response ) {
-		        	callback.call( self.context || cb, response );
+		        	callback.call( self.context || cb, fixEventsResponse( response ) );
 		        }
 		    });
 		}
@@ -1222,35 +1222,37 @@
 	    	return data;
 	    }
 
-	    // temporary fix for:
+	    // FIXME: these are temporary fixes for:
 	    // https://github.com/motionbank/piecemaker2/issues/54
+	    // https://github.com/motionbank/piecemaker2-api/issues/105
 
-	    // var fixEventsResponseToArr = function ( resp ) {
-	    // 	if ( resp instanceof Array ) {
-	    // 		var arr = [];
-	    // 		for ( var i = 0; i < resp.length; i++ ) {
-	    // 			arr.pus h( expandEventToObject( resp[i] ) );
-	    // 		}
-	    // 		return arr;
-	    // 	}
-	    // 	return resp;
-	    // }
-
-	    // var fixEventResponse = function ( resp ) {
-	    // 	var eventObj = resp['event'];
-	    // 	eventObj['fields'] = {};
-	    // 	for ( var i = 0, fields = resp['fields']; i < fields.length; i++ ) {
-	    // 		eventObj['fields'][fields[i]['id']] = fields[i]['value'];
-	    // 	}
-	    // 	return eventObj;
-	    // }
+	    var fixEventsResponse = function ( resp ) {
+	    	if ( resp instanceof Array ) {
+	    		var arr = [];
+	    		for ( var i = 0; i < resp.length; i++ ) {
+	    			arr.push( expandEventToObject( resp[i] ) );
+	    		}
+	    		return arr;
+	    	}
+	    	return resp;
+	    }
 
 	    var expandEventToObject = function ( event ) {
-	    	event.fields.get = (function(e){
-	    		return function ( k ) {
-	    			return e.fields[k];
-	    		}
-	    	})(event);
+	    	if ( event.fields && event.fields.length > 0 ) {
+	    		// fix JSON formatting
+		    	var new_fields = {};
+				for ( var i = 0, f = event.fields, l = f.length; i < l; i++ ) {
+					var field = f[i];
+					new_fields[f[i]['id']] = f[i]['value'];
+				}
+				event.fields = new_fields;
+				// add a fake getter to make Processing.js happy
+	    		event.fields.get = (function(e){
+		    		return function ( k ) {
+		    			return e.fields[k];
+		    		}
+		    	})(event);
+		    }
 	    	event.utc_timestamp = new Date( event.utc_timestamp * 1000.0 );
 	    	return event;
 	    }
