@@ -151,14 +151,14 @@ See readme for time being please.
 			<fileset dir="res/docco-template" />
 		</copy>	
 		<!-- <mkdir dir="${dist}/${lib.name}/${docs}/js" /> -->
-		<exec executable="/usr/local/bin/docco">
+		<!-- <exec executable="/usr/local/bin/docco">
 			<env key="PATH" path="${env.PATH}:/usr/local/bin"/>
 			<arg value="-o" />
 			<arg value="${absolute.path}/${dist}/${lib.name}/${docs}/js" />
 			<arg value="${absolute.path}/${bin}/${lib.name}.js" />
 		</exec>
 		<move file="${dist}/${lib.name}/${docs}/js/${lib.name}.html" 
-			  tofile="${dist}/${lib.name}/${docs}/js/index.html"/>
+			  tofile="${dist}/${lib.name}/${docs}/js/index.html"/> -->
 
 		<mkdir dir="${docs}" />
 		<copy todir="${docs}">

@@ -302,15 +302,36 @@
 			});
 		}
 
+		// ###Get all groups visible to given user
+
+		// This returns a list of groups that the user belongs to
+
+		// See:
+		// http://motionbank.github.io/piecemaker2-api/swagger/#!/user/GET_api_version_user_id_groups_format
+
+		// ```
+		// api.userGroups( <int> user_id [, <function> callback ] )
+		// ```
+
+		_PieceMakerApi.prototype.userGroups = function ( userId, cb ) {
+			var callback = cb || noop, self = this;
+			xhrDelete( this, {
+				url: self.host + '/user/' + userId + '/groups',
+				success: function ( response ) {
+					callback.call( self.context || cb /*, response*/ );
+				}
+			});
+		}
+
 		// Groups
 		// -------
 
 		// Groups are what Piecemaker 1 called a "piece":  
 		// a collection of events (markers, videos, recordings, ...)
 
-		// ###Get all groups visible to current user
+		// ###Get all groups
 
-		// This returns a list of groups that the user belongs to
+		// This returns a list of all groups (super admin only)
 
 		// See:
 		// http://motionbank.github.io/piecemaker2-api/swagger/#!/groups/GET_api_version_groups_format
