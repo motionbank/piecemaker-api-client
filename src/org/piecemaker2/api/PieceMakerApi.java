@@ -1417,6 +1417,9 @@ public class PieceMakerApi
 			event.duration 		= eventJson.getLong( "duration" );
 			event.type 			= eventJson.getString( "type" );
 
+			event.created_by_user_id = eventJson.getInt( "created_by_user_id" );
+			event.event_group_id = eventJson.getInt( "event_group_id" );
+
 			event.fields 		= new HashMap<String, String>();
 			eventFields 		= eventJson.getJSONArray("fields");
 
