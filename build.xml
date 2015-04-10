@@ -22,13 +22,13 @@
 	<property name="lib.name" 	value="PieceMaker2Lib" 	/>
 	<property name="author"		value="Florian Jenett" 	/>
 	<property name="client"		value="Motion Bank" 	/>
-	<property name="version" 	value="0.0.19" 			/>
+	<property name="version" 	value="0.0.20" 			/>
 	<property name="java.target.version" 
 								value="1.5" 			/>
 	
 	<!--property name="processing.classes" location="/Applications/Processing.app/Contents/Resources/Java/"/-->
 	<property name="processing.classes" 
-			  location="/Users/fjenett/Repos/processing/build/macosx/work/Processing.app/Contents/Java/"/>
+			  location="/Applications/Processing-3a5/Processing.app/Contents/Java/"/>
 
 	<property name="processing.libs" 
 			  location="/Users/fjenett/Documents/Processing/libraries"/>

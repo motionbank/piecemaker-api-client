@@ -10,3 +10,4 @@ web-export
 node_modules
 config.js
 .tern-port
+npm-debug.log
