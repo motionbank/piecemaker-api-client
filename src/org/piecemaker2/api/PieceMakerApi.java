@@ -46,6 +46,7 @@ public class PieceMakerApi
 	public final static int GROUPS 	= (++v);
 	
 	public final static int EVENT 	= (++v);
+	public final static int TYPES 	= (++v);
 	public final static int EVENTS 	= (++v);
 
 	public final static int ROLE 	= (++v);
@@ -576,6 +577,29 @@ public class PieceMakerApi
 	{
 		if ( ensureApiKey() ) {
 			new Thread( new ApiRequest( this, api_key, EVENTS, host + "/group/" + groupId + "/events", ApiRequest.GET, null, callback ) ).start();
+		}
+	}
+
+	/**
+	 *	listEventTypes()
+	 *
+	 *	@param groupId The ID of the group
+	 *	@param callback A callback to be run once events become available
+	 *
+	 *	<p>The callback receives an array of Strings</p>
+	 *
+	 *	@see #createCallback( Object[] args )
+	 */
+	public void listEventTypes ( int groupId, ApiCallback callback )
+	{
+		if ( ensureApiKey() ) {
+			new Thread( 
+				new ApiRequest( 
+					this, api_key, EVENTS, 
+					host + "/group/" + groupId + "/event-types", 
+					ApiRequest.GET, null, callback
+				) 
+			).start();
 		}
 	}
 
@@ -1194,6 +1218,21 @@ public class PieceMakerApi
 				Event e = eventFromJson( new JSONObject( responseBody ) );
 
 				request.getCallback().call( e );
+			}
+
+			else if ( request.getType() == TYPES )
+			{
+				JSONArray jsonTypes = new JSONArray( responseBody );
+				ArrayList<String> types = new ArrayList<String>();
+				if ( jsonTypes.length() > 0 ) 
+				{
+					for ( int i = 0, k = jsonTypes.length(); i < k; i++ )
+					{
+						String t = jsonTypes.getString( i );
+						if ( !t.trim().equals("") ) types.add(t);
+					}
+				}
+				request.getCallback().call((Object)(types.toArray(new String[0])));
 			}
 
 			else if ( request.getType() == USERS )

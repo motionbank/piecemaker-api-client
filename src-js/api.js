@@ -862,6 +862,27 @@
 		    });
 		}
 
+		// ###Get all event types from a group
+
+		// See:
+		// 
+
+		// ```
+		// api.listEventTypes( <int> group_id [, <function> callback ] )
+		// ```
+
+		// Callback receives an array with all distinct event types in the group
+		
+		_PieceMakerApi.prototype.listEventTypes = function ( groupId, cb ) {
+			var callback = cb || noop, self = this;
+			xhrGet( this, {
+		        url: self.host + '/group/'+groupId+'/event-types',
+		        success: function ( response ) {
+					callback.call( self.context || cb, fixEventsResponse( response ) );
+		        }
+		    });
+		}
+
 		// ###Get all events of a certain type
 
 		// See:
@@ -975,7 +996,7 @@
 	        	data.fromto_query = method;
 	        }
 			xhrGet( self, {
-		        url: self.host + '/group/'+groupId+'/events',
+		        url: self.host + '/group/' + groupId + '/events',
 		        data: data,
 		        success: function ( response ) {
 		        	callback.call( self.context || cb, fixEventsResponse( response ) );
