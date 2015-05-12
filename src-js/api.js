@@ -1389,8 +1389,8 @@
 				}
 			}
 
-			if ( pm && 'piecemakerError' in pm && typeof pm['piecemakerError'] == 'function' )
-				pm['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
+			if ( pm && pm.context && 'piecemakerError' in pm.context && typeof pm.context['piecemakerError'] == 'function' )
+				pm.context['piecemakerError']( statusCode, statusMessage, type.toUpperCase() + " " + url );
 			else {
 				if ( typeof console !== 'undefined' && console.log ) {
 					console.log( statusCode, statusMessage, url, type, err );
