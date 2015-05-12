@@ -13,5 +13,5 @@
   "devDependencies": {
   },
   "main"          : "releases/piecemaker-api-client-current.js",
-  "version"       : "0.0.21"
+  "version"       : "0.0.22"
 }
