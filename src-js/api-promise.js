@@ -977,4 +977,8 @@ class PMApiError extends Error {
   }
 }
 
+if (typeof window !== 'undefined') {
+  window.PieceMakerApi = PieceMakerApi
+}
+
 export default PieceMakerApi
