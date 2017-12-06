@@ -1,0 +1,18 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Piecemaker 2 API promise test</title>
+  <script type="text/javascript" src="../../releases/piecemaker-api-client-promise.min.js"></script>
+  <script type="text/javascript">
+    function runTheTest () {
+      var pm = new PieceMakerApi('http://localhost:9292', '0310X0fAvYo04PGK');
+
+      pm.listGroups()
+        .then(console.log)
+        .catch(console.log);
+    }
+    window.onload = runTheTest;
+  </script>
+</head>
+<body></body>
+</html>
