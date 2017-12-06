@@ -1,17 +1,63 @@
 {
-  "name"          : "piecemaker-api-client",
-  "description"   : "A client for JavaScript (+ Node.js) / Java (+ Processing) to access the Piecemaker-2 API developed for Motion Bank",
-  "url"           : "https://github.com/motionbank/piecemaker-api-client",
-  "keywords"      : ["video", "data", "html5", "client", "API", "annotation"],
-  "author"        : "Florian Jenett <florian@motionbank.org>",
+  "name": "piecemaker-api-client",
+  "description": "A client for JavaScript (+ Node.js) / Java (+ Processing) to access the Piecemaker-2 API developed for Motion Bank",
+  "url": "https://github.com/motionbank/piecemaker-api-client",
+  "keywords": [
+    "video",
+    "data",
+    "html5",
+    "client",
+    "API",
+    "annotation"
+  ],
+  "author": "Florian Jenett <florian@motionbank.org>",
   "repository": {
     "type": "git",
     "url": "https://github.com/motionbank/piecemaker-api-client"
   },
-  "dependencies"  : {
+  "scripts": {
+    "build": "npm run browserify && npm run uglify",
+    "browserify": "browserify src-js/api-promise.js -o releases/piecemaker-api-client-promise.js -t [ babelify ]",
+    "uglify": "uglifyjs --screw-ie8 --compress --mangle --output=releases/piecemaker-api-client-promise.min.js -- releases/piecemaker-api-client-promise.js"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            [
+              "env",
+              {
+                "targets": {
+                  "browsers": [
+                    "last 2 versions"
+                  ]
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "superagent": "^3.6.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
+    "eslint": "^4.6.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.1.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "uglify-es": "github:mishoo/UglifyJS2#harmony"
   },
-  "main"          : "releases/piecemaker-api-client-current.js",
-  "version"       : "0.0.21"
+  "main": "releases/piecemaker-api-client-current.js",
+  "version": "0.1.0"
 }
