@@ -4397,6 +4397,10 @@ var PMApiError = function (_Error) {
   return PMApiError;
 }(Error);
 
+if (typeof window !== 'undefined') {
+  window.PieceMakerApi = PieceMakerApi;
+}
+
 exports.default = PieceMakerApi;
 
 },{"assert":1,"superagent":4}]},{},[13]);
