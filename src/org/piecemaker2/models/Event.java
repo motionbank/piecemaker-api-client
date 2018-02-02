@@ -19,8 +19,9 @@ public class Event
 
 	public int id;
 	public Date utc_timestamp;
-	public long duration;
+	public double duration;
 	public String type;
+	public String token;
 	public int created_by_user_id;
 	public int event_group_id;
 	public HashMap fields;

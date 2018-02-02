@@ -1452,9 +1452,11 @@ public class PieceMakerApi
 		}
 
 		try {
-			event.utc_timestamp = new java.util.Date( (long)(eventJson.getDouble( "utc_timestamp" ) * 1000.0) );
-			event.duration 		= eventJson.getLong( "duration" );
+			double d = eventJson.getDouble( "utc_timestamp" ) * 1000.0;
+			event.utc_timestamp = new java.util.Date( (long)d );
+			event.duration 		= eventJson.getDouble( "duration" );
 			event.type 			= eventJson.getString( "type" );
+			event.token 		= eventJson.getString( "token" );
 
 			event.created_by_user_id = eventJson.getInt( "created_by_user_id" );
 			event.event_group_id = eventJson.getInt( "event_group_id" );

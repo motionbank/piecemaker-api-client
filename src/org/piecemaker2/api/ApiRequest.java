@@ -126,6 +126,7 @@ public class ApiRequest implements Runnable
 			int i = 0;
 			for ( Map.Entry<String,String> e : data.entrySet() )
 			{
+				System.out.println( e.getKey() + " " + e.getValue() );
 				requestData[i] = new NameValuePair( e.getKey(), e.getValue() );
 				i++;
 			}
