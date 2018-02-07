@@ -1,5 +1,5 @@
-import request from 'superagent'
-import assert from 'assert'
+const request = require('superagent')
+const assert = require('assert')
 
 class PieceMakerApi {
   // Class PieceMakerApi
@@ -981,4 +981,4 @@ if (typeof window !== 'undefined') {
   window.PieceMakerApi = PieceMakerApi
 }
 
-export default PieceMakerApi
+module.exports = PieceMakerApi
